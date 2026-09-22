@@ -403,16 +403,6 @@
                         <i class="fa-solid fa-plus text-xs opacity-70"></i>
                     </div>
 
-                    <!-- Conditional If Path Ahead -->
-                    <div class="block-palette-item bg-teal-600 hover:bg-teal-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-grab active:cursor-grabbing border-b-4 border-teal-800" data-type="if_path" draggable="true">
-                        <div class="flex items-center space-x-2 pointer-events-none">
-                            <i class="fa-solid fa-grip-vertical opacity-50 mr-1"></i>
-                            <i class="fa-solid fa-code-branch text-base"></i>
-                            <span>Якщо є шлях</span>
-                        </div>
-                        <i class="fa-solid fa-plus text-xs opacity-70"></i>
-                    </div>
-
                 </div>
 
                 <!-- Trash Can Drop Delete Zone -->
@@ -736,7 +726,7 @@
                 }
             }
 
-            const categories = ["Послідовність", "Напрямки", "Цикли (Repeat)", "Ключі та Двері", "Перешкоди", "Розгалуження (If)", "Генератор Робота"];
+            const categories = ["Послідовність", "Напрямки", "Цикли (Repeat)", "Ключі та Двері", "Перешкоди", "Генератор Робота"];
             const cat = categories[Math.min(levelNum - 1, categories.length - 1)] || "Випадкова Карта";
 
             const optimalBlocks = Math.max(3, Math.floor(path.length * 0.6) + starCount);
@@ -1052,7 +1042,6 @@
             else if (type === 'collect') { bgColor = 'bg-amber-500 border-amber-700 text-slate-950'; icon = 'fa-star'; title = 'Зібрати зірку'; }
             else if (type === 'collect_key') { bgColor = 'bg-amber-600 border-amber-800'; icon = 'fa-key'; title = 'Взяти ключ'; }
             else if (type === 'repeat') { bgColor = 'bg-rose-600 border-rose-800'; icon = 'fa-repeat'; title = 'Повторити'; }
-            else if (type === 'if_path') { bgColor = 'bg-teal-600 border-teal-800'; icon = 'fa-code-branch'; title = 'Якщо є шлях'; }
 
             container.classList.add(...bgColor.split(' '));
 
@@ -1065,24 +1054,25 @@
             leftBox.innerHTML = `<i class="fa-solid fa-grip-vertical opacity-50 mr-0.5"></i> <i class="fa-solid ${icon}"></i> <span>${title}</span>`;
 
             if (type === 'repeat') {
-                const countSelect = document.createElement('select');
-                countSelect.className = 'bg-black/30 text-white rounded px-1.5 py-0.5 text-xs font-bold border border-white/20 outline-none cursor-pointer ml-1 pointer-events-auto';
-                [2, 3, 4, 5].forEach(num => {
-                    const opt = document.createElement('option');
-                    opt.value = num;
-                    opt.innerText = `${num} рази`;
-                    opt.className = 'text-slate-900';
-                    if (num === val) opt.selected = true;
-                    countSelect.appendChild(opt);
-                });
-                countSelect.onchange = (e) => {
+                const countInput = document.createElement('input');
+                countInput.type = 'number';
+                countInput.min = '1';
+                countInput.max = '99';
+                countInput.value = val !== undefined ? val : 2;
+                countInput.className = 'w-14 bg-black/30 text-white text-center rounded px-1.5 py-0.5 text-xs font-bold border border-white/20 outline-none cursor-text ml-2 pointer-events-auto';
+                
+                countInput.onchange = (e) => {
+                    let num = parseInt(e.target.value);
+                    if (isNaN(num) || num < 1) num = 1;
+                    if (num > 99) num = 99;
+                    e.target.value = num;
                     const blk = findBlockInAST(currentWorkspaceBlocks, blockId);
-                    if (blk) blk.val = parseInt(e.target.value);
+                    if (blk) blk.val = num;
                 };
-                // Stop propagation so clicking select doesn't trigger drag
-                countSelect.onmousedown = (e) => e.stopPropagation();
+
+                countInput.onmousedown = (e) => e.stopPropagation();
                 header.appendChild(leftBox);
-                header.appendChild(countSelect);
+                header.appendChild(countInput);
             } else {
                 header.appendChild(leftBox);
             }
@@ -1101,7 +1091,7 @@
             container.appendChild(header);
 
             // Container for Nested Blocks
-            if (type === 'repeat' || type === 'if_path') {
+            if (type === 'repeat') {
                 const nestedBox = document.createElement('div');
                 nestedBox.className = 'nested-blocks mt-2 pl-2 pt-1 pb-1 space-y-1.5 bg-black/20 rounded-lg min-h-[44px] border-dashed border border-white/30';
                 nestedBox.dataset.containerId = blockId;
@@ -1138,7 +1128,7 @@
                             id: `block_${blockIdCounter++}`,
                             type: draggedType,
                             val: draggedType === 'repeat' ? 2 : undefined,
-                            children: (draggedType === 'repeat' || draggedType === 'if_path') ? [] : undefined
+                            children: draggedType === 'repeat' ? [] : undefined
                         };
                     } else if (draggedSource === 'workspace') {
                         sourceNode = detachBlockFromAST(currentWorkspaceBlocks, draggedBlockId);
@@ -1201,8 +1191,6 @@
         }
 
         function attachBlockDragListeners(el, blockId) {
-            // Keep the old HTML5 handlers disabled for actual dragging; pointer events
-            // provide the same behavior on desktop and touch devices.
             el.setAttribute('draggable', 'false');
 
             el.addEventListener('pointerdown', (e) => {
@@ -1251,8 +1239,7 @@
                 move_right: 'Рух вправо',
                 collect: 'Зібрати зірку',
                 collect_key: 'Взяти ключ',
-                repeat: 'Повторити',
-                if_path: 'Якщо є шлях'
+                repeat: 'Повторити'
             };
             return names[type] || 'Блок';
         }
@@ -1333,7 +1320,7 @@
                     id: `block_${blockIdCounter++}`,
                     type: sourceType,
                     val: sourceType === 'repeat' ? 2 : undefined,
-                    children: (sourceType === 'repeat' || sourceType === 'if_path') ? [] : undefined
+                    children: sourceType === 'repeat' ? [] : undefined
                 };
             } else if (source === 'workspace') {
                 sourceNode = detachBlockFromAST(currentWorkspaceBlocks, sourceId);
@@ -1372,8 +1359,6 @@
                 }
             }
 
-            // If a workspace block was dragged somewhere invalid, put it back at the end
-            // instead of losing it.
             if (sourceNode && source === 'workspace') {
                 const stillExists = !!findBlockInAST(currentWorkspaceBlocks, sourceNode.id);
                 if (!stillExists && target && !target.trash) {
@@ -1398,8 +1383,6 @@
             }
         }
 
-        // Global pointer handlers keep the drag alive even when the pointer leaves
-        // the original block, which is essential on touchscreens.
         document.addEventListener('pointermove', (e) => {
             if (!pointerDrag) return;
 
@@ -1460,7 +1443,7 @@
                 id: `block_${blockIdCounter++}`,
                 type: type,
                 val: type === 'repeat' ? 2 : undefined,
-                children: (type === 'repeat' || type === 'if_path') ? [] : undefined
+                children: type === 'repeat' ? [] : undefined
             };
 
             currentWorkspaceBlocks.push(newBlock);
@@ -1544,13 +1527,11 @@
                 if (['move_up', 'move_down', 'move_left', 'move_right', 'collect', 'collect_key'].includes(node.type)) {
                     queue.push({ action: node.type.toUpperCase(), id: node.id });
                 } else if (node.type === 'repeat') {
-                    const count = node.val || 2;
+                    const count = node.val !== undefined ? node.val : 2;
                     for (let c = 0; c < count; c++) {
                         queue.push({ action: 'HIGHLIGHT_BLOCK', id: node.id });
                         queue.push(...compileAST(node.children || []));
                     }
-                } else if (node.type === 'if_path') {
-                    queue.push({ action: 'IF_CHECK', id: node.id, subTree: node.children });
                 }
             });
             return queue;
@@ -1645,19 +1626,6 @@
                         currentGrid[robotState.y][robotState.x] = 0;
                         hasKey = true;
                         AudioEngine.playKey();
-                    }
-                } else if (item.action === 'IF_CHECK') {
-                    const vec = DIR_VECTORS[robotState.dir];
-                    const aheadX = robotState.x + vec.x;
-                    const aheadY = robotState.y + vec.y;
-
-                    const isPathAhead = (aheadX >= 0 && aheadX < activeLevel.gridWidth &&
-                        aheadY >= 0 && aheadY < activeLevel.gridHeight &&
-                        currentGrid[aheadY][aheadX] !== 1 && currentGrid[aheadY][aheadX] !== 5);
-
-                    if (isPathAhead && item.subTree) {
-                        const subCompiled = compileAST(item.subTree);
-                        executionQueue.splice(queueIndex, 0, ...subCompiled);
                     }
                 }
 
@@ -1761,27 +1729,16 @@
                     else if (lang === 'python') code += `${pad}hero.collect_key()\n`;
                     else code += `${pad}Взяти Ключ\n`;
                 } else if (node.type === 'repeat') {
+                    const countVal = node.val !== undefined ? node.val : 2;
                     if (lang === 'js') {
-                        code += `${pad}for (let i = 0; i < ${node.val}; i++) {\n`;
+                        code += `${pad}for (let i = 0; i < ${countVal}; i++) {\n`;
                         code += generateCode(node.children || [], lang, indent + 1);
                         code += `${pad}}\n`;
                     } else if (lang === 'python') {
-                        code += `${pad}for i in range(${node.val}):\n`;
+                        code += `${pad}for i in range(${countVal}):\n`;
                         code += generateCode(node.children || [], lang, indent + 1);
                     } else {
-                        code += `${pad}Повторити ${node.val} разів:\n`;
-                        code += generateCode(node.children || [], lang, indent + 1);
-                    }
-                } else if (node.type === 'if_path') {
-                    if (lang === 'js') {
-                        code += `${pad}if (hero.isPathAhead()) {\n`;
-                        code += generateCode(node.children || [], lang, indent + 1);
-                        code += `${pad}}\n`;
-                    } else if (lang === 'python') {
-                        code += `${pad}if hero.is_path_ahead():\n`;
-                        code += generateCode(node.children || [], lang, indent + 1);
-                    } else {
-                        code += `${pad}Якщо є шлях попереду:\n`;
+                        code += `${pad}Повторити ${countVal} разів:\n`;
                         code += generateCode(node.children || [], lang, indent + 1);
                     }
                 }
@@ -1961,8 +1918,6 @@
         function setupDragAndDrop() {
             const toolboxItems = document.querySelectorAll('.block-palette-item');
 
-            // Native HTML5 drag is unreliable on many touch browsers. Use Pointer Events
-            // for both mouse and touch instead.
             toolboxItems.forEach(item => {
                 item.setAttribute('draggable', 'false');
 
