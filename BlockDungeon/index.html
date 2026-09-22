@@ -535,6 +535,271 @@
             outline-offset: 2px;
         }
 
+
+        /* =========================================================
+           RESTRAINED SAGE / GREEN UI THEME
+           Softer than white, light rather than dark.
+           ========================================================= */
+        :root {
+            --sage-bg: #e9f0eb;
+            --sage-panel: #e1ebe4;
+            --sage-card: #f2f6f3;
+            --sage-border: #c7d8cc;
+            --sage-border-strong: #aec6b5;
+            --sage-accent: #5f8b70;
+            --sage-accent-dark: #476f58;
+            --sage-text: #294338;
+            --sage-muted: #667c70;
+        }
+
+        html, body {
+            background:
+                radial-gradient(circle at 8% 8%, rgba(255,255,255,.42) 0 4%, transparent 5%),
+                linear-gradient(180deg, #e4eee7 0%, #edf3ef 52%, #e7efe9 100%) !important;
+            color: var(--sage-text) !important;
+        }
+
+        body::before {
+            background: rgba(255,255,255,.28);
+            box-shadow: 55px 12px 0 rgba(255,255,255,.28), 105px 3px 0 rgba(255,255,255,.22);
+        }
+        body::after {
+            background: rgba(255,255,255,.20);
+            box-shadow: -45px 10px 0 rgba(255,255,255,.20), -90px 0 0 rgba(255,255,255,.16);
+        }
+
+        header {
+            background: rgba(239,245,241,.96) !important;
+            border-bottom: 3px solid var(--sage-border) !important;
+            box-shadow: 0 5px 16px rgba(54,87,68,.10) !important;
+        }
+
+        header > div:first-child > div:first-child {
+            background: linear-gradient(145deg, #6f967d, #547c65) !important;
+            border-color: #f4f7f4 !important;
+            box-shadow: 0 4px 0 #456550, 0 8px 15px rgba(58,91,70,.18) !important;
+        }
+
+        #gameHeaderTitle {
+            background: linear-gradient(90deg, #416c54, #5d886e, #73967e) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            text-shadow: 0 2px 0 rgba(255,255,255,.55) !important;
+        }
+
+        header p { color: #687d71 !important; }
+
+        #levelSelectorContainer {
+            background: #dfe9e2 !important;
+            border-color: var(--sage-border) !important;
+        }
+
+        #levelSelectorContainer button,
+        #mobileLevelPills button {
+            border-color: rgba(67,102,80,.16) !important;
+            box-shadow: 0 3px 0 rgba(67,102,80,.10) !important;
+        }
+
+        #levelSelectorContainer button.bg-indigo-600 {
+            background: linear-gradient(180deg, #789d85, #5d866d) !important;
+            box-shadow: 0 4px 0 #496b56 !important;
+        }
+
+        #btnRandomizeLevel {
+            background: linear-gradient(180deg, #7e9f89, #62856d) !important;
+            border-color: #f3f6f3 !important;
+            box-shadow: 0 5px 0 #4e6d59, 0 8px 16px rgba(68,101,79,.14) !important;
+        }
+
+        #btnShowCode, #btnSoundToggle {
+            background: #e8f0eb !important;
+            color: #4e705c !important;
+            border-color: #c2d5c8 !important;
+        }
+
+        #btnSandbox {
+            background: linear-gradient(180deg, #d3b96a, #b99a4f) !important;
+            border-color: #f3f4ed !important;
+            box-shadow: 0 5px 0 #90783d !important;
+        }
+
+        main > section:first-child {
+            background: rgba(232,240,235,.78) !important;
+            border-right-color: var(--sage-border) !important;
+        }
+
+        main > section:last-child {
+            background: rgba(225,235,228,.72) !important;
+        }
+
+        .grid-container {
+            background: linear-gradient(145deg, #d5e5da, #e7f0e9) !important;
+            border-color: #f3f6f3 !important;
+            box-shadow: 0 6px 0 #b1c8b8, 0 14px 28px rgba(64,99,76,.13) !important;
+        }
+
+        .cell-path {
+            background-color: #eee9d8 !important;
+            background-image:
+                radial-gradient(rgba(111,132,105,.13) 1.2px, transparent 1.2px) !important;
+            border-color: #d8d3bd !important;
+            box-shadow: inset 0 -3px 0 rgba(125,116,78,.10);
+        }
+
+        .cell-wall {
+            background: linear-gradient(145deg, #849c8c, #647e6d) !important;
+            box-shadow: inset 0 3px 0 rgba(255,255,255,.24), inset 0 -5px 0 rgba(48,66,55,.22), 0 2px 0 rgba(53,76,61,.16) !important;
+        }
+
+        #gameStatusOverlay {
+            background: rgba(238,244,240,.93) !important;
+            color: var(--sage-text) !important;
+        }
+        #statusTitle { color: #65856e !important; text-shadow: 0 2px 0 #fff; }
+        #statusDesc { color: #687b70 !important; }
+
+        #btnRun {
+            background: linear-gradient(180deg, #75ad88, #5c946f) !important;
+            color: #183b29 !important;
+            border-color: #f4f7f4 !important;
+            box-shadow: 0 6px 0 #477657, 0 10px 18px rgba(54,116,76,.17) !important;
+        }
+
+        #btnReset {
+            background: #e5eee8 !important;
+            color: #5e7568 !important;
+            border-color: #bfd3c5 !important;
+        }
+
+        main > section:last-child > div:first-child {
+            background: rgba(235,242,237,.90) !important;
+            border-right-color: var(--sage-border) !important;
+        }
+
+        main > section:last-child h3 {
+            color: #4e6859 !important;
+        }
+
+        .block-palette-item {
+            box-shadow: 0 5px 0 rgba(52,82,63,.15), 0 8px 14px rgba(52,82,63,.07) !important;
+        }
+
+        /* Keep action colors distinguishable, but reduce their saturation. */
+        .block-palette-item.bg-blue-600,
+        #programBlocksContainer .block-item.bg-blue-600 {
+            background: linear-gradient(180deg,#719db5,#5c849a) !important;
+            border-bottom-color:#476c7e !important;
+        }
+        .block-palette-item.bg-indigo-600,
+        #programBlocksContainer .block-item.bg-indigo-600 {
+            background: linear-gradient(180deg,#8293b0,#697b98) !important;
+            border-bottom-color:#53637e !important;
+        }
+        .block-palette-item.bg-amber-500,
+        #programBlocksContainer .block-item.bg-amber-500 {
+            background: linear-gradient(180deg,#dfca72,#c9b25a) !important;
+            border-bottom-color:#a08b40 !important;
+        }
+        .block-palette-item.bg-amber-600,
+        #programBlocksContainer .block-item.bg-amber-600 {
+            background: linear-gradient(180deg,#d5a866,#bf8f4f) !important;
+            border-bottom-color:#96703d !important;
+        }
+        .block-palette-item.bg-rose-600,
+        #programBlocksContainer .block-item.bg-rose-600 {
+            background: linear-gradient(180deg,#c98b91,#b47379) !important;
+            border-bottom-color:#8e595f !important;
+        }
+
+        #workspace {
+            background:
+                radial-gradient(circle, rgba(92,125,105,.12) 1.5px, transparent 1.5px),
+                #e9f1eb !important;
+            border-color: #b7cdbd !important;
+            box-shadow: inset 0 3px 14px rgba(61,99,73,.07), 0 5px 0 rgba(65,104,77,.07) !important;
+        }
+
+        #emptyWorkspaceHint { color: #70867a !important; }
+        #emptyWorkspaceHint i {
+            color: #648c70 !important;
+            filter: drop-shadow(0 4px 0 rgba(70,110,80,.12));
+        }
+
+        #blockCountBadge {
+            background: #edf3ef !important;
+            color: #587063 !important;
+            border-color: #c2d5c8 !important;
+        }
+
+        #btnClearWorkspace {
+            background: #f3e9e8 !important;
+            color: #a16c70 !important;
+            border-color: #dec4c5 !important;
+        }
+
+        #trashZone {
+            background: #f1e9e8 !important;
+            border-color: #d2afb2 !important;
+            color: #9b6b70 !important;
+        }
+
+        .bg-emerald-600 {
+            background: linear-gradient(180deg,#79ad89,#609873) !important;
+            color: #173b28 !important;
+            border-color: #f4f7f4 !important;
+            box-shadow: 0 4px 0 #4d7959 !important;
+        }
+
+        #codeModal, #sandboxModal {
+            background: rgba(47,75,59,.32) !important;
+        }
+
+        #codeModal > div, #sandboxModal > div {
+            background: #eef4f0 !important;
+            border-color: #bfd4c5 !important;
+            box-shadow: 0 10px 0 rgba(58,86,67,.12), 0 24px 50px rgba(45,75,56,.16) !important;
+            color: var(--sage-text) !important;
+        }
+
+        #codeModal pre {
+            background: #334b3d !important;
+            border-color: #829d8c !important;
+        }
+
+        .drop-zone-active {
+            background: rgba(151,184,137,.20) !important;
+            border-color: #8cae91 !important;
+        }
+
+        .drop-target-above, .drop-target-below {
+            border-color: #789c7f !important;
+        }
+
+        #dragGhost {
+            border-color: #edf3ef !important;
+            background: linear-gradient(180deg,#729c80,#5b8268) !important;
+            box-shadow: 0 8px 0 rgba(54,86,65,.18), 0 18px 28px rgba(54,86,65,.16) !important;
+        }
+
+        .lang-tab-btn.active,
+        .sandbox-tool-btn.active {
+            background: #648b70 !important;
+        }
+
+        .sandbox-tool-btn:not(.active) {
+            background: #e2ebe5 !important;
+            color: #61766a !important;
+            border-color: #c3d4c8 !important;
+        }
+
+        input[type="range"] {
+            accent-color: #648b70 !important;
+        }
+
+        button:focus-visible, input:focus-visible {
+            outline-color: rgba(91,137,103,.55) !important;
+        }
+
     </style>
 </head>
 <body class="min-h-screen flex flex-col overflow-y-auto lg:h-screen lg:overflow-hidden bg-slate-950 text-slate-100">
