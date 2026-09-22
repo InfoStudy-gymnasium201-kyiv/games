@@ -187,7 +187,7 @@
             <div>
                 <div class="flex items-center space-x-2">
                     <h1 id="gameHeaderTitle" class="font-extrabold text-xl tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
-                        Block Dungeon <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">v2.6 Drag-n-Drop</span>
+                        Block Dungeon
                     </h1>
                 </div>
                 <p class="text-xs text-slate-400 font-medium hidden sm:block">Генератор алгоритмічних мап & блочного коду з перетягуванням</p>
@@ -205,12 +205,6 @@
             <button id="btnRandomizeLevel" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs md:text-sm px-3.5 py-1.5 rounded-xl shadow-md transition flex items-center space-x-1.5">
                 <i class="fa-solid fa-dice text-amber-300 animate-spin-slow"></i>
                 <span>Згенерувати випадковий</span>
-            </button>
-
-            <!-- Character Selector Button -->
-            <button id="btnSelectHero" class="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs md:text-sm font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center space-x-1.5 shadow-sm">
-                <span id="heroCurrentAvatar" class="text-base">🤖</span>
-                <span class="hidden sm:inline">Герой</span>
             </button>
 
             <!-- Show Code Button -->
@@ -485,25 +479,6 @@
         Блок...
     </div>
 
-    <!-- Character Avatar Chooser Modal -->
-    <div id="heroModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-5 shadow-2xl flex flex-col">
-            <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-                <div class="flex items-center space-x-2 text-amber-400">
-                    <i class="fa-solid fa-user-astronaut text-xl"></i>
-                    <h3 class="font-black text-lg text-slate-100">Обери свого Героя</h3>
-                </div>
-                <button id="btnCloseHeroModal" class="text-slate-400 hover:text-white text-xl">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3" id="heroPickerGrid">
-                <!-- Injected via JS -->
-            </div>
-        </div>
-    </div>
-
     <!-- Code View Modal -->
     <div id="codeModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
         <div class="bg-slate-900 border border-slate-800 text-slate-100 rounded-3xl max-w-xl w-full p-5 shadow-2xl flex flex-col">
@@ -639,7 +614,7 @@
             if (texturePackConfig.gameTitle) {
                 const titleEl = document.getElementById('gameHeaderTitle');
                 if (titleEl) {
-                    titleEl.innerHTML = `${texturePackConfig.gameTitle} <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">v2.6 Drag-n-Drop</span>`;
+                    titleEl.innerHTML = texturePackConfig.gameTitle;
                 }
                 document.title = texturePackConfig.gameTitle;
             }
@@ -824,9 +799,9 @@
             
             return {
                 id: levelNum,
-                title: `${levelNum}. Згенерована Пригода`,
+                title: `Згенерована Пригода`,
                 category: cat,
-                instruction: hasKeysAndDoors ? `Знайди ключ 🔑, щоб відчинити двері 🚪 та забрати всі зірки!` : `Унікальний лабіринт! Проклади шлях робота, щоб зібрати усі зірки (${starCount}).`,
+                instruction: hasKeysAndDoors ? `Знайди ключ 🔑, щоб відчинити двері 🚪 та забрати всі зірки!` : `Проклади шлях робота, щоб зібрати усі зірки.`,
                 hint: hasKeysAndDoors ? `Без ключа двері не відчиняться. Спочатку дійди до ключа.` : `Затисни мишею блок дій та перетягни його в робочу зону.`,
                 maxBlocks: optimalBlocks + 4,
                 optimalBlocks: optimalBlocks,
@@ -937,38 +912,9 @@
             AudioEngine.init();
             await loadTexturePack();
             renderLevelSelectors();
-            renderHeroPicker();
             loadLevel(0);
             setupEventListeners();
             setupDragAndDrop();
-        }
-
-        // Render Hero Chooser
-        function renderHeroPicker() {
-            const grid = document.getElementById('heroPickerGrid');
-            grid.innerHTML = '';
-            HEROES.forEach(hero => {
-                const btn = document.createElement('button');
-                btn.className = `p-4 rounded-2xl border flex flex-col items-center justify-center space-y-2 transition ${hero.id === currentHero.id ? 'bg-indigo-600/20 border-indigo-500' : 'bg-slate-800/60 border-slate-700 hover:border-slate-500'}`;
-                
-                const avatarDisplay = hero.customImg 
-                    ? `<img src="${hero.customImg}" class="w-10 h-10 object-contain"/>` 
-                    : `<span class="text-4xl">${hero.icon}</span>`;
-
-                btn.innerHTML = `${avatarDisplay}<span class="text-xs font-bold text-slate-200">${hero.name}</span>`;
-                btn.onclick = () => {
-                    currentHero = hero;
-                    if (hero.customImg) {
-                        document.getElementById('heroCurrentAvatar').innerHTML = `<img src="${hero.customImg}" class="w-5 h-5 inline-block object-contain"/>`;
-                    } else {
-                        document.getElementById('heroCurrentAvatar').innerText = hero.icon;
-                    }
-                    renderHeroPicker();
-                    renderCharacterSprite();
-                    document.getElementById('heroModal').classList.add('hidden');
-                };
-                grid.appendChild(btn);
-            });
         }
 
         // Render Level Selector Pills Header
@@ -2006,10 +1952,6 @@
                 AudioEngine.muted = !AudioEngine.muted;
                 document.getElementById('soundIcon').className = AudioEngine.muted ? "fa-solid fa-volume-xmark text-sm" : "fa-solid fa-volume-high text-sm";
             };
-
-            // Hero Selector Modal
-            document.getElementById('btnSelectHero').onclick = () => document.getElementById('heroModal').classList.remove('hidden');
-            document.getElementById('btnCloseHeroModal').onclick = () => document.getElementById('heroModal').classList.add('hidden');
 
             // Hint Toggle
             document.getElementById('btnToggleHint').onclick = () => {
