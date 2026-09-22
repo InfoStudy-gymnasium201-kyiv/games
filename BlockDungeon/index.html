@@ -145,6 +145,10 @@
         }
 
         /* Drag Ghost Preview Element */
+        #workspace, #toolboxList, #trashZone {
+            touch-action: none;
+        }
+
         #dragGhost {
             position: fixed;
             pointer-events: none;
@@ -585,6 +589,10 @@
         let draggedBlockId = null;
         let draggedSource = null; // 'palette' | 'workspace'
         let draggedType = null;
+
+        // Pointer-based drag state: works with mouse, touch and pen.
+        let pointerDrag = null;
+        let suppressPaletteClick = false;
 
         const AudioEngine = {
             muted: false,
@@ -1031,7 +1039,7 @@
             container.className = 'block-item rounded-xl p-2.5 text-white font-bold text-xs md:text-sm shadow-md flex flex-col transition border-b-4 relative group cursor-grab active:cursor-grabbing';
             container.dataset.id = blockId;
             container.dataset.type = type;
-            container.setAttribute('draggable', 'true');
+            container.setAttribute('draggable', 'false');
 
             let bgColor = 'bg-blue-600 border-blue-800';
             let icon = 'fa-arrow-up';
@@ -1193,91 +1201,253 @@
         }
 
         function attachBlockDragListeners(el, blockId) {
-            el.addEventListener('dragstart', (e) => {
-                e.stopPropagation();
-                draggedBlockId = blockId;
-                draggedSource = 'workspace';
-                draggedType = el.dataset.type;
-                el.classList.add('dragging');
-                e.dataTransfer.setData('text/plain', blockId);
-                e.dataTransfer.effectAllowed = 'move';
-            });
+            // Keep the old HTML5 handlers disabled for actual dragging; pointer events
+            // provide the same behavior on desktop and touch devices.
+            el.setAttribute('draggable', 'false');
 
-            el.addEventListener('dragend', (e) => {
-                e.stopPropagation();
-                el.classList.remove('dragging');
-                clearAllDropIndicators();
-                draggedBlockId = null;
-                draggedSource = null;
-                draggedType = null;
-            });
+            el.addEventListener('pointerdown', (e) => {
+                if (e.button !== undefined && e.button !== 0) return;
+                if (e.target.closest('button, select, input')) return;
 
-            el.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                if (draggedSource === 'workspace' && (draggedBlockId === blockId || isDescendantOf(draggedBlockId, blockId))) {
-                    return;
-                }
-
-                const rect = el.getBoundingClientRect();
-                const midY = rect.top + rect.height / 2;
-
-                clearAllDropIndicators();
-                if (e.clientY < midY) {
-                    el.classList.add('drop-target-above');
-                } else {
-                    el.classList.add('drop-target-below');
-                }
-            });
-
-            el.addEventListener('dragleave', (e) => {
-                e.stopPropagation();
-                el.classList.remove('drop-target-above', 'drop-target-below');
-            });
-
-            el.addEventListener('drop', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                if (draggedSource === 'workspace' && (draggedBlockId === blockId || isDescendantOf(draggedBlockId, blockId))) {
-                    clearAllDropIndicators();
-                    return;
-                }
-
-                const rect = el.getBoundingClientRect();
-                const midY = rect.top + rect.height / 2;
-                const insertBefore = e.clientY < midY;
-
-                const parentInfo = findParentArrayAndIndex(currentWorkspaceBlocks, blockId);
-                if (!parentInfo) return;
-
-                let sourceNode = null;
-                if (draggedSource === 'palette') {
-                    sourceNode = {
-                        id: `block_${blockIdCounter++}`,
-                        type: draggedType,
-                        val: draggedType === 'repeat' ? 2 : undefined,
-                        children: (draggedType === 'repeat' || draggedType === 'if_path') ? [] : undefined
-                    };
-                } else if (draggedSource === 'workspace') {
-                    sourceNode = detachBlockFromAST(currentWorkspaceBlocks, draggedBlockId);
-                }
-
-                if (!sourceNode) return;
-
-                const updatedParentInfo = findParentArrayAndIndex(currentWorkspaceBlocks, blockId);
-                if (updatedParentInfo) {
-                    let targetIndex = updatedParentInfo.index;
-                    if (!insertBefore) targetIndex += 1;
-                    updatedParentInfo.parentArray.splice(targetIndex, 0, sourceNode);
-                }
-
-                clearAllDropIndicators();
-                renderWorkspace();
-                AudioEngine.playStep();
+                pointerDrag = {
+                    pointerId: e.pointerId,
+                    source: 'workspace',
+                    type: el.dataset.type,
+                    blockId,
+                    el,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    active: false,
+                    timer: setTimeout(() => beginPointerDrag(e), 120)
+                };
             });
         }
+
+        function beginPointerDrag(startEvent) {
+            if (!pointerDrag || pointerDrag.active) return;
+
+            pointerDrag.active = true;
+            draggedSource = pointerDrag.source;
+            draggedType = pointerDrag.type;
+            draggedBlockId = pointerDrag.blockId;
+
+            pointerDrag.el.classList.add('dragging');
+            pointerDrag.el.setPointerCapture?.(pointerDrag.pointerId);
+
+            const ghost = document.getElementById('dragGhost');
+            ghost.innerText = getBlockDisplayName(pointerDrag.type);
+            ghost.style.display = 'block';
+            ghost.style.left = `${startEvent.clientX}px`;
+            ghost.style.top = `${startEvent.clientY}px`;
+
+            document.body.style.cursor = 'grabbing';
+        }
+
+        function getBlockDisplayName(type) {
+            const names = {
+                move_up: 'Рух вгору',
+                move_down: 'Рух вниз',
+                move_left: 'Рух вліво',
+                move_right: 'Рух вправо',
+                collect: 'Зібрати зірку',
+                collect_key: 'Взяти ключ',
+                repeat: 'Повторити',
+                if_path: 'Якщо є шлях'
+            };
+            return names[type] || 'Блок';
+        }
+
+        function getPointerDropTarget(clientX, clientY) {
+            const el = document.elementFromPoint(clientX, clientY);
+            if (!el) return null;
+
+            const block = el.closest('.block-item');
+            const nested = el.closest('.nested-blocks');
+            const trash = el.closest('#trashZone');
+            const workspace = el.closest('#workspace');
+
+            return { el, block, nested, trash, workspace };
+        }
+
+        function updatePointerDropPreview(clientX, clientY) {
+            clearAllDropIndicators();
+
+            const target = getPointerDropTarget(clientX, clientY);
+            if (!target) return;
+
+            if (target.trash && draggedSource === 'workspace') {
+                target.trash.classList.add('bg-red-500/20', 'border-red-400');
+                return;
+            }
+
+            if (target.nested) {
+                const parentId = target.nested.dataset.containerId;
+                if (draggedSource === 'workspace' &&
+                    (draggedBlockId === parentId || isDescendantOf(draggedBlockId, parentId))) {
+                    return;
+                }
+                target.nested.classList.add('drop-zone-nested-active');
+                return;
+            }
+
+            if (target.block) {
+                const targetId = target.block.dataset.id;
+                if (draggedSource === 'workspace' &&
+                    (draggedBlockId === targetId || isDescendantOf(draggedBlockId, targetId))) {
+                    return;
+                }
+
+                const rect = target.block.getBoundingClientRect();
+                if (clientY < rect.top + rect.height / 2) {
+                    target.block.classList.add('drop-target-above');
+                } else {
+                    target.block.classList.add('drop-target-below');
+                }
+                return;
+            }
+
+            if (target.workspace) {
+                target.workspace.classList.add('drop-zone-active');
+            }
+        }
+
+        function finishPointerDrag(clientX, clientY) {
+            if (!pointerDrag || !pointerDrag.active) return;
+
+            const sourceId = draggedBlockId;
+            const sourceType = draggedType;
+            const source = draggedSource;
+            const target = getPointerDropTarget(clientX, clientY);
+
+            const ghost = document.getElementById('dragGhost');
+            ghost.style.display = 'none';
+
+            if (pointerDrag.el) pointerDrag.el.classList.remove('dragging');
+            clearAllDropIndicators();
+            document.body.style.cursor = '';
+
+            let sourceNode = null;
+
+            if (source === 'palette') {
+                sourceNode = {
+                    id: `block_${blockIdCounter++}`,
+                    type: sourceType,
+                    val: sourceType === 'repeat' ? 2 : undefined,
+                    children: (sourceType === 'repeat' || sourceType === 'if_path') ? [] : undefined
+                };
+            } else if (source === 'workspace') {
+                sourceNode = detachBlockFromAST(currentWorkspaceBlocks, sourceId);
+            }
+
+            if (sourceNode && target) {
+                if (target.trash && source === 'workspace') {
+                    AudioEngine.playError();
+                    sourceNode = null;
+                } else if (target.nested) {
+                    const parentId = target.nested.dataset.containerId;
+                    if (!(source === 'workspace' &&
+                          (sourceId === parentId || isDescendantOf(sourceId, parentId)))) {
+                        const parent = findBlockInAST(currentWorkspaceBlocks, parentId);
+                        if (parent && parent.children) {
+                            parent.children.push(sourceNode);
+                            AudioEngine.playStep();
+                        }
+                    }
+                } else if (target.block) {
+                    const targetId = target.block.dataset.id;
+                    if (!(source === 'workspace' &&
+                          (sourceId === targetId || isDescendantOf(sourceId, targetId)))) {
+                        const parentInfo = findParentArrayAndIndex(currentWorkspaceBlocks, targetId);
+                        if (parentInfo) {
+                            const rect = target.block.getBoundingClientRect();
+                            const insertBefore = clientY < rect.top + rect.height / 2;
+                            let index = parentInfo.index + (insertBefore ? 0 : 1);
+                            parentInfo.parentArray.splice(index, 0, sourceNode);
+                            AudioEngine.playStep();
+                        }
+                    }
+                } else if (target.workspace) {
+                    currentWorkspaceBlocks.push(sourceNode);
+                    AudioEngine.playStep();
+                }
+            }
+
+            // If a workspace block was dragged somewhere invalid, put it back at the end
+            // instead of losing it.
+            if (sourceNode && source === 'workspace') {
+                const stillExists = !!findBlockInAST(currentWorkspaceBlocks, sourceNode.id);
+                if (!stillExists && target && !target.trash) {
+                    currentWorkspaceBlocks.push(sourceNode);
+                }
+                if (!target) currentWorkspaceBlocks.push(sourceNode);
+            }
+
+            if (source === 'palette') suppressPaletteClick = true;
+
+            draggedBlockId = null;
+            draggedSource = null;
+            draggedType = null;
+
+            if (pointerDrag.timer) clearTimeout(pointerDrag.timer);
+            pointerDrag = null;
+
+            renderWorkspace();
+
+            if (source === 'workspace' || source === 'palette') {
+                setTimeout(() => { suppressPaletteClick = false; }, 0);
+            }
+        }
+
+        // Global pointer handlers keep the drag alive even when the pointer leaves
+        // the original block, which is essential on touchscreens.
+        document.addEventListener('pointermove', (e) => {
+            if (!pointerDrag) return;
+
+            const dx = e.clientX - pointerDrag.startX;
+            const dy = e.clientY - pointerDrag.startY;
+            const moved = Math.hypot(dx, dy) > 6;
+
+            if (!pointerDrag.active && moved) {
+                clearTimeout(pointerDrag.timer);
+                beginPointerDrag(e);
+            }
+
+            if (!pointerDrag.active) return;
+
+            e.preventDefault();
+
+            const ghost = document.getElementById('dragGhost');
+            ghost.style.left = `${e.clientX}px`;
+            ghost.style.top = `${e.clientY}px`;
+
+            updatePointerDropPreview(e.clientX, e.clientY);
+        }, { passive: false });
+
+        document.addEventListener('pointerup', (e) => {
+            if (!pointerDrag) return;
+
+            if (!pointerDrag.active) {
+                clearTimeout(pointerDrag.timer);
+                pointerDrag = null;
+                return;
+            }
+
+            e.preventDefault();
+            finishPointerDrag(e.clientX, e.clientY);
+        }, { passive: false });
+
+        document.addEventListener('pointercancel', () => {
+            if (!pointerDrag) return;
+            clearTimeout(pointerDrag.timer);
+            if (pointerDrag.el) pointerDrag.el.classList.remove('dragging');
+            document.getElementById('dragGhost').style.display = 'none';
+            clearAllDropIndicators();
+            draggedBlockId = null;
+            draggedSource = null;
+            draggedType = null;
+            pointerDrag = null;
+            document.body.style.cursor = '';
+        });
 
         function clearAllDropIndicators() {
             document.querySelectorAll('.drop-target-above, .drop-target-below, .drop-zone-nested-active, .drop-zone-active').forEach(item => {
@@ -1693,7 +1863,7 @@
             document.querySelectorAll('.block-palette-item').forEach(item => {
                 item.addEventListener('click', (e) => {
                     // Only click if not currently dragging
-                    if (!draggedSource) {
+                    if (!draggedSource && !suppressPaletteClick) {
                         addBlockToWorkspace(item.dataset.type);
                     }
                 });
@@ -1790,82 +1960,27 @@
         // Palette & Workspace Drag Setup
         function setupDragAndDrop() {
             const toolboxItems = document.querySelectorAll('.block-palette-item');
-            const workspaceEl = document.getElementById('workspace');
-            const trashZoneEl = document.getElementById('trashZone');
 
+            // Native HTML5 drag is unreliable on many touch browsers. Use Pointer Events
+            // for both mouse and touch instead.
             toolboxItems.forEach(item => {
-                item.addEventListener('dragstart', (e) => {
-                    draggedSource = 'palette';
-                    draggedType = item.dataset.type;
-                    draggedBlockId = null;
-                    e.dataTransfer.setData('text/plain', item.dataset.type);
-                    e.dataTransfer.effectAllowed = 'copy';
+                item.setAttribute('draggable', 'false');
+
+                item.addEventListener('pointerdown', (e) => {
+                    if (e.button !== undefined && e.button !== 0) return;
+
+                    pointerDrag = {
+                        pointerId: e.pointerId,
+                        source: 'palette',
+                        type: item.dataset.type,
+                        blockId: null,
+                        el: item,
+                        startX: e.clientX,
+                        startY: e.clientY,
+                        active: false,
+                        timer: setTimeout(() => beginPointerDrag(e), 120)
+                    };
                 });
-                item.addEventListener('dragend', () => {
-                    clearAllDropIndicators();
-                    draggedSource = null;
-                    draggedType = null;
-                });
-            });
-
-            workspaceEl.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                if (!e.target.closest('.block-item') && !e.target.closest('.nested-blocks')) {
-                    workspaceEl.classList.add('drop-zone-active');
-                }
-            });
-
-            workspaceEl.addEventListener('dragleave', (e) => {
-                if (e.target === workspaceEl) {
-                    workspaceEl.classList.remove('drop-zone-active');
-                }
-            });
-
-            workspaceEl.addEventListener('drop', (e) => {
-                e.preventDefault();
-                workspaceEl.classList.remove('drop-zone-active');
-
-                if (!e.target.closest('.block-item') && !e.target.closest('.nested-blocks')) {
-                    let sourceNode = null;
-                    if (draggedSource === 'palette' && draggedType) {
-                        sourceNode = {
-                            id: `block_${blockIdCounter++}`,
-                            type: draggedType,
-                            val: draggedType === 'repeat' ? 2 : undefined,
-                            children: (draggedType === 'repeat' || draggedType === 'if_path') ? [] : undefined
-                        };
-                    } else if (draggedSource === 'workspace' && draggedBlockId) {
-                        sourceNode = detachBlockFromAST(currentWorkspaceBlocks, draggedBlockId);
-                    }
-
-                    if (sourceNode) {
-                        currentWorkspaceBlocks.push(sourceNode);
-                        clearAllDropIndicators();
-                        renderWorkspace();
-                        AudioEngine.playStep();
-                    }
-                }
-            });
-
-            // Trash Zone Handling
-            trashZoneEl.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                trashZoneEl.classList.add('bg-red-500/20', 'border-red-400');
-            });
-
-            trashZoneEl.addEventListener('dragleave', () => {
-                trashZoneEl.classList.remove('bg-red-500/20', 'border-red-400');
-            });
-
-            trashZoneEl.addEventListener('drop', (e) => {
-                e.preventDefault();
-                trashZoneEl.classList.remove('bg-red-500/20', 'border-red-400');
-                if (draggedSource === 'workspace' && draggedBlockId) {
-                    detachBlockFromAST(currentWorkspaceBlocks, draggedBlockId);
-                    clearAllDropIndicators();
-                    renderWorkspace();
-                    AudioEngine.playError();
-                }
             });
         }
 
