@@ -100,6 +100,15 @@
             background-size: 10px 10px, 100% 100%, 100% 100%;
         }
 
+        /* Dynamic Texture Custom Styling */
+        .custom-tile-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            display: block;
+        }
+
         /* Character Smooth Movement */
         #characterSprite {
             transition: all 0.28s cubic-bezier(0.34, 1.25, 0.64, 1);
@@ -169,7 +178,7 @@
             </div>
             <div>
                 <div class="flex items-center space-x-2">
-                    <h1 class="font-extrabold text-xl tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
+                    <h1 id="gameHeaderTitle" class="font-extrabold text-xl tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
                         Block Dungeon <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">v2.6 Drag-n-Drop</span>
                     </h1>
                 </div>
@@ -265,7 +274,7 @@
                         <!-- Dynamic Grid Cells -->
                         <!-- Animated Character Sprite Overlay -->
                         <div id="characterSprite" class="absolute z-20 pointer-events-none flex items-center justify-center transition-all duration-300">
-                            <!-- SVG / Emoji injected -->
+                            <!-- SVG / Emoji / Image injected -->
                         </div>
                     </div>
                 </div>
@@ -378,7 +387,7 @@
                         <div class="flex items-center space-x-2 pointer-events-none">
                             <i class="fa-solid fa-grip-vertical opacity-50 mr-1"></i>
                             <i class="fa-solid fa-star text-base"></i>
-                            <span>Зібрати зірку</span>
+                            <span id="collectStarBlockLabel">Зібрати зірку</span>
                         </div>
                         <i class="fa-solid fa-plus text-xs opacity-70"></i>
                     </div>
@@ -566,12 +575,58 @@
     </div>
 
     <script>
+        // --- Dynamic Texture Pack Loading ---
+        let texturePackConfig = null;
+
+        async function loadTexturePack() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tpName = urlParams.get('tp') || '1';
+            const texturePackUrl = `https://infostudy-gymnasium201-kyiv.github.io/games/BlockDungeon/Textures/TexturePacks/${tpName}.json`;
+
+            try {
+                const response = await fetch(texturePackUrl);
+                if (response.ok) {
+                    texturePackConfig = await response.json();
+                    applyTexturePackConfig();
+                } else {
+                    console.warn(`Не вдалося завантажити текстурпак: ${texturePackUrl} (Статус: ${response.status})`);
+                }
+            } catch (err) {
+                console.error("Помилка завантаження текстурпаку:", err);
+            }
+        }
+
+        function applyTexturePackConfig() {
+            if (!texturePackConfig) return;
+
+            // Custom Game Title
+            if (texturePackConfig.gameTitle) {
+                const titleEl = document.getElementById('gameHeaderTitle');
+                if (titleEl) {
+                    titleEl.innerHTML = `${texturePackConfig.gameTitle} <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">v2.6 Drag-n-Drop</span>`;
+                }
+                document.title = texturePackConfig.gameTitle;
+            }
+
+            // Custom Collect Star Block Label
+            const starText = texturePackConfig.collectStarBlockText || texturePackConfig.collectStarText;
+            if (starText) {
+                const label = document.getElementById('collectStarBlockLabel');
+                if (label) label.innerText = starText;
+            }
+
+            // Custom Player Texture
+            if (texturePackConfig.player) {
+                HEROES[0].customImg = texturePackConfig.player;
+            }
+        }
+
         // Hero Characters Collection
         const HEROES = [
-            { id: 'robot', name: 'Робот Біп', icon: '🤖', svgColor: '#818cf8' },
-            { id: 'cat', name: 'Космо-Кіт', icon: '🐱', svgColor: '#f43f5e' },
-            { id: 'rocket', name: 'Ракета Стар', icon: '🚀', svgColor: '#38bdf8' },
-            { id: 'astro', name: 'Астронавт', icon: '🧑‍🚀', svgColor: '#fbbf24' }
+            { id: 'robot', name: 'Робот Біп', icon: '🤖', svgColor: '#818cf8', customImg: null },
+            { id: 'cat', name: 'Космо-Кіт', icon: '🐱', svgColor: '#f43f5e', customImg: null },
+            { id: 'rocket', name: 'Ракета Стар', icon: '🚀', svgColor: '#38bdf8', customImg: null },
+            { id: 'astro', name: 'Астронавт', icon: '🧑‍🚀', svgColor: '#fbbf24', customImg: null }
         ];
         let currentHero = HEROES[0];
 
@@ -842,8 +897,9 @@
         const gameStatusOverlay = document.getElementById('gameStatusOverlay');
         const speedSlider = document.getElementById('speedSlider');
 
-        function initApp() {
+        async function initApp() {
             AudioEngine.init();
+            await loadTexturePack();
             renderLevelSelectors();
             renderHeroPicker();
             loadLevel(0);
@@ -858,10 +914,19 @@
             HEROES.forEach(hero => {
                 const btn = document.createElement('button');
                 btn.className = `p-4 rounded-2xl border flex flex-col items-center justify-center space-y-2 transition ${hero.id === currentHero.id ? 'bg-indigo-600/20 border-indigo-500' : 'bg-slate-800/60 border-slate-700 hover:border-slate-500'}`;
-                btn.innerHTML = `<span class="text-4xl">${hero.icon}</span><span class="text-xs font-bold text-slate-200">${hero.name}</span>`;
+                
+                const avatarDisplay = hero.customImg 
+                    ? `<img src="${hero.customImg}" class="w-10 h-10 object-contain"/>` 
+                    : `<span class="text-4xl">${hero.icon}</span>`;
+
+                btn.innerHTML = `${avatarDisplay}<span class="text-xs font-bold text-slate-200">${hero.name}</span>`;
                 btn.onclick = () => {
                     currentHero = hero;
-                    document.getElementById('heroCurrentAvatar').innerText = hero.icon;
+                    if (hero.customImg) {
+                        document.getElementById('heroCurrentAvatar').innerHTML = `<img src="${hero.customImg}" class="w-5 h-5 inline-block object-contain"/>`;
+                    } else {
+                        document.getElementById('heroCurrentAvatar').innerText = hero.icon;
+                    }
                     renderHeroPicker();
                     renderCharacterSprite();
                     document.getElementById('heroModal').classList.add('hidden');
@@ -974,8 +1039,11 @@
             }
         }
 
-        // SVG Graphics
+        // SVG Graphics or Dynamic Textures
         function getWallSVG() {
+            if (texturePackConfig && texturePackConfig.wall) {
+                return `<img src="${texturePackConfig.wall}" class="custom-tile-img" alt="Стіна"/>`;
+            }
             return `
             <svg viewBox="0 0 40 40" class="w-full h-full rounded-lg" xmlns="http://www.w3.org/2000/svg">
                 <rect width="40" height="40" fill="#334155"/>
@@ -986,7 +1054,19 @@
             </svg>`;
         }
 
+        function getFloorSVG() {
+            if (texturePackConfig && texturePackConfig.floor) {
+                return `<img src="${texturePackConfig.floor}" class="custom-tile-img" alt="Підлога"/>`;
+            }
+            return '';
+        }
+
         function getStarSVG() {
+            if (texturePackConfig && texturePackConfig.star) {
+                return `<div class="star-item-glow w-8 h-8 md:w-9 md:h-9 flex items-center justify-center">
+                            <img src="${texturePackConfig.star}" class="w-full h-full object-contain" alt="Зірка"/>
+                        </div>`;
+            }
             return `
             <div class="star-item-glow w-8 h-8 md:w-9 md:h-9 flex items-center justify-center">
                 <svg viewBox="0 0 48 48" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -1001,9 +1081,26 @@
             </div>`;
         }
 
-        function getKeySVG() { return `<div class="text-2xl animate-bounce">🔑</div>`; }
-        function getDoorSVG() { return `<div class="text-2xl">🚪</div>`; }
-        function getLavaSVG() { return `<div class="text-xl">🌋</div>`; }
+        function getKeySVG() {
+            if (texturePackConfig && texturePackConfig.key) {
+                return `<img src="${texturePackConfig.key}" class="w-8 h-8 object-contain animate-bounce" alt="Ключ"/>`;
+            }
+            return `<div class="text-2xl animate-bounce">🔑</div>`;
+        }
+
+        function getDoorSVG() {
+            if (texturePackConfig && texturePackConfig.door) {
+                return `<img src="${texturePackConfig.door}" class="w-8 h-8 object-contain" alt="Двері"/>`;
+            }
+            return `<div class="text-2xl">🚪</div>`;
+        }
+
+        function getLavaSVG() {
+            if (texturePackConfig && texturePackConfig.lava) {
+                return `<img src="${texturePackConfig.lava}" class="custom-tile-img" alt="Вулкан"/>`;
+            }
+            return `<div class="text-xl">🌋</div>`;
+        }
 
         // Render Maze Grid Cells
         function renderGrid() {
@@ -1028,9 +1125,18 @@
                         cell.innerHTML = getLavaSVG();
                     } else {
                         cell.classList.add('cell-path', 'border', 'border-slate-800');
-                        if (cellType === 2) cell.innerHTML = getStarSVG();
-                        else if (cellType === 3) cell.innerHTML = getKeySVG();
-                        else if (cellType === 4) cell.innerHTML = getDoorSVG();
+                        const floorBg = getFloorSVG();
+                        if (floorBg) {
+                            cell.innerHTML = floorBg;
+                        }
+
+                        if (cellType === 2) {
+                            cell.innerHTML += getStarSVG();
+                        } else if (cellType === 3) {
+                            cell.innerHTML += getKeySVG();
+                        } else if (cellType === 4) {
+                            cell.innerHTML += getDoorSVG();
+                        }
                     }
 
                     gameGridEl.appendChild(cell);
@@ -1052,7 +1158,12 @@
             characterSprite.style.left = `${targetCell.offsetLeft}px`;
             characterSprite.style.top = `${targetCell.offsetTop}px`;
             characterSprite.style.transform = `rotate(${DIR_VECTORS[robotState.dir].deg}deg)`;
-            characterSprite.innerHTML = `<span class="text-2xl md:text-3xl filter drop-shadow-md">${currentHero.icon}</span>`;
+
+            if (currentHero.customImg) {
+                characterSprite.innerHTML = `<img src="${currentHero.customImg}" class="w-full h-full object-contain filter drop-shadow-md"/>`;
+            } else {
+                characterSprite.innerHTML = `<span class="text-2xl md:text-3xl filter drop-shadow-md">${currentHero.icon}</span>`;
+            }
         }
 
         // Workspace Block AST Element Builder
@@ -1068,11 +1179,13 @@
             let icon = 'fa-arrow-up';
             let title = 'Рух вгору';
 
+            const starText = (texturePackConfig && (texturePackConfig.collectStarBlockText || texturePackConfig.collectStarText)) || 'Зібрати зірку';
+
             if (type === 'move_up') { bgColor = 'bg-blue-600 border-blue-800'; icon = 'fa-arrow-up'; title = 'Рух вгору'; }
             else if (type === 'move_down') { bgColor = 'bg-blue-600 border-blue-800'; icon = 'fa-arrow-down'; title = 'Рух вниз'; }
             else if (type === 'move_left') { bgColor = 'bg-indigo-600 border-indigo-800'; icon = 'fa-arrow-left'; title = 'Рух вліво'; }
             else if (type === 'move_right') { bgColor = 'bg-indigo-600 border-indigo-800'; icon = 'fa-arrow-right'; title = 'Рух вправо'; }
-            else if (type === 'collect') { bgColor = 'bg-amber-500 border-amber-700 text-slate-950'; icon = 'fa-star'; title = 'Зібрати зірку'; }
+            else if (type === 'collect') { bgColor = 'bg-amber-500 border-amber-700 text-slate-950'; icon = 'fa-star'; title = starText; }
             else if (type === 'collect_key') { bgColor = 'bg-amber-600 border-amber-800'; icon = 'fa-key'; title = 'Взяти ключ'; }
             else if (type === 'repeat') { bgColor = 'bg-rose-600 border-rose-800'; icon = 'fa-repeat'; title = 'Повторити'; }
 
@@ -1265,12 +1378,13 @@
         }
 
         function getBlockDisplayName(type) {
+            const starText = (texturePackConfig && (texturePackConfig.collectStarBlockText || texturePackConfig.collectStarText)) || 'Зібрати зірку';
             const names = {
                 move_up: 'Рух вгору',
                 move_down: 'Рух вниз',
                 move_left: 'Рух вліво',
                 move_right: 'Рух вправо',
-                collect: 'Зібрати зірку',
+                collect: starText,
                 collect_key: 'Взяти ключ',
                 repeat: 'Повторити'
             };
@@ -1676,9 +1790,14 @@
             if (success && starsRemaining === 0) {
                 AudioEngine.playWin();
                 confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 } });
-                showGameOverlay(true, "Перемога! 🎉", "Ти успішно пройшов рівень!");
+
+                const winTitle = (texturePackConfig && (texturePackConfig.winTitle || texturePackConfig.winMessage)) || "Перемога! 🎉";
+                const winDesc = (texturePackConfig && texturePackConfig.winDesc) || "Ти успішно пройшов рівень!";
+
+                showGameOverlay(true, winTitle, winDesc);
             } else if (!success && message) {
-                showGameOverlay(false, "Упс! 🤖", message);
+                const loseTitle = (texturePackConfig && (texturePackConfig.loseTitle || texturePackConfig.loseMessage)) || "Упс! 🤖";
+                showGameOverlay(false, loseTitle, message);
             }
         }
 
@@ -1718,6 +1837,7 @@
         function generateCode(nodes, lang = 'js', indent = 0) {
             let code = "";
             const pad = "  ".repeat(indent);
+            const starText = (texturePackConfig && (texturePackConfig.collectStarBlockText || texturePackConfig.collectStarText)) || 'Зібрати зірку';
 
             nodes.forEach(node => {
                 if (node.type === 'move_up') {
@@ -1739,7 +1859,7 @@
                 } else if (node.type === 'collect') {
                     if (lang === 'js') code += `${pad}hero.collectStar();\n`;
                     else if (lang === 'python') code += `${pad}hero.collect_star()\n`;
-                    else code += `${pad}Взяти Зірку\n`;
+                    else code += `${pad}${starText}\n`;
                 } else if (node.type === 'collect_key') {
                     if (lang === 'js') code += `${pad}hero.collectKey();\n`;
                     else if (lang === 'python') code += `${pad}hero.collect_key()\n`;
@@ -1797,8 +1917,16 @@
                     else if (val === 3) cell.innerHTML = getKeySVG();
                     else if (val === 4) cell.innerHTML = getDoorSVG();
                     else if (val === 5) cell.innerHTML = getLavaSVG();
-                    else if (sandboxStartPos.x === c && sandboxStartPos.y === r) cell.innerText = currentHero.icon;
-                    else cell.className += ' cell-path';
+                    else if (sandboxStartPos.x === c && sandboxStartPos.y === r) {
+                        cell.innerHTML = currentHero.customImg 
+                            ? `<img src="${currentHero.customImg}" class="w-8 h-8 object-contain"/>` 
+                            : currentHero.icon;
+                    }
+                    else {
+                        cell.className += ' cell-path';
+                        const floorBg = getFloorSVG();
+                        if (floorBg) cell.innerHTML = floorBg;
+                    }
 
                     cell.onclick = () => {
                         if (sandboxTool === 'path') sandboxGridData[r][c] = 0;
