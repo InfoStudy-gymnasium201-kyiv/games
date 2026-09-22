@@ -239,34 +239,6 @@
         
         <!-- Left Panel: Game Stage & Canvas -->
         <section class="w-full lg:w-5/12 xl:w-4/12 bg-slate-900/60 border-r border-slate-800/80 flex flex-col p-3 md:p-4 overflow-y-auto space-y-3">
-            
-            <!-- Level Card Info -->
-            <div class="bg-slate-900 rounded-2xl p-3.5 border border-slate-800 shadow-md">
-                <div class="flex items-center justify-between mb-1.5">
-                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full" id="levelCategoryTag">
-                        Послідовність
-                    </span>
-                    <div class="flex items-center space-x-1.5 text-amber-400 font-extrabold text-sm">
-                        <i class="fa-solid fa-star"></i>
-                        <span id="levelStarGoal">0/0</span>
-                    </div>
-                </div>
-                <h2 class="text-base md:text-lg font-bold text-slate-100 leading-snug flex items-center justify-between" id="levelTitle">
-                    Завантаження...
-                </h2>
-                <p class="text-xs md:text-sm text-slate-400 mt-1 leading-relaxed" id="levelInstruction">
-                    Інструкція...
-                </p>
-
-                <!-- Hint Accordion -->
-                <div class="mt-2.5 pt-2 border-t border-slate-800/60 flex items-center justify-between">
-                    <button id="btnToggleHint" class="text-xs font-semibold text-amber-400/90 hover:text-amber-300 transition flex items-center space-x-1">
-                        <i class="fa-solid fa-lightbulb"></i>
-                        <span>Потрібна підказка?</span>
-                    </button>
-                    <span id="hintText" class="text-xs text-slate-400 italic hidden"></span>
-                </div>
-            </div>
 
             <div class="flex-1 min-h-[270px] max-h-[380px] lg:max-h-none bg-slate-950 rounded-2xl p-3 border border-slate-800 shadow-inner flex flex-col items-center justify-center relative overflow-hidden group">
                 
@@ -898,10 +870,6 @@
         const workspaceContainer = document.getElementById('programBlocksContainer');
         const emptyWorkspaceHint = document.getElementById('emptyWorkspaceHint');
         const blockCountBadge = document.getElementById('blockCountBadge');
-        const levelTitleEl = document.getElementById('levelTitle');
-        const levelCategoryTag = document.getElementById('levelCategoryTag');
-        const levelInstructionEl = document.getElementById('levelInstruction');
-        const levelStarGoalEl = document.getElementById('levelStarGoal');
         const levelSelectorContainer = document.getElementById('levelSelectorContainer');
         const mobileLevelPills = document.getElementById('mobileLevelPills');
         const mobileLevelTitle = document.getElementById('mobileLevelTitle');
@@ -957,12 +925,7 @@
             }
 
             // Update Labels
-            levelTitleEl.innerText = activeLevel.title;
-            levelCategoryTag.innerText = activeLevel.category;
-            levelInstructionEl.innerText = activeLevel.instruction;
-            mobileLevelTitle.innerText = activeLevel.title;
-            document.getElementById('hintText').innerText = activeLevel.hint || '';
-            document.getElementById('hintText').classList.add('hidden');
+            if (mobileLevelTitle) mobileLevelTitle.innerText = activeLevel.title;
 
             // Reset Level Grid State
             currentGrid = JSON.parse(JSON.stringify(activeLevel.grid));
@@ -977,7 +940,6 @@
                 }
             }
 
-            levelStarGoalEl.innerText = `Зірок: ${starsRemaining}`;
             gameStatusOverlay.classList.add('hidden');
 
             renderLevelSelectors();
@@ -1005,7 +967,6 @@
                 }
             }
 
-            levelStarGoalEl.innerText = `Зірок: ${starsRemaining}`;
             gameStatusOverlay.classList.add('hidden');
 
             // Оновлюємо графіку та розблоковуємо кнопку
@@ -1726,7 +1687,6 @@
                     if (currentGrid[robotState.y][robotState.x] === 2) {
                         currentGrid[robotState.y][robotState.x] = 0;
                         starsRemaining--;
-                        levelStarGoalEl.innerText = `Зірок: ${starsRemaining}`;
                         AudioEngine.playCollect();
                     }
                 } else if (item.action === 'COLLECT_KEY') {
@@ -1951,11 +1911,6 @@
             document.getElementById('btnSoundToggle').onclick = () => {
                 AudioEngine.muted = !AudioEngine.muted;
                 document.getElementById('soundIcon').className = AudioEngine.muted ? "fa-solid fa-volume-xmark text-sm" : "fa-solid fa-volume-high text-sm";
-            };
-
-            // Hint Toggle
-            document.getElementById('btnToggleHint').onclick = () => {
-                document.getElementById('hintText').classList.toggle('hidden');
             };
 
             // Code Modal
