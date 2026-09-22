@@ -204,7 +204,7 @@
             <!-- Generate Random Level Button -->
             <button id="btnRandomizeLevel" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs md:text-sm px-3.5 py-1.5 rounded-xl shadow-md transition flex items-center space-x-1.5">
                 <i class="fa-solid fa-dice text-amber-300 animate-spin-slow"></i>
-                <span>Згенерувати випадковий</span>
+                <span>Перегенерувати рівень</span>
             </button>
 
             <!-- Show Code Button -->
@@ -670,10 +670,10 @@
 
         // Grid Directions & Vectors (0 = East, 1 = South, 2 = West, 3 = North)
         const DIR_VECTORS = [
-            { x: 1, y: 0, deg: 0 },
-            { x: 0, y: 1, deg: 90 },
-            { x: -1, y: 0, deg: 180 },
-            { x: 0, y: -1, deg: 270 }
+            { x: 1, y: 0 },
+            { x: 0, y: 1 },
+            { x: -1, y: 0 },
+            { x: 0, y: -1 }
         ];
 
         /**
@@ -771,7 +771,7 @@
             
             return {
                 id: levelNum,
-                title: `Згенерована Пригода`,
+                title: `Рівень ${levelNum}`,
                 category: cat,
                 instruction: hasKeysAndDoors ? `Знайди ключ 🔑, щоб відчинити двері 🚪 та забрати всі зірки!` : `Проклади шлях робота, щоб зібрати усі зірки.`,
                 hint: hasKeysAndDoors ? `Без ключа двері не відчиняться. Спочатку дійди до ключа.` : `Затисни мишею блок дій та перетягни його в робочу зону.`,
@@ -847,6 +847,7 @@
             return generateRandomLevel(1);
         }
 
+        // Фіксовані рівні, створюються один раз
         let LEVELS = Array.from({ length: 8 }, (_, i) => getValidRandomLevel(i + 1));
 
         // Global State
@@ -905,7 +906,7 @@
             });
         }
 
-        // Load Level State (Викликається при ЗМІНІ рівня)
+        // Load Level State
         function loadLevel(index) {
             if (isExecuting) {
                 clearInterval(executionInterval);
@@ -913,7 +914,7 @@
                 clearBlockHighlights();
             }
 
-            // Очищаємо блоки коду тільки при зміні рівня
+            // Очищаємо блоки коду при зміні рівня
             currentWorkspaceBlocks = [];
 
             if (index === 'custom') {
@@ -1026,9 +1027,9 @@
 
         function getDoorSVG() {
             if (texturePackConfig && texturePackConfig.door) {
-                return `<img src="${texturePackConfig.door}" class="w-8 h-8 object-contain" alt="Двері"/>`;
+                return `<img src="${texturePackConfig.door}" class="w-9 h-9 object-contain" alt="Двері"/>`;
             }
-            return `<div class="text-2xl">🚪</div>`;
+            return `<div class="text-2xl w-9 h-9 flex items-center justify-center">🚪</div>`;
         }
 
         function getLavaSVG() {
@@ -1080,7 +1081,7 @@
             });
         }
 
-        // Position Character Sprite
+        // Position Character Sprite (БЕЗ КРУТІННЯ ПІД ЧАС РУХУ)
         function renderCharacterSprite() {
             const targetCell = gameGridEl.querySelector(`[data-x="${robotState.x}"][data-y="${robotState.y}"]`);
             if (!targetCell) return;
@@ -1089,7 +1090,7 @@
             characterSprite.style.height = `${targetCell.offsetHeight}px`;
             characterSprite.style.left = `${targetCell.offsetLeft}px`;
             characterSprite.style.top = `${targetCell.offsetTop}px`;
-            characterSprite.style.transform = `rotate(${DIR_VECTORS[robotState.dir].deg}deg)`;
+            characterSprite.style.transform = `rotate(0deg)`; // Вимикаємо обертання
 
             if (currentHero.customImg) {
                 characterSprite.innerHTML = `<img src="${currentHero.customImg}" class="w-full h-full object-contain filter drop-shadow-md"/>`;
@@ -1645,16 +1646,15 @@
                     if (blockEl) blockEl.classList.add('block-executing');
                 }
 
-                let dx = 0, dy = 0, targetDir = robotState.dir;
+                let dx = 0, dy = 0;
                 let isMove = false;
 
-                if (item.action === 'MOVE_UP') { dx = 0; dy = -1; targetDir = 3; isMove = true; }
-                else if (item.action === 'MOVE_DOWN') { dx = 0; dy = 1; targetDir = 1; isMove = true; }
-                else if (item.action === 'MOVE_LEFT') { dx = -1; dy = 0; targetDir = 2; isMove = true; }
-                else if (item.action === 'MOVE_RIGHT') { dx = 1; dy = 0; targetDir = 0; isMove = true; }
+                if (item.action === 'MOVE_UP') { dx = 0; dy = -1; isMove = true; }
+                else if (item.action === 'MOVE_DOWN') { dx = 0; dy = 1; isMove = true; }
+                else if (item.action === 'MOVE_LEFT') { dx = -1; dy = 0; isMove = true; }
+                else if (item.action === 'MOVE_RIGHT') { dx = 1; dy = 0; isMove = true; }
 
                 if (isMove) {
-                    robotState.dir = targetDir;
                     const nextX = robotState.x + dx;
                     const nextY = robotState.y + dy;
 
@@ -1878,7 +1878,6 @@
 
         function setupEventListeners() {
             document.getElementById('btnRun').onclick = runProgram;
-            // При вказаних діях зберігаємо блоки коду, а не очищаємо їх
             document.getElementById('btnReset').onclick = resetStateOnly;
             document.getElementById('btnRetryLevel').onclick = resetStateOnly;
 
@@ -1894,7 +1893,6 @@
             // Palette Click Fallback
             document.querySelectorAll('.block-palette-item').forEach(item => {
                 item.addEventListener('click', (e) => {
-                    // Only click if not currently dragging
                     if (!draggedSource && !suppressPaletteClick) {
                         addBlockToWorkspace(item.dataset.type);
                     }
