@@ -18,11 +18,11 @@
         
         :root {
             /* Кольори за замовчуванням */
-            --ui-bg: #e2e8e3;
-            --ui-panel: #d6e2d8;
-            --ui-accent: #5e8369;
+            --ui-bg: #dbe3d3;
+            --ui-panel: #a8bc9d;
+            --ui-accent: #3d5a45;
             --path-color: #f1ebd8;
-            --wall-color: #657f6f;
+            --wall-color: #4a6352;
             --lava-color: #e07263;
         }
 
@@ -35,7 +35,7 @@
         body {
             font-family: 'Fredoka', 'Nunito', sans-serif;
             background-color: var(--ui-bg);
-            color: #2b3a30;
+            color: #1a261c;
         }
 
         /* Custom Scrollbar */
@@ -44,7 +44,7 @@
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(94, 131, 105, 0.15);
+            background: rgba(42, 66, 48, 0.15);
             border-radius: 8px;
         }
         ::-webkit-scrollbar-thumb {
@@ -81,7 +81,7 @@
             position: relative;
             background: var(--ui-panel);
             border-radius: 1rem;
-            box-shadow: inset 0 0 12px rgba(0,0,0,0.08), 0 8px 20px -5px rgba(0,0,0,0.1);
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.12), 0 8px 20px -5px rgba(0,0,0,0.15);
         }
 
         .cell-wall {
@@ -137,28 +137,28 @@
         .block-item.dragging {
             opacity: 0.5;
             transform: scale(0.96);
-            outline: 2px dashed #4e7a63;
+            outline: 2px dashed #2a4230;
         }
 
         .drop-zone-active {
-            border-color: #5e8369 !important;
-            background-color: rgba(94, 131, 105, 0.15) !important;
+            border-color: #3d5a45 !important;
+            background-color: rgba(61, 90, 69, 0.15) !important;
         }
 
         .drop-target-above {
-            border-top: 4px solid #5e8369 !important;
+            border-top: 4px solid #3d5a45 !important;
             margin-top: 4px;
         }
 
         .drop-target-below {
-            border-bottom: 4px solid #5e8369 !important;
+            border-bottom: 4px solid #3d5a45 !important;
             margin-bottom: 4px;
         }
 
         .drop-zone-nested-active {
-            background-color: rgba(94, 131, 105, 0.25) !important;
-            border-color: #4e7a63 !important;
-            outline: 2px dashed #4e7a63;
+            background-color: rgba(61, 90, 69, 0.25) !important;
+            border-color: #2a4230 !important;
+            outline: 2px dashed #2a4230;
         }
 
         /* Drag Ghost Preview Element */
@@ -177,20 +177,20 @@
         }
 
         /* =========================================================
-           WARM WHEAT & SAGE UI THEME
-           Soft, natural, and completely non-white light scheme.
+           DARKER SAGE & DEEP FOREST UI THEME
+           Modern contrast scheme with dark-accented header & elements.
            ========================================================= */
         :root {
-            --warm-bg: #e6edd8;
-            --warm-panel: #dde5ce;
-            --warm-card: #f2f5e8;
-            --warm-border: #c3d1b1;
-            --warm-text: #2f3d32;
-            --warm-muted: #5f7062;
+            --warm-bg: #d2dcc8;
+            --warm-panel: #b3c2a9;
+            --warm-card: #e4ebe0;
+            --warm-border: #8d9e83;
+            --warm-text: #19261c;
+            --warm-muted: #425245;
         }
 
         html, body {
-            background: linear-gradient(180deg, #e3ebd5 0%, #ebf1e1 50%, #e2ead4 100%) !important;
+            background: linear-gradient(180deg, #c7d2be 0%, #d4dfcc 50%, #c4cfbb 100%) !important;
             color: var(--warm-text) !important;
         }
 
@@ -198,7 +198,7 @@
             font-family: 'Fredoka', 'Nunito', sans-serif !important;
         }
 
-        /* Soft background accents */
+        /* Background accents */
         body::before, body::after {
             content: "";
             position: fixed;
@@ -210,58 +210,61 @@
         body::before {
             width: 220px; height: 90px;
             left: -35px; top: 90px;
-            background: rgba(220, 232, 205, 0.5);
-            box-shadow: 55px 12px 0 rgba(220, 232, 205, 0.5), 105px 3px 0 rgba(220, 232, 205, 0.4);
+            background: rgba(160, 180, 150, 0.4);
+            box-shadow: 55px 12px 0 rgba(160, 180, 150, 0.4), 105px 3px 0 rgba(160, 180, 150, 0.3);
         }
         body::after {
             width: 190px; height: 75px;
             right: -25px; bottom: 110px;
-            background: rgba(215, 228, 200, 0.4);
-            box-shadow: -45px 10px 0 rgba(215, 228, 200, 0.4), -90px 0 0 rgba(215, 228, 200, 0.3);
+            background: rgba(150, 175, 140, 0.35);
+            box-shadow: -45px 10px 0 rgba(150, 175, 140, 0.35), -90px 0 0 rgba(150, 175, 140, 0.25);
         }
 
+        /* Darker, rich header */
         header {
-            background: #d8e3c7 !important;
-            border-bottom: 3px solid #b8c9a3 !important;
-            box-shadow: 0 4px 12px rgba(60, 80, 50, 0.08);
-            backdrop-filter: none !important;
+            background: linear-gradient(135deg, #2a4230 0%, #1e3324 100%) !important;
+            border-bottom: 3px solid #142318 !important;
+            box-shadow: 0 4px 15px rgba(15, 30, 20, 0.25);
+            color: #f0f5ee !important;
         }
 
         header > div:first-child > div:first-child {
-            background: linear-gradient(145deg, #62886a, #4a6f52) !important;
-            border: 3px solid #edf2e1;
+            background: linear-gradient(145deg, #3d5e46, #2a4531) !important;
+            border: 2px solid #5a7d64;
             border-radius: 20px !important;
-            box-shadow: 0 4px 0 #3b5a41, 0 8px 15px rgba(60, 80, 50, 0.15) !important;
+            box-shadow: 0 4px 0 #1b2e20, 0 8px 15px rgba(0, 0, 0, 0.2) !important;
         }
 
         #gameHeaderTitle {
-            background: linear-gradient(90deg, #38573f, #517558, #719169) !important;
+            background: linear-gradient(90deg, #f0f7ef, #b2d6b8, #e0ebd8) !important;
             -webkit-background-clip: text !important;
             background-clip: text !important;
+            color: transparent !important;
             font-size: 1.45rem !important;
             letter-spacing: .01em !important;
-            text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         header p {
-            color: #596e5e !important;
+            color: #b3c9b7 !important;
         }
 
         #levelSelectorContainer {
-            background: #cbd8b7 !important;
-            border: 2px solid #b3c49e !important;
+            background: #1e3123 !important;
+            border: 2px solid #334d3a !important;
         }
 
         #levelSelectorContainer button,
         #mobileLevelPills button {
-            border: 1px solid rgba(60, 90, 65, 0.2) !important;
-            box-shadow: 0 2px 0 rgba(60, 90, 65, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+            color: #dbe8dd;
         }
 
         #levelSelectorContainer button.bg-indigo-600 {
-            background: linear-gradient(180deg, #648a6d, #4c7054) !important;
-            box-shadow: 0 3px 0 #3a5740 !important;
-            color: #f2f7eb !important;
+            background: linear-gradient(180deg, #4f7858, #37573e) !important;
+            box-shadow: 0 3px 0 #203625 !important;
+            color: #ffffff !important;
         }
 
         header button {
@@ -269,46 +272,46 @@
         }
 
         #btnRandomizeLevel {
-            background: linear-gradient(180deg, #74997c, #597d61) !important;
-            border: 2px solid #edf2e1 !important;
+            background: linear-gradient(180deg, #3f6347, #2c4733) !important;
+            border: 2px solid #5d8266 !important;
             color: #f4f8ed !important;
-            box-shadow: 0 4px 0 #415e48, 0 6px 12px rgba(60, 80, 50, 0.12) !important;
+            box-shadow: 0 4px 0 #1a2b1f, 0 6px 12px rgba(0, 0, 0, 0.2) !important;
         }
         #btnShowCode {
-            background: #e2ebd4 !important;
-            color: #435e4a !important;
-            border: 2px solid #becea8 !important;
+            background: #334b38 !important;
+            color: #e3ede5 !important;
+            border: 2px solid #4a6850 !important;
         }
         #btnSandbox {
-            background: linear-gradient(180deg, #cfa856, #b8903f) !important;
-            border: 2px solid #f9f5e8 !important;
-            color: #2b220d !important;
-            box-shadow: 0 4px 0 #8f6c26 !important;
+            background: linear-gradient(180deg, #b88a3b, #946c27) !important;
+            border: 2px solid #dfb973 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 0 #614513 !important;
         }
         #btnSoundToggle {
-            background: #e2ebd4 !important;
-            color: #435e4a !important;
-            border: 2px solid #becea8 !important;
+            background: #334b38 !important;
+            color: #e3ede5 !important;
+            border: 2px solid #4a6850 !important;
         }
 
         main {
             background: transparent !important;
         }
 
-        /* Panels with warm pastel styling */
+        /* Panels with deeper contrast */
         main > section:first-child {
-            background: rgba(222, 232, 206, 0.7) !important;
-            border-right: 3px solid #b8c9a3 !important;
+            background: rgba(182, 196, 173, 0.85) !important;
+            border-right: 3px solid #85967b !important;
         }
         main > section:last-child {
-            background: rgba(215, 227, 200, 0.6) !important;
+            background: rgba(173, 188, 163, 0.75) !important;
         }
 
         .grid-container {
-            background: linear-gradient(145deg, #cbd9b8, #dfebd0) !important;
-            border: 4px solid #edf2e1;
+            background: linear-gradient(145deg, #a4b898, #b8cca9) !important;
+            border: 4px solid #829676;
             border-radius: 24px !important;
-            box-shadow: 0 6px 0 #a2b58d, 0 12px 24px rgba(50, 70, 45, 0.1) !important;
+            box-shadow: 0 6px 0 #6e8062, 0 12px 24px rgba(30, 45, 32, 0.2) !important;
         }
 
         .cell-path {
@@ -320,146 +323,146 @@
         }
 
         .cell-wall {
-            background: linear-gradient(145deg, #7c9b83, #5e7b65) !important;
+            background: linear-gradient(145deg, #57735d, #3c5241) !important;
             border-radius: 9px;
-            box-shadow: inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -4px 0 rgba(35,50,38,0.25) !important;
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -4px 0 rgba(20,30,22,0.4) !important;
         }
 
         .cell-lava {
-            background: linear-gradient(145deg, #e07263, #c75647) !important;
+            background: linear-gradient(145deg, #d45948, #ad3828) !important;
             border-radius: 9px;
-            box-shadow: inset 0 2px 0 rgba(255,255,255,0.3), 0 2px 0 #a33f32 !important;
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.3), 0 2px 0 #7e2418 !important;
         }
 
         #characterSprite img, #characterSprite span {
-            filter: drop-shadow(0 4px 2px rgba(40,60,45,0.2)) !important;
+            filter: drop-shadow(0 4px 2px rgba(20,30,22,0.3)) !important;
         }
 
         /* Instruction/status card */
         #gameStatusOverlay {
-            background: #e5edd8 !important;
+            background: #dbe4d3 !important;
             border-radius: 20px;
             color: var(--warm-text) !important;
-            border: 3px solid #b8c9a3 !important;
+            border: 3px solid #88997d !important;
         }
         #statusTitle { color: #8e6221 !important; text-shadow: none; }
-        #statusDesc { color: #576b5b !important; }
+        #statusDesc { color: #37473a !important; }
 
-        /* Run controls */
+        /* Run controls panel */
         #btnRun {
-            background: linear-gradient(180deg, #658f6e, #4c7354) !important;
-            border: 3px solid #edf2e1 !important;
-            color: #f2f7eb !important;
-            box-shadow: 0 5px 0 #38573e, 0 10px 18px rgba(50, 80, 55, 0.15) !important;
+            background: linear-gradient(180deg, #3d6346, #29452f) !important;
+            border: 3px solid #638c6d !important;
+            color: #ffffff !important;
+            box-shadow: 0 5px 0 #182b1d, 0 10px 18px rgba(30, 50, 35, 0.25) !important;
         }
         #btnReset {
-            background: #ded7c3 !important;
-            color: #544a3b !important;
-            border: 2px solid #c9beaa !important;
-            box-shadow: 0 3px 0 rgba(80, 70, 50, 0.12) !important;
+            background: #b5aba0 !important;
+            color: #2e261d !important;
+            border: 2px solid #948a7f !important;
+            box-shadow: 0 3px 0 rgba(60, 50, 40, 0.2) !important;
         }
 
         /* Toolbox */
         main > section:last-child > div:first-child {
-            background: #d9e4c9 !important;
-            border-right: 3px solid #b8c9a3 !important;
+            background: #a9ba9c !important;
+            border-right: 3px solid #85967b !important;
         }
 
         main > section:last-child h3 {
-            color: #4b6150 !important;
+            color: #203023 !important;
         }
 
         .block-palette-item {
             border-radius: 14px !important;
-            border: 2px solid rgba(255,255,255,0.4) !important;
+            border: 2px solid rgba(255,255,255,0.3) !important;
             border-bottom-width: 5px !important;
-            box-shadow: 0 4px 0 rgba(50,70,55,0.12) !important;
+            box-shadow: 0 4px 0 rgba(30,45,33,0.2) !important;
         }
         .block-palette-item:hover {
             transform: translateY(-2px);
         }
         .block-palette-item:active {
             transform: translateY(2px);
-            box-shadow: 0 2px 0 rgba(50,70,55,0.12) !important;
+            box-shadow: 0 2px 0 rgba(30,45,33,0.2) !important;
         }
 
-        .block-palette-item.bg-blue-600 { background: linear-gradient(180deg,#658a9e,#4f7183) !important; border-bottom-color:#3a5463 !important; }
-        .block-palette-item.bg-indigo-600 { background: linear-gradient(180deg,#70829e,#566883) !important; border-bottom-color:#3e4c62 !important; }
-        .block-palette-item.bg-amber-500 { background: linear-gradient(180deg,#cfa856,#b5903e) !important; border-bottom-color:#8e6f28 !important; color: #2b220d !important; }
-        .block-palette-item.bg-amber-600 { background: linear-gradient(180deg,#c2894f,#a87239) !important; border-bottom-color:#805221 !important; }
-        .block-palette-item.bg-rose-600 { background: linear-gradient(180deg,#ba6c75,#9e525b) !important; border-bottom-color:#78373e !important; }
+        .block-palette-item.bg-blue-600 { background: linear-gradient(180deg,#426b80,#2e4c5c) !important; border-bottom-color:#1e323d !important; }
+        .block-palette-item.bg-indigo-600 { background: linear-gradient(180deg,#4d5f7a,#354459) !important; border-bottom-color:#212b38 !important; }
+        .block-palette-item.bg-amber-500 { background: linear-gradient(180deg,#b8923d,#967325) !important; border-bottom-color:#634b15 !important; color: #ffffff !important; }
+        .block-palette-item.bg-amber-600 { background: linear-gradient(180deg,#aa723c,#875323) !important; border-bottom-color:#593310 !important; }
+        .block-palette-item.bg-rose-600 { background: linear-gradient(180deg,#a1525b,#7f3941) !important; border-bottom-color:#542127 !important; }
 
         /* Workspace */
         #workspace {
             background:
-                radial-gradient(circle, rgba(90, 115, 95, 0.1) 1.5px, transparent 1.5px),
-                #e3edd5 !important;
+                radial-gradient(circle, rgba(50, 75, 55, 0.15) 1.5px, transparent 1.5px),
+                #c1d1b4 !important;
             background-size: 18px 18px !important;
-            border: 3px dashed #adc297 !important;
+            border: 3px dashed #7a8e6b !important;
             border-radius: 20px !important;
-            box-shadow: inset 0 2px 10px rgba(50,70,55,0.06) !important;
+            box-shadow: inset 0 2px 10px rgba(30,45,33,0.12) !important;
         }
 
         #programBlocksContainer .block-item {
             border-radius: 14px !important;
-            border: 2px solid rgba(255,255,255,0.4) !important;
+            border: 2px solid rgba(255,255,255,0.3) !important;
             border-bottom-width: 5px !important;
-            box-shadow: 0 4px 0 rgba(50,70,55,0.12) !important;
+            box-shadow: 0 4px 0 rgba(30,45,33,0.2) !important;
         }
-        #programBlocksContainer .block-item.bg-blue-600 { background: linear-gradient(180deg,#658a9e,#4f7183) !important; border-bottom-color:#3a5463 !important; }
-        #programBlocksContainer .block-item.bg-indigo-600 { background: linear-gradient(180deg,#70829e,#566883) !important; border-bottom-color:#3e4c62 !important; }
-        #programBlocksContainer .block-item.bg-amber-500 { background: linear-gradient(180deg,#cfa856,#b5903e) !important; border-bottom-color:#8e6f28 !important; color: #2b220d !important; }
-        #programBlocksContainer .block-item.bg-amber-600 { background: linear-gradient(180deg,#c2894f,#a87239) !important; border-bottom-color:#805221 !important; }
-        #programBlocksContainer .block-item.bg-rose-600 { background: linear-gradient(180deg,#ba6c75,#9e525b) !important; border-bottom-color:#78373e !important; }
+        #programBlocksContainer .block-item.bg-blue-600 { background: linear-gradient(180deg,#426b80,#2e4c5c) !important; border-bottom-color:#1e323d !important; }
+        #programBlocksContainer .block-item.bg-indigo-600 { background: linear-gradient(180deg,#4d5f7a,#354459) !important; border-bottom-color:#212b38 !important; }
+        #programBlocksContainer .block-item.bg-amber-500 { background: linear-gradient(180deg,#b8923d,#967325) !important; border-bottom-color:#634b15 !important; color: #ffffff !important; }
+        #programBlocksContainer .block-item.bg-amber-600 { background: linear-gradient(180deg,#aa723c,#875323) !important; border-bottom-color:#593310 !important; }
+        #programBlocksContainer .block-item.bg-rose-600 { background: linear-gradient(180deg,#a1525b,#7f3941) !important; border-bottom-color:#542127 !important; }
 
         #emptyWorkspaceHint {
-            color: #6a7e6e !important;
+            color: #435446 !important;
         }
         #emptyWorkspaceHint i {
-            color: #56785e !important;
+            color: #2b3b2e !important;
         }
 
         #blockCountBadge {
-            background: #ded7c3 !important;
-            color: #4d4334 !important;
-            border: 1px solid #c9beaa !important;
+            background: #a99e93 !important;
+            color: #211a12 !important;
+            border: 1px solid #877c72 !important;
         }
         #btnClearWorkspace {
-            background: #e3cdc7 !important;
-            color: #7d3f37 !important;
-            border: 1px solid #cca9a3 !important;
+            background: #cfa8a2 !important;
+            color: #5c241d !important;
+            border: 1px solid #b3857e !important;
         }
 
         #trashZone {
-            background: #e8d5d1 !important;
-            border-color: #cda8a2 !important;
-            color: #8c4b43 !important;
+            background: #c2a19b !important;
+            border-color: #9e756f !important;
+            color: #54221b !important;
             border-radius: 14px !important;
         }
 
         /* Badges */
         .bg-emerald-600 {
-            background: linear-gradient(180deg,#658f6e,#4c7354) !important;
-            color: #f2f7eb !important;
-            border: 1px solid #edf2e1;
-            box-shadow: 0 3px 0 #38573e;
+            background: linear-gradient(180deg,#3d6346,#29452f) !important;
+            color: #ffffff !important;
+            border: 1px solid #638c6d;
+            box-shadow: 0 3px 0 #182b1d;
         }
 
         /* Modals */
         #codeModal, #sandboxModal {
-            background: rgba(45, 60, 48, 0.45) !important;
-            backdrop-filter: blur(4px) !important;
+            background: rgba(20, 30, 22, 0.6) !important;
+            backdrop-filter: blur(5px) !important;
         }
         #codeModal > div, #sandboxModal > div {
-            background: #e7ebd9 !important;
-            border: 4px solid #b8c9a3 !important;
+            background: #d4dfcc !important;
+            border: 4px solid #7d8f71 !important;
             border-radius: 22px !important;
-            box-shadow: 0 12px 30px rgba(40, 55, 42, 0.2) !important;
+            box-shadow: 0 12px 30px rgba(20, 30, 22, 0.35) !important;
             color: var(--warm-text) !important;
         }
         #codeModal pre {
-            background: #2d3d31 !important;
-            border: 2px solid #5a7560 !important;
+            background: #1b261d !important;
+            border: 2px solid #3f5743 !important;
             color: #a2d4ad !important;
             border-radius: 14px !important;
         }
@@ -467,21 +470,21 @@
         /* Touch/drag feedback */
         .block-item.dragging {
             opacity: .6 !important;
-            outline: 2px dashed #b8903f !important;
+            outline: 2px dashed #b88a3b !important;
         }
         .drop-zone-active {
-            background: rgba(184, 144, 63, 0.15) !important;
-            border-color: #b8903f !important;
+            background: rgba(184, 138, 59, 0.2) !important;
+            border-color: #b88a3b !important;
         }
         .drop-target-above, .drop-target-below {
-            border-color: #b8903f !important;
+            border-color: #b88a3b !important;
         }
 
         #dragGhost {
             border: 2px solid #edf2e1 !important;
             border-radius: 14px !important;
-            background: linear-gradient(180deg,#658a9e,#4f7183) !important;
-            box-shadow: 0 8px 20px rgba(40,55,42,0.2) !important;
+            background: linear-gradient(180deg,#426b80,#2e4c5c) !important;
+            box-shadow: 0 8px 20px rgba(20,30,22,0.3) !important;
         }
 
         /* Mobile */
@@ -492,18 +495,18 @@
             }
             main > section:first-child {
                 border-right: 0 !important;
-                border-bottom: 3px solid #b8c9a3 !important;
+                border-bottom: 3px solid #85967b !important;
             }
             main > section:last-child > div:first-child {
                 border-right: 0 !important;
-                border-bottom: 3px solid #b8c9a3 !important;
+                border-bottom: 3px solid #85967b !important;
             }
         }
 
         button {
             transition: transform .12s ease, filter .12s ease !important;
         }
-        button:hover { filter: brightness(1.03); }
+        button:hover { filter: brightness(1.05); }
         button:active { transform: translateY(1px); }
 
     </style>
@@ -513,7 +516,7 @@
     <header class="px-4 py-2.5 flex items-center justify-between z-20">
         <div class="flex items-center space-x-3">
             <div class="p-2 rounded-2xl flex items-center justify-center">
-                <i class="fa-solid fa-robot text-2xl text-amber-700"></i>
+                <i class="fa-solid fa-robot text-2xl text-amber-400"></i>
             </div>
             <div>
                 <div class="flex items-center space-x-2">
@@ -534,7 +537,7 @@
         <div class="flex items-center space-x-2">
             <!-- Generate Random Level Button -->
             <button id="btnRandomizeLevel" class="font-bold text-xs md:text-sm px-3.5 py-1.5 rounded-xl transition flex items-center space-x-1.5">
-                <i class="fa-solid fa-dice text-amber-200 animate-spin-slow"></i>
+                <i class="fa-solid fa-dice text-amber-300 animate-spin-slow"></i>
                 <span>Перегенерувати рівень</span>
             </button>
 
@@ -557,7 +560,7 @@
         </div>
     </header>
 
-    <div class="lg:hidden border-b px-3 py-1.5 flex items-center justify-between text-xs" style="background: #d8e3c7; border-color: #b8c9a3;">
+    <div class="lg:hidden border-b px-3 py-1.5 flex items-center justify-between text-xs" style="background: #233829; border-color: #142318; color: #dbe8dd;">
         <span class="font-bold flex items-center space-x-1" id="mobileLevelTitle">
             <span>Рівень 1</span>
         </span>
@@ -571,7 +574,7 @@
         <!-- Left Panel: Game Stage & Canvas -->
         <section class="w-full lg:w-5/12 xl:w-4/12 flex flex-col p-3 md:p-4 overflow-y-auto space-y-3">
 
-            <div class="flex-1 min-h-[270px] max-h-[380px] lg:max-h-none rounded-2xl p-3 border shadow-inner flex flex-col items-center justify-center relative overflow-hidden group" style="background: #d4e0c3; border-color: #b8c9a3;">
+            <div class="flex-1 min-h-[270px] max-h-[380px] lg:max-h-none rounded-2xl p-3 border shadow-inner flex flex-col items-center justify-center relative overflow-hidden group" style="background: #adc0a1; border-color: #85967b;">
                 
                 <!-- Dynamic Canvas/Grid Container -->
                 <div id="gameGridContainer" class="grid-container p-2 relative transition-all duration-300">
@@ -598,13 +601,13 @@
                     </div>
 
                     <div class="flex space-x-2">
-                        <button id="btnRetryLevel" class="font-bold px-4 py-2 rounded-xl text-sm transition border" style="background: #ded7c3; border-color: #c9beaa; color: #544a3b;">
+                        <button id="btnRetryLevel" class="font-bold px-4 py-2 rounded-xl text-sm transition border" style="background: #b5aba0; border-color: #948a7f; color: #2e261d;">
                             <i class="fa-solid fa-rotate-left mr-1"></i> Ще раз
                         </button>
-                        <button id="btnOverlayRegenerate" class="font-bold px-4 py-2 rounded-xl text-sm transition" style="background: #74997c; color: #f4f8ed;">
+                        <button id="btnOverlayRegenerate" class="font-bold px-4 py-2 rounded-xl text-sm transition" style="background: #3f6347; color: #f4f8ed;">
                             <i class="fa-solid fa-dice mr-1"></i> Нова карта
                         </button>
-                        <button id="btnNextLevel" class="font-black px-5 py-2 rounded-xl text-sm shadow-lg transition" style="background: #658f6e; color: #f2f7eb;">
+                        <button id="btnNextLevel" class="font-black px-5 py-2 rounded-xl text-sm shadow-lg transition" style="background: #3d6346; color: #ffffff;">
                             Наступний <i class="fa-solid fa-arrow-right ml-1"></i>
                         </button>
                     </div>
@@ -612,7 +615,7 @@
             </div>
 
             <!-- Program Execution Toolbar -->
-            <div class="rounded-2xl p-3 border shadow-sm flex flex-col space-y-2" style="background: #d8e3c7; border-color: #b8c9a3;">
+            <div class="rounded-2xl p-3 border shadow-sm flex flex-col space-y-2" style="background: #a4b898; border-color: #829676;">
                 <div class="flex items-center space-x-2">
                     <button id="btnRun" class="flex-1 active:scale-[0.98] font-black py-2.5 px-4 rounded-xl shadow-lg transition flex items-center justify-center space-x-2">
                         <i class="fa-solid fa-play text-lg"></i>
@@ -624,9 +627,9 @@
                 </div>
 
                 <!-- Execution Speed Control Slider -->
-                <div class="flex items-center justify-between text-xs px-1 pt-1" style="color: #596e5e;">
-                    <span class="flex items-center"><i class="fa-solid fa-gauge-high mr-1"></i> Швидкість:</span>
-                    <input type="range" id="speedSlider" min="150" max="750" step="50" value="400" class="w-32 cursor-pointer" style="accent-color: #5e8369;">
+                <div class="flex items-center justify-between text-xs px-1 pt-1" style="color: #243627;">
+                    <span class="flex items-center font-bold"><i class="fa-solid fa-gauge-high mr-1"></i> Швидкість:</span>
+                    <input type="range" id="speedSlider" min="150" max="750" step="50" value="400" class="w-32 cursor-pointer" style="accent-color: #2d4733;">
                 </div>
             </div>
 
@@ -641,7 +644,7 @@
                     <h3 class="text-xs font-black uppercase tracking-wider flex items-center">
                         <i class="fa-solid fa-cubes mr-1.5"></i> Блоки Дій
                     </h3>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background: #cbd8b7; border-color: #b3c49e; color: #38573f;">Затисни й тягни</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background: #2d4232; border-color: #1e3023; color: #e1ede3;">Затисни й тягни</span>
                 </div>
 
                 <!-- Block Palette List -->
@@ -732,7 +735,7 @@
                 <!-- Workspace Header Bar -->
                 <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-puzzle-piece text-lg" style="color: #4c7054;"></i>
+                        <i class="fa-solid fa-puzzle-piece text-lg" style="color: #233b28;"></i>
                         <h3 class="font-bold text-sm md:text-base">Робоча зона алгоритму</h3>
                     </div>
 
@@ -785,8 +788,8 @@
     <!-- Code View Modal -->
     <div id="codeModal" class="fixed inset-0 flex items-center justify-center p-4 hidden z-50">
         <div class="border rounded-3xl max-w-xl w-full p-5 shadow-2xl flex flex-col">
-            <div class="flex items-center justify-between mb-3 border-b pb-3" style="border-color: #b8c9a3;">
-                <div class="flex items-center space-x-2" style="color: #38573f;">
+            <div class="flex items-center justify-between mb-3 border-b pb-3" style="border-color: #85967b;">
+                <div class="flex items-center space-x-2" style="color: #203323;">
                     <i class="fa-solid fa-code text-lg"></i>
                     <h3 class="font-bold text-lg">Згенерований Код</h3>
                 </div>
@@ -797,9 +800,9 @@
 
             <!-- Language Tabs -->
             <div class="flex space-x-2 mb-3">
-                <button class="lang-tab-btn active text-white font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="js" style="background: #56785e;">JavaScript</button>
-                <button class="lang-tab-btn font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="python" style="background: #cbd8b7; color: #38573f;">Python</button>
-                <button class="lang-tab-btn font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="pseudo" style="background: #cbd8b7; color: #38573f;">Псевдокод (Укр)</button>
+                <button class="lang-tab-btn active text-white font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="js" style="background: #334b38;">JavaScript</button>
+                <button class="lang-tab-btn font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="python" style="background: #a9ba9c; color: #1e3023;">Python</button>
+                <button class="lang-tab-btn font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="pseudo" style="background: #a9ba9c; color: #1e3023;">Псевдокод (Укр)</button>
             </div>
 
             <pre class="p-4 rounded-2xl font-mono text-xs md:text-sm overflow-x-auto border leading-relaxed max-h-64" id="codeDisplay">
@@ -807,7 +810,7 @@
             </pre>
 
             <div class="mt-4 flex justify-end">
-                <button id="btnCopyCode" class="text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center space-x-1.5" style="background: #56785e;">
+                <button id="btnCopyCode" class="text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center space-x-1.5" style="background: #334b38;">
                     <i class="fa-solid fa-copy"></i>
                     <span>Скопіювати код</span>
                 </button>
@@ -818,41 +821,41 @@
     <!-- Sandbox / Level Creator Modal -->
     <div id="sandboxModal" class="fixed inset-0 flex items-center justify-center p-4 hidden z-50">
         <div class="border rounded-3xl max-w-xl w-full p-5 shadow-2xl flex flex-col">
-            <div class="flex items-center justify-between mb-3 border-b pb-3" style="border-color: #b8c9a3;">
+            <div class="flex items-center justify-between mb-3 border-b pb-3" style="border-color: #85967b;">
                 <div class="flex items-center space-x-2 text-amber-800">
                     <i class="fa-solid fa-hammer text-xl"></i>
-                    <h3 class="font-bold text-lg" style="color: #2f3d32;">Редактор Рівнів (Пісочниця)</h3>
+                    <h3 class="font-bold text-lg" style="color: #19261c;">Редактор Рівнів (Пісочниця)</h3>
                 </div>
                 <button id="btnCloseSandbox" class="text-xl opacity-70 hover:opacity-100">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             
-            <p class="text-xs mb-2" style="color: #596e5e;">Натискай на клітинки поля, щоб змінювати їх вміст:</p>
+            <p class="text-xs mb-2" style="color: #37473a;">Натискай на клітинки поля, щоб змінювати їх вміст:</p>
             
             <!-- Sandbox Grid Designer -->
-            <div id="sandboxGrid" class="grid gap-1 p-2 rounded-2xl my-2 justify-center mx-auto border" style="background: #cbd8b7; border-color: #b8c9a3;">
+            <div id="sandboxGrid" class="grid gap-1 p-2 rounded-2xl my-2 justify-center mx-auto border" style="background: #a9ba9c; border-color: #85967b;">
                 <!-- Dynamic cells -->
             </div>
 
             <!-- Tool Selector -->
             <div class="flex flex-wrap justify-center gap-1.5 my-2 text-xs">
-                <button class="sandbox-tool-btn active text-white font-bold px-3 py-1.5 rounded-lg" data-tool="path" style="background: #56785e;">🟩 Шлях</button>
-                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="wall" style="background: #cbd8b7; color: #38573f;">🧱 Стіна</button>
-                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="star" style="background: #cbd8b7; color: #38573f;">⭐ Зірка</button>
-                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="key" style="background: #cbd8b7; color: #38573f;">🔑 Ключ</button>
-                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="door" style="background: #cbd8b7; color: #38573f;">🚪 Двері</button>
-                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="lava" style="background: #cbd8b7; color: #38573f;">🌋 Лава</button>
-                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="robot" style="background: #cbd8b7; color: #38573f;">🤖 Герой</button>
+                <button class="sandbox-tool-btn active text-white font-bold px-3 py-1.5 rounded-lg" data-tool="path" style="background: #334b38;">🟩 Шлях</button>
+                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="wall" style="background: #a9ba9c; color: #1e3023;">🧱 Стіна</button>
+                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="star" style="background: #a9ba9c; color: #1e3023;">⭐ Зірка</button>
+                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="key" style="background: #a9ba9c; color: #1e3023;">🔑 Ключ</button>
+                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="door" style="background: #a9ba9c; color: #1e3023;">🚪 Двері</button>
+                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="lava" style="background: #a9ba9c; color: #1e3023;">🌋 Лава</button>
+                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="robot" style="background: #a9ba9c; color: #1e3023;">🤖 Герой</button>
             </div>
 
             <!-- Import / Export Actions -->
-            <div class="flex items-center justify-between mt-3 pt-3 border-t" style="border-color: #b8c9a3;">
-                <button id="btnExportLevel" class="text-xs font-bold flex items-center space-x-1" style="color: #4c7054;">
+            <div class="flex items-center justify-between mt-3 pt-3 border-t" style="border-color: #85967b;">
+                <button id="btnExportLevel" class="text-xs font-bold flex items-center space-x-1" style="color: #233b28;">
                     <i class="fa-solid fa-file-export"></i>
                     <span>Експорт JSON</span>
                 </button>
-                <button id="btnPlayCustomLevel" class="font-black text-sm px-5 py-2 rounded-xl shadow-lg transition flex items-center space-x-1.5" style="background: #56785e; color: #f2f7eb;">
+                <button id="btnPlayCustomLevel" class="font-black text-sm px-5 py-2 rounded-xl shadow-lg transition flex items-center space-x-1.5" style="background: #334b38; color: #ffffff;">
                     <i class="fa-solid fa-play"></i>
                     <span>Грати Свій Рівень</span>
                 </button>
@@ -1224,17 +1227,17 @@
 
             LEVELS.forEach((lvl, idx) => {
                 const btn = document.createElement('button');
-                btn.className = `w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition ${idx === currentLevelIndex ? 'bg-indigo-600 text-white shadow-md scale-105' : 'hover:bg-slate-300 text-slate-700'}`;
+                btn.className = `w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition ${idx === currentLevelIndex ? 'bg-indigo-600 text-white shadow-md scale-105' : 'hover:bg-slate-700 text-slate-200'}`;
                 if (idx !== currentLevelIndex) {
-                    btn.style.background = '#d2dfc3';
+                    btn.style.background = '#2a4230';
                 }
                 btn.innerText = idx + 1;
                 btn.onclick = () => loadLevel(idx);
                 levelSelectorContainer.appendChild(btn);
 
                 const mBtn = document.createElement('button');
-                mBtn.className = `px-2.5 py-1 rounded-lg font-bold text-xs ${idx === currentLevelIndex ? 'text-slate-900 font-extrabold' : 'text-slate-700'}`;
-                mBtn.style.background = idx === currentLevelIndex ? '#bfa054' : '#cbd8b7';
+                mBtn.className = `px-2.5 py-1 rounded-lg font-bold text-xs ${idx === currentLevelIndex ? 'text-white font-extrabold' : 'text-slate-300'}`;
+                mBtn.style.background = idx === currentLevelIndex ? '#3f6347' : '#1e3123';
                 mBtn.innerText = `Рівень ${idx + 1}`;
                 mBtn.onclick = () => loadLevel(idx);
                 mobileLevelPills.appendChild(mBtn);
@@ -1931,12 +1934,12 @@
             blockCountBadge.innerText = `Блоків: ${count} / ${activeLevel.maxBlocks}`;
             if (count > activeLevel.maxBlocks) {
                 blockCountBadge.className = 'text-xs font-bold px-3 py-1 rounded-xl';
-                blockCountBadge.style.background = '#e3cdc7';
-                blockCountBadge.style.color = '#7d3f37';
+                blockCountBadge.style.background = '#cfa8a2';
+                blockCountBadge.style.color = '#5c241d';
             } else {
                 blockCountBadge.className = 'text-xs font-bold px-3 py-1 rounded-xl';
-                blockCountBadge.style.background = '#ded7c3';
-                blockCountBadge.style.color = '#4d4334';
+                blockCountBadge.style.background = '#a99e93';
+                blockCountBadge.style.color = '#211a12';
             }
         }
 
@@ -2181,8 +2184,8 @@
                 for (let c = 0; c < 5; c++) {
                     const cell = document.createElement('div');
                     cell.className = 'w-11 h-11 rounded-lg flex items-center justify-center cursor-pointer border overflow-hidden';
-                    cell.style.background = '#d8e3c7';
-                    cell.style.borderColor = '#b8c9a3';
+                    cell.style.background = '#a9ba9c';
+                    cell.style.borderColor = '#85967b';
                     
                     const val = sandboxGridData[r][c];
                     if (val === 1) cell.innerHTML = getWallSVG();
@@ -2260,10 +2263,10 @@
             document.querySelectorAll('.lang-tab-btn').forEach(btn => {
                 btn.onclick = (e) => {
                     document.querySelectorAll('.lang-tab-btn').forEach(b => {
-                        b.style.background = '#cbd8b7';
-                        b.style.color = '#38573f';
+                        b.style.background = '#a9ba9c';
+                        b.style.color = '#1e3023';
                     });
-                    e.target.style.background = '#56785e';
+                    e.target.style.background = '#334b38';
                     e.target.style.color = '#ffffff';
                     selectedCodeLang = e.target.dataset.lang;
                     showCodeModal();
@@ -2282,10 +2285,10 @@
             document.querySelectorAll('.sandbox-tool-btn').forEach(btn => {
                 btn.onclick = (e) => {
                     document.querySelectorAll('.sandbox-tool-btn').forEach(b => {
-                        b.style.background = '#cbd8b7';
-                        b.style.color = '#38573f';
+                        b.style.background = '#a9ba9c';
+                        b.style.color = '#1e3023';
                     });
-                    e.target.style.background = '#56785e';
+                    e.target.style.background = '#334b38';
                     e.target.style.color = '#ffffff';
                     sandboxTool = e.target.dataset.tool;
                 };
