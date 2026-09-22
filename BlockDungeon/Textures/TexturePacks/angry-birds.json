@@ -5,6 +5,7 @@
   "winDesc": "Ти успішно пройшов усі перешкоди та покарав свиней!",
   "loseTitle": "Місію Провалено! 💥",
   "loseDesc": "Спробуй ще раз!",
+  "theme": "light",
   "uiColor": "#57a03d",
   "uiPanelColor": "#57a03d",
   "uiAccentColor": "#57a03d",
