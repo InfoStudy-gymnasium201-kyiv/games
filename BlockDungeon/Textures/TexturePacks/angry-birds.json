@@ -1,1 +1,15 @@
-
+{
+  "gameTitle": "Block Dungeon: Angry Bird Edition!",
+  "collectStarBlockText": "Спіймати свиню!",
+  "winTitle": "Місію Виконано! 🚀",
+  "winDesc": "Ти успішно пройшов усі перешкоди та покарав свиней!",
+  "loseTitle": "Місію Провалено! 💥",
+  "loseDesc": "Спробуй ще раз!",
+  "floor": "https://raw.githubusercontent.com/google/material-design-icons/master/png/navigation/apps/materialicons/48dp/1x/baseline_apps_black_48dp.png",
+  "wall": "https://raw.githubusercontent.com/google/material-design-icons/master/png/toggle/check_box_outline_blank/materialicons/48dp/1x/baseline_check_box_outline_blank_black_48dp.png",
+  "player": "https://raw.githubusercontent.com/google/material-design-icons/master/png/social/rocket/materialicons/48dp/1x/baseline_rocket_black_48dp.png",
+  "lava": "https://raw.githubusercontent.com/google/material-design-icons/master/png/alert/warning/materialicons/48dp/1x/baseline_warning_black_48dp.png",
+  "door": "https://raw.githubusercontent.com/google/material-design-icons/master/png/action/lock/materialicons/48dp/1x/baseline_lock_black_48dp.png",
+  "key": "https://raw.githubusercontent.com/google/material-design-icons/master/png/communication/vpn_key/materialicons/48dp/1x/baseline_vpn_key_black_48dp.png",
+  "star": "https://raw.githubusercontent.com/google/material-design-icons/master/png/toggle/star/materialicons/48dp/1x/baseline_star_black_48dp.png"
+}
