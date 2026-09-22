@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+[source: 1]<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
@@ -516,7 +516,7 @@
     <header class="px-4 py-2.5 flex items-center justify-between z-20">
         <div class="flex items-center space-x-3">
             <div class="p-2 rounded-2xl flex items-center justify-center">
-                <i class="fa-solid fa-robot text-2xl text-amber-400"></i>
+                <i class="fa-solid fa-user-ninja text-2xl text-amber-400"></i>
             </div>
             <div>
                 <div class="flex items-center space-x-2">
@@ -757,7 +757,7 @@
                     <!-- Start Flag Tag -->
                     <div class="bg-emerald-600 text-xs font-black px-3 py-1.5 rounded-lg inline-flex items-center space-x-1.5 shadow-md mb-2 pointer-events-none">
                         <i class="fa-solid fa-flag-checkered"></i>
-                        <span>ПРИ СТАРТІ РОБОТА:</span>
+                        <span>ПРИ СТАРТІ ГЕРОЯ:</span>
                     </div>
 
                     <!-- Active Program Blocks Container Tree -->
@@ -846,7 +846,7 @@
                 <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="key" style="background: #a9ba9c; color: #1e3023;">🔑 Ключ</button>
                 <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="door" style="background: #a9ba9c; color: #1e3023;">🚪 Двері</button>
                 <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="lava" style="background: #a9ba9c; color: #1e3023;">🌋 Лава</button>
-                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="robot" style="background: #a9ba9c; color: #1e3023;">🤖 Герой</button>
+                <button class="sandbox-tool-btn font-bold px-3 py-1.5 rounded-lg" data-tool="hero" style="background: #a9ba9c; color: #1e3023;">🧙‍♂️ Герой</button>
             </div>
 
             <!-- Import / Export Actions -->
@@ -890,49 +890,25 @@
 
             const root = document.documentElement;
 
-            // Зміна кольору інтерфейсу (UI)
-            if (texturePackConfig.uiColor) {
-                root.style.setProperty('--ui-bg', texturePackConfig.uiColor);
-            }
-            if (texturePackConfig.uiPanelColor) {
-                root.style.setProperty('--ui-panel', texturePackConfig.uiPanelColor);
-            }
-            if (texturePackConfig.uiAccentColor) {
-                root.style.setProperty('--ui-accent', texturePackConfig.uiAccentColor);
-            }
+            if (texturePackConfig.uiColor) root.style.setProperty('--ui-bg', texturePackConfig.uiColor);
+            if (texturePackConfig.uiPanelColor) root.style.setProperty('--ui-panel', texturePackConfig.uiPanelColor);
+            if (texturePackConfig.uiAccentColor) root.style.setProperty('--ui-accent', texturePackConfig.uiAccentColor);
+            if (texturePackConfig.pathColor) root.style.setProperty('--path-color', texturePackConfig.pathColor);
+            if (texturePackConfig.wallColor) root.style.setProperty('--wall-color', texturePackConfig.wallColor);
+            if (texturePackConfig.lavaColor) root.style.setProperty('--lava-color', texturePackConfig.lavaColor);
 
-            // Налаштування кольору блоку шляху
-            if (texturePackConfig.pathColor) {
-                root.style.setProperty('--path-color', texturePackConfig.pathColor);
-            }
-
-            // Налаштування кольору блоку стіни під текстурою
-            if (texturePackConfig.wallColor) {
-                root.style.setProperty('--wall-color', texturePackConfig.wallColor);
-            }
-
-            // Налаштування кольору блоку лави
-            if (texturePackConfig.lavaColor) {
-                root.style.setProperty('--lava-color', texturePackConfig.lavaColor);
-            }
-
-            // Custom Game Title
             if (texturePackConfig.gameTitle) {
                 const titleEl = document.getElementById('gameHeaderTitle');
-                if (titleEl) {
-                    titleEl.innerHTML = texturePackConfig.gameTitle;
-                }
+                if (titleEl) titleEl.innerHTML = texturePackConfig.gameTitle;
                 document.title = texturePackConfig.gameTitle;
             }
 
-            // Custom Collect Star Block Label
             const starText = texturePackConfig.collectStarBlockText || texturePackConfig.collectStarText;
             if (starText) {
                 const label = document.getElementById('collectStarBlockLabel');
                 if (label) label.innerText = starText;
             }
 
-            // Custom Player Texture
             if (texturePackConfig.player) {
                 HEROES[0].customImg = texturePackConfig.player;
             }
@@ -940,50 +916,44 @@
 
         // Hero Characters Collection
         const HEROES = [
-            { id: 'robot', name: 'Робот Біп', icon: '🤖', svgColor: '#818cf8', customImg: null },
+            { id: 'hero', name: 'Герой Біп', icon: '🧙‍♂️', svgColor: '#818cf8', customImg: null },
             { id: 'cat', name: 'Космо-Кіт', icon: '🐱', svgColor: '#f43f5e', customImg: null },
             { id: 'rocket', name: 'Ракета Стар', icon: '🚀', svgColor: '#38bdf8', customImg: null },
             { id: 'astro', name: 'Астронавт', icon: '🧑‍🚀', svgColor: '#fbbf24', customImg: null }
         ];
         let currentHero = HEROES[0];
 
+        // Track completed levels
+        let completedLevels = new Set();
+
         // Drag and Drop Global State
         let draggedBlockId = null;
-        let draggedSource = null; // 'palette' | 'workspace'
+        let draggedSource = null;
         let draggedType = null;
-
-        // Pointer-based drag state: works with mouse, touch and pen.
         let pointerDrag = null;
         let suppressPaletteClick = false;
 
         const AudioEngine = {
             muted: false,
             synth: null,
-            
             init() {
                 try {
                     this.synth = new Tone.PolySynth(Tone.Synth).toDestination();
                     this.synth.volume.value = -10;
-                } catch (e) {
-                    console.log("Audio init fallback:", e);
-                }
+                } catch (e) {}
             },
-
             playStep() {
                 if (this.muted || !this.synth) return;
                 try { Tone.start(); this.synth.triggerAttackRelease("C4", "16n"); } catch(e){}
             },
-
             playCollect() {
                 if (this.muted || !this.synth) return;
                 try { Tone.start(); this.synth.triggerAttackRelease(["E5", "G5", "B5"], "12n"); } catch(e){}
             },
-
             playKey() {
                 if (this.muted || !this.synth) return;
                 try { Tone.start(); this.synth.triggerAttackRelease(["F4", "A4", "C5"], "10n"); } catch(e){}
             },
-
             playWin() {
                 if (this.muted || !this.synth) return;
                 try {
@@ -995,14 +965,12 @@
                     this.synth.triggerAttackRelease("C5", "4n", now + 0.36);
                 } catch(e){}
             },
-
             playError() {
                 if (this.muted || !this.synth) return;
                 try { Tone.start(); this.synth.triggerAttackRelease("G2", "8n"); } catch(e){}
             }
         };
 
-        // Grid Directions & Vectors (0 = East, 1 = South, 2 = West, 3 = North)
         const DIR_VECTORS = [
             { x: 1, y: 0 },
             { x: 0, y: 1 },
@@ -1010,20 +978,16 @@
             { x: 0, y: -1 }
         ];
 
-        /**
-         * PROCEDURAL LEVEL GENERATOR
-         */
         function generateRandomLevel(levelNum = 1) {
             const width = Math.min(5 + Math.floor(levelNum / 2), 8);
             const height = Math.min(4 + Math.floor(levelNum / 3), 6);
             
-            let grid = Array(height).fill().map(() => Array(width).fill(1)); // Initialize filled with walls
+            let grid = Array(height).fill().map(() => Array(width).fill(1));
             
             const startX = 1;
             const startY = 1;
-            grid[startY][startX] = 0; // Clear start cell
+            grid[startY][startX] = 0;
             
-            // Random Walk Path Carving
             let currX = startX;
             let currY = startY;
             let path = [{ x: currX, y: currY }];
@@ -1053,18 +1017,17 @@
             const hasKeysAndDoors = levelNum >= 4 && path.length >= 6;
             const hasLava = levelNum >= 5;
 
-            // Place Key, Door, and Stars
             if (hasKeysAndDoors) {
                 const keyIdx = Math.max(1, Math.floor(path.length * 0.25));
                 const doorIdx = Math.max(keyIdx + 1, Math.floor(path.length * 0.55));
 
-                grid[path[keyIdx].y][path[keyIdx].x] = 3; // Key
-                grid[path[doorIdx].y][path[doorIdx].x] = 4; // Door
+                grid[path[keyIdx].y][path[keyIdx].x] = 3;
+                grid[path[doorIdx].y][path[doorIdx].x] = 4;
 
                 const remainingPath = path.slice(doorIdx + 1);
                 if (remainingPath.length > 0) {
                     const endCell = remainingPath[remainingPath.length - 1];
-                    grid[endCell.y][endCell.x] = 2; // Star
+                    grid[endCell.y][endCell.x] = 2;
 
                     for (let s = 1; s < starCount; s++) {
                         const sIdx = Math.floor(remainingPath.length * (s / starCount));
@@ -1076,7 +1039,7 @@
                 }
             } else {
                 const endCell = path[path.length - 1];
-                grid[endCell.y][endCell.x] = 2; // Star
+                grid[endCell.y][endCell.x] = 2;
 
                 for (let s = 1; s < starCount; s++) {
                     const midIdx = Math.floor(path.length * (s / starCount));
@@ -1086,28 +1049,26 @@
                 }
             }
 
-            // Place Lava Hazards near path
             if (hasLava) {
                 for (let r = 1; r < height - 1; r++) {
                     for (let c = 1; c < width - 1; c++) {
                         if (grid[r][c] === 1 && Math.random() < 0.25) {
                             const adjToPath = dirs.some(d => grid[r + d.y] && grid[r + d.y][c + d.x] === 0);
-                            if (adjToPath) grid[r][c] = 5; // Lava
+                            if (adjToPath) grid[r][c] = 5;
                         }
                     }
                 }
             }
 
-            const categories = ["Послідовність", "Напрямки", "Цикли (Repeat)", "Ключі та Двері", "Перешкоди", "Генератор Робота"];
+            const categories = ["Послідовність", "Напрямки", "Цикли (Repeat)", "Ключі та Двері", "Перешкоди", "Генератор Героя"];
             const cat = categories[Math.min(levelNum - 1, categories.length - 1)] || "Випадкова Карта";
-
             const optimalBlocks = Math.max(3, Math.floor(path.length * 0.6) + starCount);
             
             return {
                 id: levelNum,
                 title: `Рівень ${levelNum}`,
                 category: cat,
-                instruction: hasKeysAndDoors ? `Знайди ключ 🔑, щоб відчинити двері 🚪 та забрати всі зірки!` : `Проклади шлях робота, щоб зібрати усі зірки.`,
+                instruction: hasKeysAndDoors ? `Знайди ключ 🔑, щоб відчинити двері 🚪 та забрати всі зірки!` : `Проклади шлях героя, щоб зібрати усі зірки.`,
                 hint: hasKeysAndDoors ? `Без ключа двері не відчиняться. Спочатку дійди до ключа.` : `Затисни мишею блок дій та перетягни його в робочу зону.`,
                 maxBlocks: optimalBlocks + 4,
                 optimalBlocks: optimalBlocks,
@@ -1118,7 +1079,6 @@
             };
         }
 
-        // BFS Solver Check
         function isLevelSolvable(level, ignoreKeys = false) {
             const start = level.start;
             const grid = level.grid;
@@ -1142,7 +1102,6 @@
                 let cell = grid[curr.y][curr.x];
                 
                 if (cell === 2) starsCollected.add(`${curr.x},${curr.y}`);
-                
                 let hasKey = ignoreKeys ? false : (curr.keys > 0 || cell === 3);
                 
                 const dirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
@@ -1169,7 +1128,6 @@
             while (true) {
                 let lvl = generateRandomLevel(levelNum);
                 const hasDoor = lvl.grid.some(row => row.includes(4));
-
                 if (isLevelSolvable(lvl, false)) {
                     if (!hasDoor || !isLevelSolvable(lvl, true)) {
                         return lvl;
@@ -1178,13 +1136,11 @@
             }
         }
 
-        // Фіксовані рівні, створюються один раз
         let LEVELS = Array.from({ length: 8 }, (_, i) => getValidRandomLevel(i + 1));
 
-        // Global State
         let currentLevelIndex = 0;
         let activeLevel = LEVELS[0];
-        let robotState = { x: 0, y: 0, dir: 0 };
+        let heroState = { x: 0, y: 0, dir: 0 };
         let currentGrid = [];
         let starsRemaining = 0;
         let hasKey = false;
@@ -1196,7 +1152,6 @@
         let sandboxTool = 'path';
         let customLevelData = null;
 
-        // DOM Selectors
         const gameGridEl = document.getElementById('gameGrid');
         const characterSprite = document.getElementById('characterSprite');
         const workspaceContainer = document.getElementById('programBlocksContainer');
@@ -1217,31 +1172,43 @@
             setupDragAndDrop();
         }
 
-        // Render Level Selector Pills Header
         function renderLevelSelectors() {
             levelSelectorContainer.innerHTML = '';
             mobileLevelPills.innerHTML = '';
 
             LEVELS.forEach((lvl, idx) => {
+                const isCompleted = completedLevels.has(idx);
+                const isActive = idx === currentLevelIndex;
+
                 const btn = document.createElement('button');
-                btn.className = `w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition ${idx === currentLevelIndex ? 'bg-indigo-600 text-white shadow-md scale-105' : 'hover:bg-slate-700 text-slate-200'}`;
-                if (idx !== currentLevelIndex) {
+                btn.className = `w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition ${isActive ? 'bg-indigo-600 text-white shadow-md scale-105' : 'hover:bg-slate-700 text-slate-200'}`;
+                
+                if (isCompleted && !isActive) {
+                    btn.style.background = '#2e5a36';
+                    btn.style.borderColor = '#4ade80';
+                } else if (!isActive) {
                     btn.style.background = '#2a4230';
                 }
-                btn.innerText = idx + 1;
+
+                btn.innerHTML = isCompleted ? `<i class="fa-solid fa-check text-emerald-300"></i>` : (idx + 1);
                 btn.onclick = () => loadLevel(idx);
                 levelSelectorContainer.appendChild(btn);
 
                 const mBtn = document.createElement('button');
-                mBtn.className = `px-2.5 py-1 rounded-lg font-bold text-xs ${idx === currentLevelIndex ? 'text-white font-extrabold' : 'text-slate-300'}`;
-                mBtn.style.background = idx === currentLevelIndex ? '#3f6347' : '#1e3123';
-                mBtn.innerText = `Рівень ${idx + 1}`;
+                mBtn.className = `px-2.5 py-1 rounded-lg font-bold text-xs ${isActive ? 'text-white font-extrabold' : 'text-slate-300'}`;
+                
+                if (isCompleted && !isActive) {
+                    mBtn.style.background = '#2e5a36';
+                } else {
+                    mBtn.style.background = isActive ? '#3f6347' : '#1e3123';
+                }
+
+                mBtn.innerHTML = `Рівень ${idx + 1} ${isCompleted ? '✓' : ''}`;
                 mBtn.onclick = () => loadLevel(idx);
                 mobileLevelPills.appendChild(mBtn);
             });
         }
 
-        // Load Level State
         function loadLevel(index) {
             if (isExecuting) {
                 clearInterval(executionInterval);
@@ -1249,7 +1216,6 @@
                 clearBlockHighlights();
             }
 
-            // Очищаємо блоки коду при зміні рівня
             currentWorkspaceBlocks = [];
 
             if (index === 'custom') {
@@ -1260,15 +1226,12 @@
                 activeLevel = LEVELS[index];
             }
 
-            // Update Labels
             if (mobileLevelTitle) mobileLevelTitle.innerText = activeLevel.title;
 
-            // Reset Level Grid State
             currentGrid = JSON.parse(JSON.stringify(activeLevel.grid));
-            robotState = { ...activeLevel.start };
+            heroState = { ...activeLevel.start };
             hasKey = false;
 
-            // Count Stars
             starsRemaining = 0;
             for (let r = 0; r < currentGrid.length; r++) {
                 for (let c = 0; c < currentGrid[r].length; c++) {
@@ -1284,18 +1247,15 @@
             updateBlockCount();
         }
 
-        // Скидає тільки стан поля та робота, ЗБЕРІГАЮЧИ блоки у робочій зоні
         function resetStateOnly() {
             clearInterval(executionInterval);
             isExecuting = false;
             clearBlockHighlights();
 
-            // Відновлюємо початковий стан поля та позицію робота
-            robotState = { ...activeLevel.start };
+            heroState = { ...activeLevel.start };
             currentGrid = JSON.parse(JSON.stringify(activeLevel.grid));
             hasKey = false;
 
-            // Перераховуємо зірки
             starsRemaining = 0;
             for (let r = 0; r < currentGrid.length; r++) {
                 for (let c = 0; c < currentGrid[r].length; c++) {
@@ -1304,9 +1264,8 @@
             }
 
             gameStatusOverlay.classList.add('hidden');
-
-            // Оновлюємо графіку та розблоковуємо кнопку
             renderGrid();
+
             document.getElementById('btnRun').disabled = false;
             document.getElementById('btnRun').classList.remove('opacity-50');
         }
@@ -1318,7 +1277,6 @@
             }
         }
 
-        // SVG Graphics or Dynamic Textures
         function getWallSVG() {
             if (texturePackConfig && texturePackConfig.wall) {
                 return `<img src="${texturePackConfig.wall}" class="custom-tile-img" alt="Стіна"/>`;
@@ -1374,11 +1332,9 @@
             return `<div class="text-xl">🌋</div>`;
         }
 
-        // Render Maze Grid Cells
         function renderGrid() {
             gameGridEl.style.gridTemplateColumns = `repeat(${activeLevel.gridWidth}, minmax(0, 1fr))`;
             gameGridEl.innerHTML = '';
-
             gameGridEl.appendChild(characterSprite);
 
             for (let r = 0; r < activeLevel.gridHeight; r++) {
@@ -1417,16 +1373,15 @@
             });
         }
 
-        // Position Character Sprite (БЕЗ КРУТІННЯ ПІД ЧАС РУХУ)
         function renderCharacterSprite() {
-            const targetCell = gameGridEl.querySelector(`[data-x="${robotState.x}"][data-y="${robotState.y}"]`);
+            const targetCell = gameGridEl.querySelector(`[data-x="${heroState.x}"][data-y="${heroState.y}"]`);
             if (!targetCell) return;
 
             characterSprite.style.width = `${targetCell.offsetWidth}px`;
             characterSprite.style.height = `${targetCell.offsetHeight}px`;
             characterSprite.style.left = `${targetCell.offsetLeft}px`;
             characterSprite.style.top = `${targetCell.offsetTop}px`;
-            characterSprite.style.transform = `rotate(0deg)`; // Вимикаємо обертання
+            characterSprite.style.transform = `rotate(0deg)`;
 
             if (currentHero.customImg) {
                 characterSprite.innerHTML = `<img src="${currentHero.customImg}" class="w-full h-full object-contain filter drop-shadow-md"/>`;
@@ -1435,7 +1390,6 @@
             }
         }
 
-        // Workspace Block AST Element Builder
         function createBlockElement(type, id = null, val = 2) {
             const blockId = id || `block_${blockIdCounter++}`;
             const container = document.createElement('div');
@@ -1460,7 +1414,6 @@
 
             container.classList.add(...bgColor.split(' '));
 
-            // Header Row
             const header = document.createElement('div');
             header.className = 'flex items-center justify-between w-full select-none';
 
@@ -1505,7 +1458,6 @@
             header.appendChild(deleteBtn);
             container.appendChild(header);
 
-            // Container for Nested Blocks
             if (type === 'repeat') {
                 const nestedBox = document.createElement('div');
                 nestedBox.className = 'nested-blocks mt-2 pl-2 pt-1 pb-1 space-y-1.5 bg-black/15 rounded-lg min-h-[44px] border-dashed border border-white/30';
@@ -1940,392 +1892,220 @@
             }
         }
 
-        // Flatten AST into Executable Commands Array
         function compileAST(nodes) {
             let queue = [];
-            nodes.forEach(node => {
-                if (['move_up', 'move_down', 'move_left', 'move_right', 'collect', 'collect_key'].includes(node.type)) {
-                    queue.push({ action: node.type.toUpperCase(), id: node.id });
-                } else if (node.type === 'repeat') {
-                    const count = node.val !== undefined ? node.val : 2;
-                    for (let c = 0; c < count; c++) {
-                        queue.push({ action: 'HIGHLIGHT_BLOCK', id: node.id });
-                        queue.push(...compileAST(node.children || []));
+            function traverse(list) {
+                list.forEach(node => {
+                    if (['move_up', 'move_down', 'move_left', 'move_right', 'collect', 'collect_key'].includes(node.type)) {
+                        queue.push({ action: node.type.toUpperCase(), id: node.id });
+                    } else if (node.type === 'repeat') {
+                        const count = node.val !== undefined ? node.val : 2;
+                        for (let c = 0; c < count; c++) {
+                            queue.push({ action: 'HIGHLIGHT_BLOCK', id: node.id });
+                            if (node.children && node.children.length > 0) {
+                                traverse(node.children);
+                            }
+                        }
                     }
-                }
-            });
+                });
+            }
+            traverse(nodes);
             return queue;
         }
 
-        function runProgram() {
-            if (isExecuting) return;
-            if (currentWorkspaceBlocks.length === 0) return;
+        function clearBlockHighlights() {
+            document.querySelectorAll('.block-executing').forEach(el => {
+                el.classList.remove('block-executing');
+            });
+        }
 
-            // Reset robot position and grid state before running
+        function highlightBlock(id) {
+            clearBlockHighlights();
+            const el = document.querySelector(`.block-item[data-id="${id}"]`);
+            if (el) el.classList.add('block-executing');
+        }
+
+        function executeProgram() {
+            if (isExecuting) return;
+
             resetStateOnly();
+            const commands = compileAST(currentWorkspaceBlocks);
+            if (commands.length === 0) return;
 
             isExecuting = true;
             document.getElementById('btnRun').disabled = true;
             document.getElementById('btnRun').classList.add('opacity-50');
 
-            const executionQueue = compileAST(currentWorkspaceBlocks);
-            let queueIndex = 0;
-            const speed = 850 - parseInt(speedSlider.value);
+            let cmdIdx = 0;
+            const speed = 800 - parseInt(speedSlider.value);
 
             executionInterval = setInterval(() => {
-                if (queueIndex >= executionQueue.length) {
-                    finishExecution();
+                if (cmdIdx >= commands.length) {
+                    clearInterval(executionInterval);
+                    isExecuting = false;
+                    clearBlockHighlights();
+                    document.getElementById('btnRun').disabled = false;
+                    document.getElementById('btnRun').classList.remove('opacity-50');
+                    checkWinCondition();
                     return;
                 }
 
-                const item = executionQueue[queueIndex++];
+                const cmd = commands[cmdIdx];
+                highlightBlock(cmd.id);
 
-                clearBlockHighlights();
-                if (item.id) {
-                    const blockEl = document.querySelector(`.block-item[data-id="${item.id}"]`);
-                    if (blockEl) blockEl.classList.add('block-executing');
+                if (cmd.action.startsWith('MOVE_')) {
+                    executeMoveAction(cmd.action);
+                } else if (cmd.action === 'COLLECT') {
+                    executeCollectAction();
+                } else if (cmd.action === 'COLLECT_KEY') {
+                    executeCollectKeyAction();
                 }
 
-                let dx = 0, dy = 0;
-                let isMove = false;
-
-                if (item.action === 'MOVE_UP') { dx = 0; dy = -1; isMove = true; }
-                else if (item.action === 'MOVE_DOWN') { dx = 0; dy = 1; isMove = true; }
-                else if (item.action === 'MOVE_LEFT') { dx = -1; dy = 0; isMove = true; }
-                else if (item.action === 'MOVE_RIGHT') { dx = 1; dy = 0; isMove = true; }
-
-                if (isMove) {
-                    const nextX = robotState.x + dx;
-                    const nextY = robotState.y + dy;
-
-                    if (nextX >= 0 && nextX < activeLevel.gridWidth && nextY >= 0 && nextY < activeLevel.gridHeight) {
-                        const targetCell = currentGrid[nextY][nextX];
-
-                        if (targetCell === 1) {
-                            AudioEngine.playError();
-                            finishExecution(false, "Робот врізався у стіну! 💥");
-                            return;
-                        } else if (targetCell === 4 && !hasKey) {
-                            AudioEngine.playError();
-                            finishExecution(false, "Двері зачинені! Спочатку знайди ключ 🔑!");
-                            return;
-                        } else if (targetCell === 5) {
-                            AudioEngine.playError();
-                            finishExecution(false, "Ой! Герой наступив на лаву 🌋!");
-                            return;
-                        } else {
-                            robotState.x = nextX;
-                            robotState.y = nextY;
-                            AudioEngine.playStep();
-                        }
-                    } else {
-                        AudioEngine.playError();
-                        finishExecution(false, "Робот вийшов за межі поля! 💥");
-                        return;
-                    }
-                } else if (item.action === 'COLLECT') {
-                    if (currentGrid[robotState.y][robotState.x] === 2) {
-                        currentGrid[robotState.y][robotState.x] = 0;
-                        starsRemaining--;
-                        AudioEngine.playCollect();
-                    }
-                } else if (item.action === 'COLLECT_KEY') {
-                    if (currentGrid[robotState.y][robotState.x] === 3) {
-                        currentGrid[robotState.y][robotState.x] = 0;
-                        hasKey = true;
-                        AudioEngine.playKey();
-                    }
-                }
-
-                renderGrid();
-
-                if (starsRemaining === 0) {
-                    finishExecution(true);
-                }
-
+                cmdIdx++;
             }, speed);
         }
 
-        function clearBlockHighlights() {
-            document.querySelectorAll('.block-executing').forEach(el => el.classList.remove('block-executing'));
+        function executeMoveAction(action) {
+            let dx = 0, dy = 0;
+            if (action === 'MOVE_UP') dy = -1;
+            else if (action === 'MOVE_DOWN') dy = 1;
+            else if (action === 'MOVE_LEFT') dx = -1;
+            else if (action === 'MOVE_RIGHT') dx = 1;
+
+            const nextX = heroState.x + dx;
+            const nextY = heroState.y + dy;
+
+            if (nextX < 0 || nextX >= activeLevel.gridWidth || nextY < 0 || nextY >= activeLevel.gridHeight) {
+                AudioEngine.playError();
+                return;
+            }
+
+            const targetCellType = currentGrid[nextY][nextX];
+
+            if (targetCellType === 1) { // Wall
+                AudioEngine.playError();
+                return;
+            }
+
+            if (targetCellType === 4 && !hasKey) { // Closed Door
+                AudioEngine.playError();
+                return;
+            }
+
+            heroState.x = nextX;
+            heroState.y = nextY;
+            AudioEngine.playStep();
+
+            if (targetCellType === 5) { // Lava
+                AudioEngine.playError();
+                setTimeout(() => {
+                    alert("Ой! Герой потрапив у лаву! Спробуй ще раз.");
+                    resetStateOnly();
+                }, 300);
+                return;
+            }
+
+            renderCharacterSprite();
         }
 
-        function finishExecution(success = false, message = "") {
-            clearInterval(executionInterval);
-            isExecuting = false;
-            clearBlockHighlights();
+        function executeCollectAction() {
+            if (currentGrid[heroState.y][heroState.x] === 2) {
+                currentGrid[heroState.y][heroState.x] = 0;
+                starsRemaining--;
+                AudioEngine.playCollect();
+                renderGrid();
+            }
+        }
 
-            document.getElementById('btnRun').disabled = false;
-            document.getElementById('btnRun').classList.remove('opacity-50');
+        function executeCollectKeyAction() {
+            if (currentGrid[heroState.y][heroState.x] === 3) {
+                currentGrid[heroState.y][heroState.x] = 0;
+                hasKey = true;
+                AudioEngine.playKey();
+                renderGrid();
+            }
+        }
 
-            if (success && starsRemaining === 0) {
+        function checkWinCondition() {
+            if (starsRemaining === 0) {
                 AudioEngine.playWin();
-                confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 } });
-
-                const winTitle = (texturePackConfig && (texturePackConfig.winTitle || texturePackConfig.winMessage)) || "Перемога! 🎉";
-                const winDesc = (texturePackConfig && texturePackConfig.winDesc) || "Ти успішно пройшов рівень!";
-
-                showGameOverlay(true, winTitle, winDesc);
-            } else if (!success && message) {
-                const loseTitle = (texturePackConfig && (texturePackConfig.loseTitle || texturePackConfig.loseMessage)) || "Упс! 🤖";
-                showGameOverlay(false, loseTitle, message);
-            }
-        }
-
-        function showGameOverlay(isWin, title, desc) {
-            document.getElementById('statusIcon').innerText = isWin ? "🏆" : "💥";
-            document.getElementById('statusTitle').innerText = title;
-            document.getElementById('statusDesc').innerText = desc;
-
-            const ratingContainer = document.getElementById('ratingStars');
-            if (isWin) {
-                const blockCount = countTotalBlocks(currentWorkspaceBlocks);
-                let starCount = 1;
-                if (blockCount <= activeLevel.optimalBlocks) starCount = 3;
-                else if (blockCount <= activeLevel.maxBlocks) starCount = 2;
-
-                ratingContainer.innerHTML = '';
-                for (let i = 0; i < 3; i++) {
-                    const s = document.createElement('i');
-                    s.className = i < starCount ? 'fa-solid fa-star text-amber-600' : 'fa-regular fa-star text-slate-400';
-                    ratingContainer.appendChild(s);
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
                 }
-                ratingContainer.classList.remove('hidden');
-            } else {
-                ratingContainer.classList.add('hidden');
-            }
 
-            const btnNext = document.getElementById('btnNextLevel');
-            if (isWin && typeof currentLevelIndex === 'number' && currentLevelIndex < LEVELS.length - 1) {
-                btnNext.classList.remove('hidden');
-            } else {
-                btnNext.classList.add('hidden');
-            }
-
-            gameStatusOverlay.classList.remove('hidden');
-        }
-
-        function generateCode(nodes, lang = 'js', indent = 0) {
-            let code = "";
-            const pad = "  ".repeat(indent);
-            const starText = (texturePackConfig && (texturePackConfig.collectStarBlockText || texturePackConfig.collectStarText)) || 'Зібрати зірку';
-
-            nodes.forEach(node => {
-                if (node.type === 'move_up') {
-                    if (lang === 'js') code += `${pad}hero.moveUp();\n`;
-                    else if (lang === 'python') code += `${pad}hero.move_up()\n`;
-                    else code += `${pad}Рухатися Вгору\n`;
-                } else if (node.type === 'move_down') {
-                    if (lang === 'js') code += `${pad}hero.moveDown();\n`;
-                    else if (lang === 'python') code += `${pad}hero.move_down()\n`;
-                    else code += `${pad}Рухатися Вниз\n`;
-                } else if (node.type === 'move_left') {
-                    if (lang === 'js') code += `${pad}hero.moveLeft();\n`;
-                    else if (lang === 'python') code += `${pad}hero.move_left()\n`;
-                    else code += `${pad}Рухатися Вліво\n`;
-                } else if (node.type === 'move_right') {
-                    if (lang === 'js') code += `${pad}hero.moveRight();\n`;
-                    else if (lang === 'python') code += `${pad}hero.move_right()\n`;
-                    else code += `${pad}Рухатися Вправо\n`;
-                } else if (node.type === 'collect') {
-                    if (lang === 'js') code += `${pad}hero.collectStar();\n`;
-                    else if (lang === 'python') code += `${pad}hero.collect_star()\n`;
-                    else code += `${pad}${starText}\n`;
-                } else if (node.type === 'collect_key') {
-                    if (lang === 'js') code += `${pad}hero.collectKey();\n`;
-                    else if (lang === 'python') code += `${pad}hero.collect_key()\n`;
-                    else code += `${pad}Взяти Ключ\n`;
-                } else if (node.type === 'repeat') {
-                    const countVal = node.val !== undefined ? node.val : 2;
-                    if (lang === 'js') {
-                        code += `${pad}for (let i = 0; i < ${countVal}; i++) {\n`;
-                        code += generateCode(node.children || [], lang, indent + 1);
-                        code += `${pad}}\n`;
-                    } else if (lang === 'python') {
-                        code += `${pad}for i in range(${countVal}):\n`;
-                        code += generateCode(node.children || [], lang, indent + 1);
-                    } else {
-                        code += `${pad}Повторити ${countVal} разів:\n`;
-                        code += generateCode(node.children || [], lang, indent + 1);
-                    }
+                if (typeof currentLevelIndex === 'number') {
+                    completedLevels.add(currentLevelIndex);
+                    renderLevelSelectors();
                 }
-            });
 
-            return code;
-        }
-
-        function showCodeModal() {
-            const code = generateCode(currentWorkspaceBlocks, selectedCodeLang);
-            document.getElementById('codeDisplay').innerText = code.trim() ? code : "// Робоча зона порожня";
-            document.getElementById('codeModal').classList.remove('hidden');
-        }
-
-        let sandboxGridData = [
-            [1, 1, 1, 1, 1],
-            [1, 0, 3, 2, 1],
-            [1, 1, 1, 1, 1]
-        ];
-        let sandboxStartPos = { x: 1, y: 1, dir: 0 };
-
-        function openSandbox() {
-            renderSandboxGrid();
-            document.getElementById('sandboxModal').classList.remove('hidden');
-        }
-
-        function renderSandboxGrid() {
-            const gridEl = document.getElementById('sandboxGrid');
-            gridEl.style.gridTemplateColumns = `repeat(5, minmax(0, 1fr))`;
-            gridEl.innerHTML = '';
-
-            for (let r = 0; r < 3; r++) {
-                for (let c = 0; c < 5; c++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'w-11 h-11 rounded-lg flex items-center justify-center cursor-pointer border overflow-hidden';
-                    cell.style.background = '#a9ba9c';
-                    cell.style.borderColor = '#85967b';
-                    
-                    const val = sandboxGridData[r][c];
-                    if (val === 1) cell.innerHTML = getWallSVG();
-                    else if (val === 2) cell.innerHTML = getStarSVG();
-                    else if (val === 3) cell.innerHTML = getKeySVG();
-                    else if (val === 4) cell.innerHTML = getDoorSVG();
-                    else if (val === 5) cell.innerHTML = getLavaSVG();
-                    else if (sandboxStartPos.x === c && sandboxStartPos.y === r) {
-                        cell.innerHTML = currentHero.customImg 
-                            ? `<img src="${currentHero.customImg}" class="w-8 h-8 object-contain"/>` 
-                            : currentHero.icon;
-                    }
-                    else {
-                        cell.className += ' cell-path';
-                    }
-
-                    cell.onclick = () => {
-                        if (sandboxTool === 'path') sandboxGridData[r][c] = 0;
-                        else if (sandboxTool === 'wall') sandboxGridData[r][c] = 1;
-                        else if (sandboxTool === 'star') sandboxGridData[r][c] = 2;
-                        else if (sandboxTool === 'key') sandboxGridData[r][c] = 3;
-                        else if (sandboxTool === 'door') sandboxGridData[r][c] = 4;
-                        else if (sandboxTool === 'lava') sandboxGridData[r][c] = 5;
-                        else if (sandboxTool === 'robot') {
-                            sandboxGridData[r][c] = 0;
-                            sandboxStartPos = { x: c, y: r, dir: 0 };
-                        }
-                        renderSandboxGrid();
-                    };
-
-                    gridEl.appendChild(cell);
-                }
+                gameStatusOverlay.classList.remove('hidden');
             }
         }
 
         function setupEventListeners() {
-            document.getElementById('btnRun').onclick = runProgram;
+            document.getElementById('btnRun').onclick = executeProgram;
             document.getElementById('btnReset').onclick = resetStateOnly;
-            document.getElementById('btnRetryLevel').onclick = resetStateOnly;
-
-            document.getElementById('btnOverlayRegenerate').onclick = regenerateCurrentLevel;
             document.getElementById('btnRandomizeLevel').onclick = regenerateCurrentLevel;
-
+            document.getElementById('btnOverlayRegenerate').onclick = () => {
+                regenerateCurrentLevel();
+                gameStatusOverlay.classList.add('hidden');
+            };
+            document.getElementById('btnRetryLevel').onclick = resetStateOnly;
             document.getElementById('btnNextLevel').onclick = () => {
                 if (typeof currentLevelIndex === 'number' && currentLevelIndex < LEVELS.length - 1) {
                     loadLevel(currentLevelIndex + 1);
+                } else {
+                    regenerateCurrentLevel();
                 }
             };
 
-            // Palette Click Fallback
-            document.querySelectorAll('.block-palette-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    if (!draggedSource && !suppressPaletteClick) {
-                        addBlockToWorkspace(item.dataset.type);
-                    }
-                });
-            });
-
-            // Clear Workspace
             document.getElementById('btnClearWorkspace').onclick = () => {
                 currentWorkspaceBlocks = [];
                 renderWorkspace();
             };
 
-            // Sound Toggle
             document.getElementById('btnSoundToggle').onclick = () => {
                 AudioEngine.muted = !AudioEngine.muted;
-                document.getElementById('soundIcon').className = AudioEngine.muted ? "fa-solid fa-volume-xmark text-sm" : "fa-solid fa-volume-high text-sm";
+                document.getElementById('soundIcon').className = AudioEngine.muted ? 'fa-solid fa-volume-xmark text-sm' : 'fa-solid fa-volume-high text-sm';
             };
 
-            // Code Modal
-            document.getElementById('btnShowCode').onclick = showCodeModal;
+            // Modal Trigger Actions
+            document.getElementById('btnShowCode').onclick = openCodeModal;
             document.getElementById('btnCloseCodeModal').onclick = () => document.getElementById('codeModal').classList.add('hidden');
             
             document.querySelectorAll('.lang-tab-btn').forEach(btn => {
                 btn.onclick = (e) => {
                     document.querySelectorAll('.lang-tab-btn').forEach(b => {
+                        b.classList.remove('active', 'text-white');
                         b.style.background = '#a9ba9c';
                         b.style.color = '#1e3023';
                     });
+                    e.target.classList.add('active', 'text-white');
                     e.target.style.background = '#334b38';
-                    e.target.style.color = '#ffffff';
                     selectedCodeLang = e.target.dataset.lang;
-                    showCodeModal();
+                    updateCodeDisplay();
                 };
             });
 
             document.getElementById('btnCopyCode').onclick = () => {
-                const codeText = document.getElementById('codeDisplay').innerText;
-                document.execCommand('copy');
+                const code = document.getElementById('codeDisplay').innerText;
+                navigator.clipboard.writeText(code);
+                alert('Код скопійовано в буфер обміну!');
             };
 
-            // Sandbox Modal Controls
-            document.getElementById('btnSandbox').onclick = openSandbox;
+            // Sandbox Modals
+            document.getElementById('btnSandbox').onclick = openSandboxModal;
             document.getElementById('btnCloseSandbox').onclick = () => document.getElementById('sandboxModal').classList.add('hidden');
-            
-            document.querySelectorAll('.sandbox-tool-btn').forEach(btn => {
-                btn.onclick = (e) => {
-                    document.querySelectorAll('.sandbox-tool-btn').forEach(b => {
-                        b.style.background = '#a9ba9c';
-                        b.style.color = '#1e3023';
-                    });
-                    e.target.style.background = '#334b38';
-                    e.target.style.color = '#ffffff';
-                    sandboxTool = e.target.dataset.tool;
-                };
-            });
-
-            document.getElementById('btnPlayCustomLevel').onclick = () => {
-                customLevelData = {
-                    id: 'custom',
-                    title: "🎨 Власний Рівень",
-                    category: "Пісочниця",
-                    instruction: "Пройди власний рівень, який ти створив!",
-                    hint: "Пройди свій винайдений лабіринт.",
-                    maxBlocks: 12,
-                    optimalBlocks: 8,
-                    gridWidth: 5,
-                    gridHeight: 3,
-                    start: { ...sandboxStartPos },
-                    grid: JSON.parse(JSON.stringify(sandboxGridData))
-                };
-                document.getElementById('sandboxModal').classList.add('hidden');
-                loadLevel('custom');
-            };
-
-            document.getElementById('btnExportLevel').onclick = () => {
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sandboxGridData));
-                const dlAnchorElem = document.createElement('a');
-                dlAnchorElem.setAttribute("href", dataStr);
-                dlAnchorElem.setAttribute("download", "block_dungeon_level.json");
-                dlAnchorElem.click();
-            };
-
-            window.addEventListener('resize', renderCharacterSprite);
         }
 
-        // Palette & Workspace Drag Setup
         function setupDragAndDrop() {
-            const toolboxItems = document.querySelectorAll('.block-palette-item');
+            document.querySelectorAll('#toolboxList .block-palette-item').forEach(item => {
+                const type = item.dataset.type;
 
-            toolboxItems.forEach(item => {
-                item.setAttribute('draggable', 'false');
+                item.addEventListener('click', () => {
+                    if (suppressPaletteClick) return;
+                    addBlockToWorkspace(type);
+                });
 
                 item.addEventListener('pointerdown', (e) => {
                     if (e.button !== undefined && e.button !== 0) return;
@@ -2333,7 +2113,7 @@
                     pointerDrag = {
                         pointerId: e.pointerId,
                         source: 'palette',
-                        type: item.dataset.type,
+                        type,
                         blockId: null,
                         el: item,
                         startX: e.clientX,
@@ -2343,6 +2123,178 @@
                     };
                 });
             });
+
+            const workspace = document.getElementById('workspace');
+
+            workspace.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                workspace.classList.add('drop-zone-active');
+            });
+
+            workspace.addEventListener('dragleave', () => {
+                workspace.classList.remove('drop-zone-active');
+            });
+
+            workspace.addEventListener('drop', (e) => {
+                e.preventDefault();
+                workspace.classList.remove('drop-zone-active');
+
+                if (draggedSource === 'palette') {
+                    addBlockToWorkspace(draggedType);
+                }
+            });
+        }
+
+        // Code Generation Formatter
+        function openCodeModal() {
+            updateCodeDisplay();
+            document.getElementById('codeModal').classList.remove('hidden');
+        }
+
+        function updateCodeDisplay() {
+            const pre = document.getElementById('codeDisplay');
+            pre.innerText = generateCodeText(selectedCodeLang);
+        }
+
+        function generateCodeText(lang) {
+            let lines = [];
+            
+            function parseNodes(nodes, indentLevel = 0) {
+                const ind = "  ".repeat(indentLevel);
+                nodes.forEach(n => {
+                    if (lang === 'js') {
+                        if (n.type === 'move_up') lines.push(`${ind}hero.moveUp();`);
+                        else if (n.type === 'move_down') lines.push(`${ind}hero.moveDown();`);
+                        else if (n.type === 'move_left') lines.push(`${ind}hero.moveLeft();`);
+                        else if (n.type === 'move_right') lines.push(`${ind}hero.moveRight();`);
+                        else if (n.type === 'collect') lines.push(`${ind}hero.collectStar();`);
+                        else if (n.type === 'collect_key') lines.push(`${ind}hero.collectKey();`);
+                        else if (n.type === 'repeat') {
+                            lines.push(`${ind}for (let i = 0; i < ${n.val || 2}; i++) {`);
+                            if (n.children) parseNodes(n.children, indentLevel + 1);
+                            lines.push(`${ind}}`);
+                        }
+                    } else if (lang === 'python') {
+                        if (n.type === 'move_up') lines.push(`${ind}hero.move_up()`);
+                        else if (n.type === 'move_down') lines.push(`${ind}hero.move_down()`);
+                        else if (n.type === 'move_left') lines.push(`${ind}hero.move_left()`);
+                        else if (n.type === 'move_right') lines.push(`${ind}hero.move_right()`);
+                        else if (n.type === 'collect') lines.push(`${ind}hero.collect_star()`);
+                        else if (n.type === 'collect_key') lines.push(`${ind}hero.collect_key()`);
+                        else if (n.type === 'repeat') {
+                            lines.push(`${ind}for i in range(${n.val || 2}):`);
+                            if (n.children && n.children.length > 0) parseNodes(n.children, indentLevel + 1);
+                            else lines.push(`${ind}  pass`);
+                        }
+                    } else if (lang === 'pseudo') {
+                        if (n.type === 'move_up') lines.push(`${ind}Крок вгору`);
+                        else if (n.type === 'move_down') lines.push(`${ind}Крок вниз`);
+                        else if (n.type === 'move_left') lines.push(`${ind}Крок вліво`);
+                        else if (n.type === 'move_right') lines.push(`${ind}Крок вправо`);
+                        else if (n.type === 'collect') lines.push(`${ind}Взяти зірку`);
+                        else if (n.type === 'collect_key') lines.push(`${ind}Взяти ключ`);
+                        else if (n.type === 'repeat') {
+                            lines.push(`${ind}Повторити ${n.val || 2} разів:`);
+                            if (n.children) parseNodes(n.children, indentLevel + 1);
+                            lines.push(`${ind}Кінець циклу`);
+                        }
+                    }
+                });
+            }
+
+            parseNodes(currentWorkspaceBlocks);
+            return lines.length > 0 ? lines.join('\n') : '// Ваша робоча зона порожня';
+        }
+
+        // Sandbox Level Designer logic
+        function openSandboxModal() {
+            renderSandboxGrid();
+            document.getElementById('sandboxModal').classList.remove('hidden');
+
+            document.querySelectorAll('.sandbox-tool-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    document.querySelectorAll('.sandbox-tool-btn').forEach(b => {
+                        b.classList.remove('active', 'text-white');
+                        b.style.background = '#a9ba9c';
+                        b.style.color = '#1e3023';
+                    });
+                    const target = e.target.closest('button');
+                    target.classList.add('active', 'text-white');
+                    target.style.background = '#334b38';
+                    sandboxTool = target.dataset.tool;
+                };
+            });
+
+            document.getElementById('btnPlayCustomLevel').onclick = () => {
+                customLevelData = {
+                    id: 'custom',
+                    title: 'Свій Рівень',
+                    category: 'Пісочниця',
+                    instruction: 'Пройди власний створений рівень!',
+                    hint: 'Застосуй набуті навички для перемоги.',
+                    maxBlocks: 15,
+                    optimalBlocks: 8,
+                    gridWidth: sandboxGridState[0].length,
+                    gridHeight: sandboxGridState.length,
+                    start: { ...sandboxStartPos, dir: 0 },
+                    grid: JSON.parse(JSON.stringify(sandboxGridState))
+                };
+
+                document.getElementById('sandboxModal').classList.add('hidden');
+                loadLevel('custom');
+            };
+
+            document.getElementById('btnExportLevel').onclick = () => {
+                const jsonStr = JSON.stringify(sandboxGridState, null, 2);
+                navigator.clipboard.writeText(jsonStr);
+                alert('JSON розкладку карти скопійовано в буфер!');
+            };
+        }
+
+        let sandboxGridState = [
+            [1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 2, 1, 1],
+            [1, 1, 0, 1, 1, 1],
+            [1, 1, 0, 0, 2, 1],
+            [1, 1, 1, 1, 1, 1]
+        ];
+        let sandboxStartPos = { x: 1, y: 1 };
+
+        function renderSandboxGrid() {
+            const gridEl = document.getElementById('sandboxGrid');
+            gridEl.style.gridTemplateColumns = `repeat(${sandboxGridState[0].length}, minmax(0, 1fr))`;
+            gridEl.innerHTML = '';
+
+            for (let r = 0; r < sandboxGridState.length; r++) {
+                for (let c = 0; c < sandboxGridState[r].length; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'w-10 h-10 border rounded-lg flex items-center justify-center cursor-pointer text-sm font-bold bg-white/40 hover:bg-white/70';
+
+                    const val = sandboxGridState[r][c];
+                    if (r === sandboxStartPos.y && c === sandboxStartPos.x) {
+                        cell.innerText = '🧙‍♂️';
+                    } else if (val === 1) cell.innerText = '🧱';
+                    else if (val === 2) cell.innerText = '⭐';
+                    else if (val === 3) cell.innerText = '🔑';
+                    else if (val === 4) cell.innerText = '🚪';
+                    else if (val === 5) cell.innerText = '🌋';
+                    else cell.innerText = '';
+
+                    cell.onclick = () => {
+                        if (sandboxTool === 'hero') {
+                            sandboxStartPos = { x: c, y: r };
+                            sandboxGridState[r][c] = 0;
+                        } else {
+                            if (r === sandboxStartPos.y && c === sandboxStartPos.x) return;
+                            const map = { path: 0, wall: 1, star: 2, key: 3, door: 4, lava: 5 };
+                            sandboxGridState[r][c] = map[sandboxTool];
+                        }
+                        renderSandboxGrid();
+                    };
+
+                    gridEl.appendChild(cell);
+                }
+            }
         }
 
         window.onload = initApp;
