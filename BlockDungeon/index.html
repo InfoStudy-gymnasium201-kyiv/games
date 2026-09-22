@@ -26,19 +26,70 @@
             --ui-bg: #0f172a;
             --ui-panel: #1e293b;
             --ui-accent: #6366f1;
+            --ui-text: #f8fafc;
+            --ui-border: #334155;
             --path-color: #0f172a;
             --wall-color: #334155;
             --lava-color: #ef4444;
         }
 
         html.light {
-            /* Кольори світлої теми за замовчуванням */
+            /* Кольори світлої теми */
             --ui-bg: #f1f5f9;
             --ui-panel: #ffffff;
             --ui-accent: #4f46e5;
+            --ui-text: #0f172a;
+            --ui-border: #cbd5e1;
             --path-color: #e2e8f0;
             --wall-color: #94a3b8;
             --lava-color: #f87171;
+        }
+
+        /* Автоматична перепідготовка кольорів для світлої теми */
+        html.light body {
+            background-color: var(--ui-bg) !important;
+            color: var(--ui-text) !important;
+        }
+
+        html.light header,
+        html.light section,
+        html.light div.bg-slate-900,
+        html.light div.bg-slate-950,
+        html.light #workspace {
+            background-color: var(--ui-panel) !important;
+            border-color: var(--ui-border) !important;
+            color: var(--ui-text) !important;
+        }
+
+        html.light main,
+        html.light section.bg-slate-950 {
+            background-color: var(--ui-bg) !important;
+        }
+
+        html.light .bg-slate-800 {
+            background-color: #e2e8f0 !important;
+            color: #1e293b !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        html.light .bg-slate-800:hover {
+            background-color: #cbd5e1 !important;
+        }
+
+        html.light .text-slate-100,
+        html.light .text-slate-200,
+        html.light .text-slate-300 {
+            color: #0f172a !important;
+        }
+
+        html.light .text-slate-400,
+        html.light .text-slate-500 {
+            color: #475569 !important;
+        }
+
+        html.light .border-slate-800,
+        html.light .border-slate-700 {
+            border-color: #cbd5e1 !important;
         }
 
         * {
@@ -50,6 +101,7 @@
         body {
             font-family: 'Fredoka', 'Nunito', sans-serif;
             background-color: var(--ui-bg);
+            color: var(--ui-text);
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
@@ -193,33 +245,33 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col overflow-y-auto lg:h-screen lg:overflow-hidden bg-slate-950 text-slate-100 dark:bg-slate-950 dark:text-slate-100 light:bg-slate-100 light:text-slate-800 transition-colors duration-300">
+<body class="min-h-screen flex flex-col overflow-y-auto lg:h-screen lg:overflow-hidden bg-slate-950 text-slate-100 transition-colors duration-300">
 
-    <header class="bg-slate-900/90 dark:bg-slate-900/90 light:bg-white/90 border-b border-slate-800 dark:border-slate-800 light:border-slate-200 px-4 py-2.5 flex items-center justify-between z-20 backdrop-blur-md shadow-sm">
+    <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between z-20 backdrop-blur-md shadow-sm">
         <div class="flex items-center space-x-3">
             <div class="bg-gradient-to-tr from-indigo-500 to-purple-500 p-2 rounded-2xl shadow-lg shadow-indigo-500/30 flex items-center justify-center">
                 <i class="fa-solid fa-robot text-2xl text-yellow-300"></i>
             </div>
             <div>
                 <div class="flex items-center space-x-2">
-                    <h1 id="gameHeaderTitle" class="font-extrabold text-xl tracking-wide bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-400 dark:via-purple-300 dark:to-pink-400 bg-clip-text text-transparent">
+                    <h1 id="gameHeaderTitle" class="font-extrabold text-xl tracking-wide bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                         Block Dungeon
                     </h1>
                 </div>
-                <p class="text-xs text-slate-400 dark:text-slate-400 light:text-slate-500 font-medium hidden sm:block">Генератор алгоритмічних мап & блочного коду з перетягуванням</p>
+                <p class="text-xs text-slate-400 font-medium hidden sm:block">Генератор алгоритмічних мап & блочного коду з перетягуванням</p>
             </div>
         </div>
 
         <!-- Level Navigation Pills (Desktop) -->
-        <div class="hidden lg:flex items-center bg-slate-950/80 dark:bg-slate-950/80 light:bg-slate-200/80 p-1 rounded-2xl border border-slate-800 dark:border-slate-800 light:border-slate-300 space-x-1" id="levelSelectorContainer">
+        <div class="hidden lg:flex items-center bg-slate-950/80 p-1 rounded-2xl border border-slate-800 space-x-1" id="levelSelectorContainer">
             <!-- Dynamically injected -->
         </div>
 
         <!-- Action Tools -->
         <div class="flex items-center space-x-2">
             <!-- Theme Toggle Button -->
-            <button id="btnThemeToggle" class="bg-slate-800 dark:bg-slate-800 light:bg-slate-200 hover:bg-slate-700 dark:hover:bg-slate-700 light:hover:bg-slate-300 text-slate-200 dark:text-slate-200 light:text-slate-700 text-xs md:text-sm font-bold px-3 py-1.5 rounded-xl border border-slate-700 dark:border-slate-700 light:border-slate-300 transition flex items-center space-x-1.5 shadow-sm">
-                <i class="fa-solid fa-moon text-indigo-400 dark:text-indigo-400 light:text-amber-500" id="themeIcon"></i>
+            <button id="btnThemeToggle" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs md:text-sm font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center space-x-1.5 shadow-sm">
+                <i class="fa-solid fa-moon text-indigo-400" id="themeIcon"></i>
                 <span class="hidden sm:inline" id="themeLabel">Темна</span>
             </button>
 
@@ -230,7 +282,7 @@
             </button>
 
             <!-- Show Code Button -->
-            <button id="btnShowCode" class="bg-slate-800 dark:bg-slate-800 light:bg-slate-200 hover:bg-slate-700 dark:hover:bg-slate-700 light:hover:bg-slate-300 text-indigo-400 dark:text-indigo-300 light:text-indigo-600 text-xs md:text-sm font-bold px-3 py-1.5 rounded-xl border border-slate-700 dark:border-slate-700 light:border-slate-300 transition flex items-center space-x-1.5 shadow-sm">
+            <button id="btnShowCode" class="bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs md:text-sm font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center space-x-1.5 shadow-sm">
                 <i class="fa-solid fa-code"></i>
                 <span class="hidden sm:inline">Код</span>
             </button>
@@ -242,14 +294,14 @@
             </button>
 
             <!-- Audio Toggle -->
-            <button id="btnSoundToggle" class="bg-slate-800 dark:bg-slate-800 light:bg-slate-200 hover:bg-slate-700 dark:hover:bg-slate-700 light:hover:bg-slate-300 text-slate-300 dark:text-slate-300 light:text-slate-700 w-9 h-9 rounded-xl border border-slate-700 dark:border-slate-700 light:border-slate-300 flex items-center justify-center transition shadow-sm">
+            <button id="btnSoundToggle" class="bg-slate-800 hover:bg-slate-700 text-slate-300 w-9 h-9 rounded-xl border border-slate-700 flex items-center justify-center transition shadow-sm">
                 <i class="fa-solid fa-volume-high text-sm" id="soundIcon"></i>
             </button>
         </div>
     </header>
 
-    <div class="lg:hidden bg-slate-900 dark:bg-slate-900 light:bg-slate-200 border-b border-slate-800 dark:border-slate-800 light:border-slate-300 px-3 py-1.5 flex items-center justify-between text-xs">
-        <span class="font-bold text-indigo-400 dark:text-indigo-300 light:text-indigo-700 flex items-center space-x-1" id="mobileLevelTitle">
+    <div class="lg:hidden bg-slate-900 border-b border-slate-800 px-3 py-1.5 flex items-center justify-between text-xs">
+        <span class="font-bold text-indigo-400 flex items-center space-x-1" id="mobileLevelTitle">
             <span>Рівень 1</span>
         </span>
         <div class="flex space-x-1 overflow-x-auto py-0.5 max-w-[240px]" id="mobileLevelPills">
@@ -260,9 +312,9 @@
     <main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative">
         
         <!-- Left Panel: Game Stage & Canvas -->
-        <section class="w-full lg:w-5/12 xl:w-4/12 bg-slate-900/60 dark:bg-slate-900/60 light:bg-slate-200/50 border-r border-slate-800/80 dark:border-slate-800/80 light:border-slate-300 flex flex-col p-3 md:p-4 overflow-y-auto space-y-3">
+        <section class="w-full lg:w-5/12 xl:w-4/12 bg-slate-900/60 border-r border-slate-800/80 flex flex-col p-3 md:p-4 overflow-y-auto space-y-3">
 
-            <div class="flex-1 min-h-[270px] max-h-[380px] lg:max-h-none bg-slate-950 dark:bg-slate-950 light:bg-slate-300/40 rounded-2xl p-3 border border-slate-800 dark:border-slate-800 light:border-slate-300 shadow-inner flex flex-col items-center justify-center relative overflow-hidden group">
+            <div class="flex-1 min-h-[270px] max-h-[380px] lg:max-h-none bg-slate-950 rounded-2xl p-3 border border-slate-800 shadow-inner flex flex-col items-center justify-center relative overflow-hidden group">
                 
                 <!-- Dynamic Canvas/Grid Container -->
                 <div id="gameGridContainer" class="grid-container p-2 relative transition-all duration-300">
@@ -276,10 +328,10 @@
                 </div>
 
                 <!-- Game Win/Loss Modal Overlay -->
-                <div id="gameStatusOverlay" class="absolute inset-0 bg-slate-950/85 dark:bg-slate-950/85 light:bg-white/90 backdrop-blur-md flex flex-col items-center justify-center text-slate-100 dark:text-slate-100 light:text-slate-800 text-center p-5 hidden z-30 transition-all">
+                <div id="gameStatusOverlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center text-slate-100 text-center p-5 hidden z-30 transition-all">
                     <div id="statusIcon" class="text-6xl mb-2 animate-bounce">🏆</div>
-                    <h3 id="statusTitle" class="text-2xl font-black mb-1 text-amber-400 dark:text-amber-400 light:text-amber-600">Чудова робота!</h3>
-                    <p id="statusDesc" class="text-sm text-slate-300 dark:text-slate-300 light:text-slate-600 mb-2">Ти успішно пройшов цей рівень!</p>
+                    <h3 id="statusTitle" class="text-2xl font-black mb-1 text-amber-400">Чудова робота!</h3>
+                    <p id="statusDesc" class="text-sm text-slate-300 mb-2">Ти успішно пройшов цей рівень!</p>
 
                     <!-- Star Rating Display -->
                     <div id="ratingStars" class="flex space-x-1 text-2xl text-amber-400 mb-4">
@@ -289,7 +341,7 @@
                     </div>
 
                     <div class="flex space-x-2">
-                        <button id="btnRetryLevel" class="bg-slate-800 dark:bg-slate-800 light:bg-slate-200 text-white dark:text-white light:text-slate-800 font-bold px-4 py-2 rounded-xl text-sm transition border border-slate-700 dark:border-slate-700 light:border-slate-300">
+                        <button id="btnRetryLevel" class="bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-sm transition border border-slate-700">
                             <i class="fa-solid fa-rotate-left mr-1"></i> Ще раз
                         </button>
                         <button id="btnOverlayRegenerate" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition">
@@ -303,19 +355,19 @@
             </div>
 
             <!-- Program Execution Toolbar -->
-            <div class="bg-slate-900 dark:bg-slate-900 light:bg-white rounded-2xl p-3 border border-slate-800 dark:border-slate-800 light:border-slate-300 shadow-sm flex flex-col space-y-2">
+            <div class="bg-slate-900 rounded-2xl p-3 border border-slate-800 shadow-sm flex flex-col space-y-2">
                 <div class="flex items-center space-x-2">
                     <button id="btnRun" class="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 active:scale-[0.98] text-slate-950 font-black py-2.5 px-4 rounded-xl shadow-lg shadow-emerald-950/40 transition flex items-center justify-center space-x-2">
                         <i class="fa-solid fa-play text-lg"></i>
                         <span class="text-base tracking-wide">ЗАПУСК</span>
                     </button>
-                    <button id="btnReset" class="bg-slate-800 dark:bg-slate-800 light:bg-slate-200 hover:bg-slate-700 dark:hover:bg-slate-700 light:hover:bg-slate-300 text-slate-300 dark:text-slate-300 light:text-slate-700 font-bold py-2.5 px-4 rounded-xl transition border border-slate-700 dark:border-slate-700 light:border-slate-300 flex items-center justify-center" title="Скинути стан">
+                    <button id="btnReset" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition border border-slate-700 flex items-center justify-center" title="Скинути стан">
                         <i class="fa-solid fa-rotate-left text-lg"></i>
                     </button>
                 </div>
 
                 <!-- Execution Speed Control Slider -->
-                <div class="flex items-center justify-between text-xs text-slate-400 dark:text-slate-400 light:text-slate-600 px-1 pt-1">
+                <div class="flex items-center justify-between text-xs text-slate-400 px-1 pt-1">
                     <span class="flex items-center"><i class="fa-solid fa-gauge-high mr-1 text-indigo-400"></i> Швидкість:</span>
                     <input type="range" id="speedSlider" min="150" max="750" step="50" value="400" class="w-32 accent-indigo-500 cursor-pointer">
                 </div>
@@ -324,15 +376,15 @@
         </section>
 
         <!-- Right Panel: Code Toolbox & Drag-and-Drop Workspace -->
-        <section class="flex-1 bg-slate-950 dark:bg-slate-950 light:bg-slate-100 flex flex-col md:flex-row overflow-hidden">
+        <section class="flex-1 bg-slate-950 flex flex-col md:flex-row overflow-hidden">
             
             <!-- Left Sub-Panel: Block Toolbox -->
-            <div class="w-full md:w-60 bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border-r border-slate-800 dark:border-slate-800 light:border-slate-300 p-3 flex flex-col shadow-sm">
+            <div class="w-full md:w-60 bg-slate-900/80 border-r border-slate-800 p-3 flex flex-col shadow-sm">
                 <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-xs font-black uppercase text-slate-400 dark:text-slate-400 light:text-slate-500 tracking-wider flex items-center">
+                    <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center">
                         <i class="fa-solid fa-cubes mr-1.5 text-indigo-400"></i> Блоки Дій
                     </h3>
-                    <span class="text-[10px] bg-slate-800 dark:bg-slate-800 light:bg-slate-200 text-indigo-300 dark:text-indigo-300 light:text-indigo-700 font-bold px-2 py-0.5 rounded-full border border-indigo-500/30">Затисни й тягни</span>
+                    <span class="text-[10px] bg-slate-800 text-indigo-300 font-bold px-2 py-0.5 rounded-full border border-indigo-500/30">Затисни й тягни</span>
                 </div>
 
                 <!-- Block Palette List -->
@@ -411,28 +463,28 @@
                 </div>
 
                 <!-- Trash Can Drop Delete Zone -->
-                <div id="trashZone" class="mt-3 border-2 border-dashed border-red-500/40 rounded-xl p-2.5 text-red-500 dark:text-red-400 hover:bg-red-500/10 hover:border-red-400 text-center transition flex items-center justify-center space-x-2 text-xs font-semibold">
+                <div id="trashZone" class="mt-3 border-2 border-dashed border-red-500/40 rounded-xl p-2.5 text-red-400 hover:bg-red-500/10 hover:border-red-400 text-center transition flex items-center justify-center space-x-2 text-xs font-semibold">
                     <i class="fa-solid fa-trash-can text-sm"></i>
                     <span>Сюди для видалення</span>
                 </div>
             </div>
 
             <!-- Right Sub-Panel: Workspace Assembly Area -->
-            <div class="flex-1 flex flex-col p-3 md:p-4 overflow-hidden relative bg-slate-950 dark:bg-slate-950 light:bg-slate-100">
+            <div class="flex-1 flex flex-col p-3 md:p-4 overflow-hidden relative bg-slate-950">
                 
                 <!-- Workspace Header Bar -->
                 <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-puzzle-piece text-indigo-500 dark:text-indigo-400 text-lg"></i>
-                        <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm md:text-base">Робоча зона алгоритму</h3>
+                        <i class="fa-solid fa-puzzle-piece text-indigo-400 text-lg"></i>
+                        <h3 class="font-bold text-slate-200 text-sm md:text-base">Робоча зона алгоритму</h3>
                     </div>
 
                     <div class="flex items-center space-x-2">
                         <!-- Block Count Indicator -->
-                        <span class="text-xs bg-slate-900 dark:bg-slate-900 light:bg-white border border-slate-800 dark:border-slate-800 light:border-slate-300 text-slate-300 dark:text-slate-300 light:text-slate-700 font-bold px-3 py-1 rounded-xl shadow-sm" id="blockCountBadge">
+                        <span class="text-xs bg-slate-900 border border-slate-800 text-slate-300 font-bold px-3 py-1 rounded-xl shadow-sm" id="blockCountBadge">
                             Блоків: 0 / 10
                         </span>
-                        <button id="btnClearWorkspace" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 border border-red-500/20 font-bold px-2.5 py-1 rounded-xl transition flex items-center space-x-1">
+                        <button id="btnClearWorkspace" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold px-2.5 py-1 rounded-xl transition flex items-center space-x-1">
                             <i class="fa-solid fa-eraser"></i>
                             <span>Очистити</span>
                         </button>
@@ -440,7 +492,7 @@
                 </div>
 
                 <!-- Workspace Block Drop Canvas -->
-                <div id="workspace" class="flex-1 bg-slate-900/50 dark:bg-slate-900/50 light:bg-white rounded-2xl border-2 border-dashed border-slate-800 dark:border-slate-800 light:border-slate-300 p-3 overflow-y-auto space-y-2 shadow-inner transition-colors relative">
+                <div id="workspace" class="flex-1 bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-800 p-3 overflow-y-auto space-y-2 shadow-inner transition-colors relative">
                     
                     <!-- Start Flag Tag -->
                     <div class="bg-emerald-600 text-slate-950 text-xs font-black px-3 py-1.5 rounded-lg inline-flex items-center space-x-1.5 shadow-md mb-2 pointer-events-none">
@@ -456,8 +508,8 @@
                     <!-- Empty Workspace Placeholder Hint -->
                     <div id="emptyWorkspaceHint" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 pointer-events-none p-4 text-center">
                         <i class="fa-solid fa-hand-pointer text-4xl mb-2 animate-bounce text-indigo-500/60"></i>
-                        <p class="font-bold text-sm text-slate-400 dark:text-slate-400 light:text-slate-500">Затисни мишею та перетягни блок сюди</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-500 light:text-slate-400 mt-1">або натисни на нього, щоб побудувати програму!</p>
+                        <p class="font-bold text-sm text-slate-400">Затисни мишею та перетягни блок сюди</p>
+                        <p class="text-xs text-slate-500 mt-1">або натисни на нього, щоб побудувати програму!</p>
                     </div>
 
                 </div>
@@ -474,14 +526,14 @@
     </div>
 
     <!-- Code View Modal -->
-    <div id="codeModal" class="fixed inset-0 bg-slate-950/80 dark:bg-slate-950/80 light:bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-slate-900 dark:bg-slate-900 light:bg-white border border-slate-800 dark:border-slate-800 light:border-slate-300 text-slate-100 dark:text-slate-100 light:text-slate-800 rounded-3xl max-w-xl w-full p-5 shadow-2xl flex flex-col">
-            <div class="flex items-center justify-between mb-3 border-b border-slate-800 dark:border-slate-800 light:border-slate-200 pb-3">
+    <div id="codeModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-900 border border-slate-800 text-slate-100 rounded-3xl max-w-xl w-full p-5 shadow-2xl flex flex-col">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-3">
                 <div class="flex items-center space-x-2 text-indigo-400">
                     <i class="fa-solid fa-code text-lg"></i>
                     <h3 class="font-bold text-lg">Згенерований Код</h3>
                 </div>
-                <button id="btnCloseCodeModal" class="text-slate-400 hover:text-white dark:hover:text-white light:hover:text-slate-900 text-xl">
+                <button id="btnCloseCodeModal" class="text-slate-400 hover:text-white text-xl">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -489,11 +541,11 @@
             <!-- Language Tabs -->
             <div class="flex space-x-2 mb-3">
                 <button class="lang-tab-btn active bg-indigo-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="js">JavaScript</button>
-                <button class="lang-tab-btn bg-slate-800 dark:bg-slate-800 light:bg-slate-200 text-slate-400 dark:text-slate-400 light:text-slate-700 font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="python">Python</button>
-                <button class="lang-tab-btn bg-slate-800 dark:bg-slate-800 light:bg-slate-200 text-slate-400 dark:text-slate-400 light:text-slate-700 font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="pseudo">Псевдокод (Укр)</button>
+                <button class="lang-tab-btn bg-slate-800 text-slate-400 font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="python">Python</button>
+                <button class="lang-tab-btn bg-slate-800 text-slate-400 font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="pseudo">Псевдокод (Укр)</button>
             </div>
 
-            <pre class="bg-slate-950 dark:bg-slate-950 light:bg-slate-900 p-4 rounded-2xl text-emerald-400 font-mono text-xs md:text-sm overflow-x-auto border border-slate-800 dark:border-slate-800 light:border-slate-700 leading-relaxed max-h-64" id="codeDisplay">
+            <pre class="bg-slate-950 p-4 rounded-2xl text-emerald-400 font-mono text-xs md:text-sm overflow-x-auto border border-slate-800 leading-relaxed max-h-64" id="codeDisplay">
 // Завантаження...
             </pre>
 
@@ -507,39 +559,39 @@
     </div>
 
     <!-- Sandbox / Level Creator Modal -->
-    <div id="sandboxModal" class="fixed inset-0 bg-slate-950/85 dark:bg-slate-950/85 light:bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-slate-900 dark:bg-slate-900 light:bg-white border border-slate-800 dark:border-slate-800 light:border-slate-300 rounded-3xl max-w-xl w-full p-5 shadow-2xl flex flex-col">
-            <div class="flex items-center justify-between mb-3 border-b border-slate-800 dark:border-slate-800 light:border-slate-200 pb-3">
+    <div id="sandboxModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-xl w-full p-5 shadow-2xl flex flex-col">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-3">
                 <div class="flex items-center space-x-2 text-amber-400">
                     <i class="fa-solid fa-hammer text-xl"></i>
-                    <h3 class="font-bold text-lg text-slate-100 dark:text-slate-100 light:text-slate-800">Редактор Рівнів (Пісочниця)</h3>
+                    <h3 class="font-bold text-lg text-slate-100">Редактор Рівнів (Пісочниця)</h3>
                 </div>
-                <button id="btnCloseSandbox" class="text-slate-400 hover:text-slate-200 dark:hover:text-slate-200 light:hover:text-slate-800 text-xl">
+                <button id="btnCloseSandbox" class="text-slate-400 hover:text-slate-200 text-xl">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             
-            <p class="text-xs text-slate-400 dark:text-slate-400 light:text-slate-600 mb-2">Натискай на клітинки поля, щоб змінювати їх вміст:</p>
+            <p class="text-xs text-slate-400 mb-2">Натискай на клітинки поля, щоб змінювати їх вміст:</p>
             
             <!-- Sandbox Grid Designer -->
-            <div id="sandboxGrid" class="grid gap-1 p-2 bg-slate-950 dark:bg-slate-950 light:bg-slate-100 rounded-2xl my-2 justify-center mx-auto border border-slate-800 dark:border-slate-800 light:border-slate-300">
+            <div id="sandboxGrid" class="grid gap-1 p-2 bg-slate-950 rounded-2xl my-2 justify-center mx-auto border border-slate-800">
                 <!-- Dynamic cells -->
             </div>
 
             <!-- Tool Selector -->
             <div class="flex flex-wrap justify-center gap-1.5 my-2 text-xs">
                 <button class="sandbox-tool-btn active bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg" data-tool="path">🟩 Шлях</button>
-                <button class="sandbox-tool-btn bg-slate-800 dark:bg-slate-800 light:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 font-bold px-3 py-1.5 rounded-lg" data-tool="wall">🧱 Стіна</button>
-                <button class="sandbox-tool-btn bg-slate-800 dark:bg-slate-800 light:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 font-bold px-3 py-1.5 rounded-lg" data-tool="star">⭐ Зірка</button>
-                <button class="sandbox-tool-btn bg-slate-800 dark:bg-slate-800 light:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 font-bold px-3 py-1.5 rounded-lg" data-tool="key">🔑 Ключ</button>
-                <button class="sandbox-tool-btn bg-slate-800 dark:bg-slate-800 light:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 font-bold px-3 py-1.5 rounded-lg" data-tool="door">🚪 Двері</button>
-                <button class="sandbox-tool-btn bg-slate-800 dark:bg-slate-800 light:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 font-bold px-3 py-1.5 rounded-lg" data-tool="lava">🌋 Лава</button>
-                <button class="sandbox-tool-btn bg-slate-800 dark:bg-slate-800 light:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 font-bold px-3 py-1.5 rounded-lg" data-tool="robot">🤖 Герой</button>
+                <button class="sandbox-tool-btn bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg" data-tool="wall">🧱 Стіна</button>
+                <button class="sandbox-tool-btn bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg" data-tool="star">⭐ Зірка</button>
+                <button class="sandbox-tool-btn bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg" data-tool="key">🔑 Ключ</button>
+                <button class="sandbox-tool-btn bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg" data-tool="door">🚪 Двері</button>
+                <button class="sandbox-tool-btn bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg" data-tool="lava">🌋 Лава</button>
+                <button class="sandbox-tool-btn bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg" data-tool="robot">🤖 Герой</button>
             </div>
 
             <!-- Import / Export Actions -->
-            <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-800 dark:border-slate-800 light:border-slate-200">
-                <button id="btnExportLevel" class="text-xs text-indigo-400 light:text-indigo-600 hover:text-indigo-300 font-bold flex items-center space-x-1">
+            <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-800">
+                <button id="btnExportLevel" class="text-xs text-indigo-400 hover:text-indigo-300 font-bold flex items-center space-x-1">
                     <i class="fa-solid fa-file-export"></i>
                     <span>Експорт JSON</span>
                 </button>
@@ -945,13 +997,13 @@
 
             LEVELS.forEach((lvl, idx) => {
                 const btn = document.createElement('button');
-                btn.className = `w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition ${idx === currentLevelIndex ? 'bg-indigo-600 text-white shadow-md scale-105' : 'bg-slate-800 dark:bg-slate-800 light:bg-slate-300 text-slate-300 dark:text-slate-300 light:text-slate-700 hover:bg-slate-700 dark:hover:bg-slate-700 light:hover:bg-slate-400'}`;
+                btn.className = `w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition ${idx === currentLevelIndex ? 'bg-indigo-600 text-white shadow-md scale-105' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`;
                 btn.innerText = idx + 1;
                 btn.onclick = () => loadLevel(idx);
                 levelSelectorContainer.appendChild(btn);
 
                 const mBtn = document.createElement('button');
-                mBtn.className = `px-2.5 py-1 rounded-lg font-bold text-xs ${idx === currentLevelIndex ? 'bg-amber-400 text-slate-950' : 'bg-slate-800 dark:bg-slate-800 light:bg-slate-300 text-slate-300 dark:text-slate-300 light:text-slate-700'}`;
+                mBtn.className = `px-2.5 py-1 rounded-lg font-bold text-xs ${idx === currentLevelIndex ? 'bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-300'}`;
                 mBtn.innerText = `Рівень ${idx + 1}`;
                 mBtn.onclick = () => loadLevel(idx);
                 mobileLevelPills.appendChild(mBtn);
@@ -1113,7 +1165,7 @@
                         cell.classList.add('cell-lava');
                         cell.innerHTML = getLavaSVG();
                     } else {
-                        cell.classList.add('cell-path', 'border', 'border-slate-800/40', 'dark:border-slate-800', 'light:border-slate-300');
+                        cell.classList.add('cell-path', 'border', 'border-slate-800/40');
 
                         if (cellType === 2) {
                             cell.innerHTML += getStarSVG();
@@ -1646,9 +1698,9 @@
             const count = countTotalBlocks(currentWorkspaceBlocks);
             blockCountBadge.innerText = `Блоків: ${count} / ${activeLevel.maxBlocks}`;
             if (count > activeLevel.maxBlocks) {
-                blockCountBadge.className = 'text-xs bg-rose-500/20 border border-rose-500/40 text-rose-500 dark:text-rose-300 font-bold px-3 py-1 rounded-xl shadow-sm';
+                blockCountBadge.className = 'text-xs bg-rose-500/20 border border-rose-500/40 text-rose-500 font-bold px-3 py-1 rounded-xl shadow-sm';
             } else {
-                blockCountBadge.className = 'text-xs bg-slate-900 dark:bg-slate-900 light:bg-white border border-slate-800 dark:border-slate-800 light:border-slate-300 text-slate-300 dark:text-slate-300 light:text-slate-700 font-bold px-3 py-1 rounded-xl shadow-sm';
+                blockCountBadge.className = 'text-xs bg-slate-900 border border-slate-800 text-slate-300 font-bold px-3 py-1 rounded-xl shadow-sm';
             }
         }
 
@@ -1893,7 +1945,7 @@
             for (let r = 0; r < 3; r++) {
                 for (let c = 0; c < 5; c++) {
                     const cell = document.createElement('div');
-                    cell.className = 'w-11 h-11 bg-slate-800 dark:bg-slate-800 light:bg-slate-200 rounded-lg flex items-center justify-center cursor-pointer border border-slate-700 dark:border-slate-700 light:border-slate-300 hover:border-amber-400 overflow-hidden';
+                    cell.className = 'w-11 h-11 bg-slate-800 rounded-lg flex items-center justify-center cursor-pointer border border-slate-700 hover:border-amber-400 overflow-hidden';
                     
                     const val = sandboxGridData[r][c];
                     if (val === 1) cell.innerHTML = getWallSVG();
@@ -1977,7 +2029,7 @@
                 btn.onclick = (e) => {
                     document.querySelectorAll('.lang-tab-btn').forEach(b => {
                         b.classList.remove('bg-indigo-600', 'text-white');
-                        b.classList.add('bg-slate-800', 'dark:bg-slate-800', 'light:bg-slate-200', 'text-slate-400', 'dark:text-slate-400', 'light:text-slate-700');
+                        b.classList.add('bg-slate-800', 'text-slate-400');
                     });
                     e.target.classList.replace('bg-slate-800', 'bg-indigo-600');
                     e.target.classList.replace('text-slate-400', 'text-white');
@@ -1999,7 +2051,7 @@
                 btn.onclick = (e) => {
                     document.querySelectorAll('.sandbox-tool-btn').forEach(b => {
                         b.classList.remove('bg-indigo-600', 'text-white');
-                        b.classList.add('bg-slate-800', 'dark:bg-slate-800', 'light:bg-slate-200', 'text-slate-300', 'dark:text-slate-300', 'light:text-slate-700');
+                        b.classList.add('bg-slate-800', 'text-slate-300');
                     });
                     e.target.classList.replace('bg-slate-800', 'bg-indigo-600');
                     e.target.classList.replace('text-slate-300', 'text-white');
