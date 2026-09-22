@@ -10,7 +10,7 @@
   "wallColor": "#57a03d",
   "lavaColor": "#57a03d",
   "floor": "https://raw.githubusercontent.com/google/material-design-icons/master/png/navigation/apps/materialicons/48dp/1x/baseline_apps_black_48dp.png",
-  "wall": "https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/BlockDungeon/Textures/AngryBirds/tree.png?raw=true",
+  "wall": "https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/BlockDungeon/Textures/AngryBirds/treeA.png?raw=true",
   "player": "https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/BlockDungeon/Textures/AngryBirds/player.png?raw=true",
   "lava": "https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/BlockDungeon/Textures/AngryBirds/trap.png?raw=true",
   "door": "https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/BlockDungeon/Textures/AngryBirds/door.png?raw=true",
