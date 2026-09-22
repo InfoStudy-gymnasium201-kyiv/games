@@ -1,16 +1,11 @@
 <!DOCTYPE html>
-<html lang="uk" class="dark">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Block Dungeon</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Tone.js for Audio Synthesis -->
@@ -22,74 +17,13 @@
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800;900&display=swap');
         
         :root {
-            /* Кольори темної теми за замовчуванням */
+            /* Кольори за замовчуванням */
             --ui-bg: #0f172a;
             --ui-panel: #1e293b;
             --ui-accent: #6366f1;
-            --ui-text: #f8fafc;
-            --ui-border: #334155;
             --path-color: #0f172a;
             --wall-color: #334155;
             --lava-color: #ef4444;
-        }
-
-        html.light {
-            /* Кольори світлої теми */
-            --ui-bg: #f1f5f9;
-            --ui-panel: #ffffff;
-            --ui-accent: #4f46e5;
-            --ui-text: #0f172a;
-            --ui-border: #cbd5e1;
-            --path-color: #e2e8f0;
-            --wall-color: #94a3b8;
-            --lava-color: #f87171;
-        }
-
-        /* Автоматична перепідготовка кольорів для світлої теми */
-        html.light body {
-            background-color: var(--ui-bg) !important;
-            color: var(--ui-text) !important;
-        }
-
-        html.light header,
-        html.light section,
-        html.light div.bg-slate-900,
-        html.light div.bg-slate-950,
-        html.light #workspace {
-            background-color: var(--ui-panel) !important;
-            border-color: var(--ui-border) !important;
-            color: var(--ui-text) !important;
-        }
-
-        html.light main,
-        html.light section.bg-slate-950 {
-            background-color: var(--ui-bg) !important;
-        }
-
-        html.light .bg-slate-800 {
-            background-color: #e2e8f0 !important;
-            color: #1e293b !important;
-            border-color: #cbd5e1 !important;
-        }
-
-        html.light .bg-slate-800:hover {
-            background-color: #cbd5e1 !important;
-        }
-
-        html.light .text-slate-100,
-        html.light .text-slate-200,
-        html.light .text-slate-300 {
-            color: #0f172a !important;
-        }
-
-        html.light .text-slate-400,
-        html.light .text-slate-500 {
-            color: #475569 !important;
-        }
-
-        html.light .border-slate-800,
-        html.light .border-slate-700 {
-            border-color: #cbd5e1 !important;
         }
 
         * {
@@ -101,8 +35,7 @@
         body {
             font-family: 'Fredoka', 'Nunito', sans-serif;
             background-color: var(--ui-bg);
-            color: var(--ui-text);
-            transition: background-color 0.3s ease, color 0.3s ease;
+            color: #f8fafc;
         }
 
         /* Custom Scrollbar */
@@ -111,7 +44,7 @@
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.1);
+            background: rgba(15, 23, 42, 0.6);
             border-radius: 8px;
         }
         ::-webkit-scrollbar-thumb {
@@ -148,13 +81,12 @@
             position: relative;
             background: var(--ui-panel);
             border-radius: 1rem;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.15), 0 10px 25px -5px rgba(0,0,0,0.2);
-            transition: background-color 0.3s ease;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 25px -5px rgba(0,0,0,0.5);
         }
 
         .cell-wall {
             background-color: var(--wall-color);
-            box-shadow: inset 0 2px 4px rgba(255,255,255,0.15), inset 0 -3px 6px rgba(0,0,0,0.3);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.15), inset 0 -3px 6px rgba(0,0,0,0.5);
         }
 
         .cell-lava {
@@ -170,9 +102,9 @@
         .cell-path {
             background-color: var(--path-color);
             background-image: 
-                radial-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 0),
-                linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+                radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 0),
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
             background-size: 10px 10px, 100% 100%, 100% 100%;
         }
 
@@ -245,16 +177,16 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col overflow-y-auto lg:h-screen lg:overflow-hidden bg-slate-950 text-slate-100 transition-colors duration-300">
+<body class="min-h-screen flex flex-col overflow-y-auto lg:h-screen lg:overflow-hidden bg-slate-950 text-slate-100">
 
-    <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between z-20 backdrop-blur-md shadow-sm">
+    <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between z-20 backdrop-blur-md">
         <div class="flex items-center space-x-3">
             <div class="bg-gradient-to-tr from-indigo-500 to-purple-500 p-2 rounded-2xl shadow-lg shadow-indigo-500/30 flex items-center justify-center">
                 <i class="fa-solid fa-robot text-2xl text-yellow-300"></i>
             </div>
             <div>
                 <div class="flex items-center space-x-2">
-                    <h1 id="gameHeaderTitle" class="font-extrabold text-xl tracking-wide bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                    <h1 id="gameHeaderTitle" class="font-extrabold text-xl tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
                         Block Dungeon
                     </h1>
                 </div>
@@ -269,21 +201,15 @@
 
         <!-- Action Tools -->
         <div class="flex items-center space-x-2">
-            <!-- Theme Toggle Button -->
-            <button id="btnThemeToggle" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs md:text-sm font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center space-x-1.5 shadow-sm">
-                <i class="fa-solid fa-moon text-indigo-400" id="themeIcon"></i>
-                <span class="hidden sm:inline" id="themeLabel">Темна</span>
-            </button>
-
             <!-- Generate Random Level Button -->
             <button id="btnRandomizeLevel" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs md:text-sm px-3.5 py-1.5 rounded-xl shadow-md transition flex items-center space-x-1.5">
                 <i class="fa-solid fa-dice text-amber-300 animate-spin-slow"></i>
-                <span class="hidden md:inline">Згенерувати</span>
+                <span>Згенерувати випадковий</span>
             </button>
 
             <!-- Show Code Button -->
-            <button id="btnShowCode" class="bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs md:text-sm font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center space-x-1.5 shadow-sm">
-                <i class="fa-solid fa-code"></i>
+            <button id="btnShowCode" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs md:text-sm font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center space-x-1.5 shadow-sm">
+                <i class="fa-solid fa-code text-indigo-400"></i>
                 <span class="hidden sm:inline">Код</span>
             </button>
 
@@ -301,7 +227,7 @@
     </header>
 
     <div class="lg:hidden bg-slate-900 border-b border-slate-800 px-3 py-1.5 flex items-center justify-between text-xs">
-        <span class="font-bold text-indigo-400 flex items-center space-x-1" id="mobileLevelTitle">
+        <span class="font-bold text-indigo-300 flex items-center space-x-1" id="mobileLevelTitle">
             <span>Рівень 1</span>
         </span>
         <div class="flex space-x-1 overflow-x-auto py-0.5 max-w-[240px]" id="mobileLevelPills">
@@ -328,7 +254,7 @@
                 </div>
 
                 <!-- Game Win/Loss Modal Overlay -->
-                <div id="gameStatusOverlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center text-slate-100 text-center p-5 hidden z-30 transition-all">
+                <div id="gameStatusOverlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center text-white text-center p-5 hidden z-30 transition-all">
                     <div id="statusIcon" class="text-6xl mb-2 animate-bounce">🏆</div>
                     <h3 id="statusTitle" class="text-2xl font-black mb-1 text-amber-400">Чудова робота!</h3>
                     <p id="statusDesc" class="text-sm text-slate-300 mb-2">Ти успішно пройшов цей рівень!</p>
@@ -341,7 +267,7 @@
                     </div>
 
                     <div class="flex space-x-2">
-                        <button id="btnRetryLevel" class="bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-sm transition border border-slate-700">
+                        <button id="btnRetryLevel" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition border border-slate-700">
                             <i class="fa-solid fa-rotate-left mr-1"></i> Ще раз
                         </button>
                         <button id="btnOverlayRegenerate" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition">
@@ -481,7 +407,7 @@
 
                     <div class="flex items-center space-x-2">
                         <!-- Block Count Indicator -->
-                        <span class="text-xs bg-slate-900 border border-slate-800 text-slate-300 font-bold px-3 py-1 rounded-xl shadow-sm" id="blockCountBadge">
+                        <span class="text-xs bg-slate-900 border border-slate-800 text-slate-300 font-bold px-3 py-1 rounded-xl" id="blockCountBadge">
                             Блоків: 0 / 10
                         </span>
                         <button id="btnClearWorkspace" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold px-2.5 py-1 rounded-xl transition flex items-center space-x-1">
@@ -545,7 +471,7 @@
                 <button class="lang-tab-btn bg-slate-800 text-slate-400 font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="pseudo">Псевдокод (Укр)</button>
             </div>
 
-            <pre class="bg-slate-950 p-4 rounded-2xl text-emerald-400 font-mono text-xs md:text-sm overflow-x-auto border border-slate-800 leading-relaxed max-h-64" id="codeDisplay">
+            <pre class="bg-slate-950 p-4 rounded-2xl text-emerald-400 font-mono text-xs md:text-sm overflow-x-auto border border-slate-800/80 leading-relaxed max-h-64" id="codeDisplay">
 // Завантаження...
             </pre>
 
@@ -604,32 +530,6 @@
     </div>
 
     <script>
-        // --- Theme State Management ---
-        let currentTheme = 'dark'; // 'dark' | 'light'
-
-        function setTheme(theme) {
-            currentTheme = theme;
-            const htmlEl = document.documentElement;
-            const themeIcon = document.getElementById('themeIcon');
-            const themeLabel = document.getElementById('themeLabel');
-
-            if (theme === 'light') {
-                htmlEl.classList.remove('dark');
-                htmlEl.classList.add('light');
-                if (themeIcon) themeIcon.className = "fa-solid fa-sun text-amber-500";
-                if (themeLabel) themeLabel.innerText = "Світла";
-            } else {
-                htmlEl.classList.remove('light');
-                htmlEl.classList.add('dark');
-                if (themeIcon) themeIcon.className = "fa-solid fa-moon text-indigo-400";
-                if (themeLabel) themeLabel.innerText = "Темна";
-            }
-        }
-
-        function toggleTheme() {
-            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-        }
-
         // --- Dynamic Texture Pack Loading ---
         let texturePackConfig = null;
 
@@ -655,11 +555,6 @@
             if (!texturePackConfig) return;
 
             const root = document.documentElement;
-
-            // Зміна теми через JSON config
-            if (texturePackConfig.theme) {
-                setTheme(texturePackConfig.theme.toLowerCase() === 'light' ? 'light' : 'dark');
-            }
 
             // Зміна кольору інтерфейсу (UI)
             if (texturePackConfig.uiColor) {
@@ -997,7 +892,7 @@
 
             LEVELS.forEach((lvl, idx) => {
                 const btn = document.createElement('button');
-                btn.className = `w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition ${idx === currentLevelIndex ? 'bg-indigo-600 text-white shadow-md scale-105' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`;
+                btn.className = `w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition ${idx === currentLevelIndex ? 'bg-indigo-600 text-white shadow-md scale-105' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`;
                 btn.innerText = idx + 1;
                 btn.onclick = () => loadLevel(idx);
                 levelSelectorContainer.appendChild(btn);
@@ -1165,7 +1060,7 @@
                         cell.classList.add('cell-lava');
                         cell.innerHTML = getLavaSVG();
                     } else {
-                        cell.classList.add('cell-path', 'border', 'border-slate-800/40');
+                        cell.classList.add('cell-path', 'border', 'border-slate-800');
 
                         if (cellType === 2) {
                             cell.innerHTML += getStarSVG();
@@ -1698,9 +1593,9 @@
             const count = countTotalBlocks(currentWorkspaceBlocks);
             blockCountBadge.innerText = `Блоків: ${count} / ${activeLevel.maxBlocks}`;
             if (count > activeLevel.maxBlocks) {
-                blockCountBadge.className = 'text-xs bg-rose-500/20 border border-rose-500/40 text-rose-500 font-bold px-3 py-1 rounded-xl shadow-sm';
+                blockCountBadge.className = 'text-xs bg-rose-500/20 border border-rose-500/40 text-rose-300 font-bold px-3 py-1 rounded-xl';
             } else {
-                blockCountBadge.className = 'text-xs bg-slate-900 border border-slate-800 text-slate-300 font-bold px-3 py-1 rounded-xl shadow-sm';
+                blockCountBadge.className = 'text-xs bg-slate-900 border border-slate-800 text-slate-300 font-bold px-3 py-1 rounded-xl';
             }
         }
 
@@ -1989,9 +1884,6 @@
 
             document.getElementById('btnOverlayRegenerate').onclick = regenerateCurrentLevel;
             document.getElementById('btnRandomizeLevel').onclick = regenerateCurrentLevel;
-
-            // Theme Switcher Button Event Listener
-            document.getElementById('btnThemeToggle').onclick = toggleTheme;
 
             document.getElementById('btnNextLevel').onclick = () => {
                 if (typeof currentLevelIndex === 'number' && currentLevelIndex < LEVELS.length - 1) {
