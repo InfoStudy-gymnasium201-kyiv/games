@@ -890,10 +890,15 @@
             });
         }
 
-        // Load Level State
+        // Load Level State (Викликається при ЗМІНІ рівня)
         function loadLevel(index) {
-            if (isExecuting) resetLevel();
+            if (isExecuting) {
+                clearInterval(executionInterval);
+                isExecuting = false;
+                clearBlockHighlights();
+            }
 
+            // Очищаємо блоки коду тільки при зміні рівня
             currentWorkspaceBlocks = [];
 
             if (index === 'custom') {
@@ -932,6 +937,34 @@
             renderGrid();
             renderWorkspace();
             updateBlockCount();
+        }
+
+        // Скидає тільки стан поля та робота, ЗБЕРІГАЮЧИ блоки у робочій зоні
+        function resetStateOnly() {
+            clearInterval(executionInterval);
+            isExecuting = false;
+            clearBlockHighlights();
+
+            // Відновлюємо початковий стан поля та позицію робота
+            robotState = { ...activeLevel.start };
+            currentGrid = JSON.parse(JSON.stringify(activeLevel.grid));
+            hasKey = false;
+
+            // Перераховуємо зірки
+            starsRemaining = 0;
+            for (let r = 0; r < currentGrid.length; r++) {
+                for (let c = 0; c < currentGrid[r].length; c++) {
+                    if (currentGrid[r][c] === 2) starsRemaining++;
+                }
+            }
+
+            levelStarGoalEl.innerText = `Зірок: ${starsRemaining}`;
+            gameStatusOverlay.classList.add('hidden');
+
+            // Оновлюємо графіку та розблоковуємо кнопку
+            renderGrid();
+            document.getElementById('btnRun').disabled = false;
+            document.getElementById('btnRun').classList.remove('opacity-50');
         }
 
         function regenerateCurrentLevel() {
@@ -1541,18 +1574,8 @@
             if (isExecuting) return;
             if (currentWorkspaceBlocks.length === 0) return;
 
-            // Reset robot position and grid state
-            robotState = { ...activeLevel.start };
-            currentGrid = JSON.parse(JSON.stringify(activeLevel.grid));
-            hasKey = false;
-            starsRemaining = 0;
-            for (let r = 0; r < currentGrid.length; r++) {
-                for (let c = 0; c < currentGrid[r].length; c++) {
-                    if (currentGrid[r][c] === 2) starsRemaining++;
-                }
-            }
-            levelStarGoalEl.innerText = `Зірок: ${starsRemaining}`;
-            renderGrid();
+            // Reset robot position and grid state before running
+            resetStateOnly();
 
             isExecuting = true;
             document.getElementById('btnRun').disabled = true;
@@ -1657,13 +1680,6 @@
             } else if (!success && message) {
                 showGameOverlay(false, "Упс! 🤖", message);
             }
-        }
-
-        function resetLevel() {
-            clearInterval(executionInterval);
-            isExecuting = false;
-            clearBlockHighlights();
-            loadLevel(currentLevelIndex);
         }
 
         function showGameOverlay(isWin, title, desc) {
@@ -1805,8 +1821,10 @@
 
         function setupEventListeners() {
             document.getElementById('btnRun').onclick = runProgram;
-            document.getElementById('btnReset').onclick = resetLevel;
-            document.getElementById('btnRetryLevel').onclick = resetLevel;
+            // При вказаних діях зберігаємо блоки коду, а не очищаємо їх
+            document.getElementById('btnReset').onclick = resetStateOnly;
+            document.getElementById('btnRetryLevel').onclick = resetStateOnly;
+
             document.getElementById('btnOverlayRegenerate').onclick = regenerateCurrentLevel;
             document.getElementById('btnRandomizeLevel').onclick = regenerateCurrentLevel;
 
