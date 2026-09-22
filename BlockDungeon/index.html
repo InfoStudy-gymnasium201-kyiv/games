@@ -175,6 +175,366 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.5);
             display: none;
         }
+    
+        /* =========================================================
+           CARTOON KIDS UI THEME
+           Visual redesign only — gameplay logic remains unchanged.
+           ========================================================= */
+        :root {
+            --kid-sky: #dff7ff;
+            --kid-blue: #4f8cff;
+            --kid-blue-dark: #2f67d8;
+            --kid-purple: #8b6cff;
+            --kid-pink: #ff72ad;
+            --kid-yellow: #ffd84d;
+            --kid-green: #58d68d;
+            --kid-orange: #ff9d4d;
+            --kid-ink: #29405f;
+            --kid-cream: #fffaf0;
+            --kid-shadow: 0 8px 0 rgba(48, 72, 111, .16), 0 14px 26px rgba(48, 72, 111, .12);
+        }
+
+        html, body {
+            background:
+                radial-gradient(circle at 10% 10%, rgba(255,255,255,.9) 0 5%, transparent 6%),
+                radial-gradient(circle at 90% 18%, rgba(255,255,255,.8) 0 4%, transparent 5%),
+                linear-gradient(180deg, #bfeeff 0%, #eafaff 48%, #fff5d9 100%) !important;
+            color: var(--kid-ink) !important;
+        }
+
+        body {
+            font-family: 'Fredoka', 'Nunito', sans-serif !important;
+        }
+
+        /* Soft cartoon clouds / confetti background */
+        body::before, body::after {
+            content: "";
+            position: fixed;
+            pointer-events: none;
+            z-index: -1;
+            border-radius: 999px;
+            filter: blur(.2px);
+        }
+        body::before {
+            width: 220px; height: 90px;
+            left: -35px; top: 90px;
+            background: rgba(255,255,255,.72);
+            box-shadow: 55px 12px 0 rgba(255,255,255,.72), 105px 3px 0 rgba(255,255,255,.65);
+        }
+        body::after {
+            width: 190px; height: 75px;
+            right: -25px; bottom: 110px;
+            background: rgba(255,255,255,.55);
+            box-shadow: -45px 10px 0 rgba(255,255,255,.55), -90px 0 0 rgba(255,255,255,.45);
+        }
+
+        header {
+            background: linear-gradient(180deg, #ffffff 0%, #f4fbff 100%) !important;
+            border-bottom: 4px solid #9edcff !important;
+            box-shadow: 0 6px 0 rgba(77, 148, 207, .12), 0 12px 28px rgba(49, 101, 150, .10);
+            backdrop-filter: none !important;
+        }
+
+        header > div:first-child > div:first-child {
+            background: linear-gradient(145deg, #6f8cff, #a36cff) !important;
+            border: 4px solid #ffffff;
+            border-radius: 22px !important;
+            box-shadow: 0 5px 0 #526ac9, 0 10px 18px rgba(90, 105, 190, .25) !important;
+            transform: rotate(-3deg);
+        }
+
+        #gameHeaderTitle {
+            background: linear-gradient(90deg, #477cff, #8d63ed 45%, #f45caa) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            font-size: 1.45rem !important;
+            letter-spacing: .01em !important;
+            text-shadow: 0 2px 0 rgba(255,255,255,.8);
+        }
+
+        header p {
+            color: #6f829d !important;
+        }
+
+        #levelSelectorContainer {
+            background: #eaf7ff !important;
+            border: 3px solid #b9e3f8 !important;
+            box-shadow: inset 0 -3px 0 rgba(90,150,190,.08);
+        }
+
+        #levelSelectorContainer button,
+        #mobileLevelPills button {
+            border: 2px solid rgba(67,119,188,.15) !important;
+            box-shadow: 0 3px 0 rgba(67,119,188,.12);
+        }
+
+        #levelSelectorContainer button.bg-indigo-600 {
+            background: linear-gradient(180deg, #6f9dff, #4779e9) !important;
+            box-shadow: 0 4px 0 #315fc2 !important;
+        }
+
+        header button {
+            border-radius: 16px !important;
+            box-shadow: 0 4px 0 rgba(56,82,122,.18) !important;
+        }
+
+        #btnRandomizeLevel {
+            background: linear-gradient(180deg, #ff8cc0, #ed5e9f) !important;
+            border: 3px solid #fff !important;
+            box-shadow: 0 5px 0 #c94480, 0 9px 18px rgba(215,74,130,.18) !important;
+        }
+        #btnShowCode {
+            background: #ffffff !important;
+            color: #55709a !important;
+            border: 3px solid #c9e6f5 !important;
+        }
+        #btnSandbox {
+            background: linear-gradient(180deg, #ffd95d, #ffb84d) !important;
+            border: 3px solid #fff !important;
+            box-shadow: 0 5px 0 #db9139 !important;
+        }
+        #btnSoundToggle {
+            background: #ffffff !important;
+            color: #55709a !important;
+            border: 3px solid #c9e6f5 !important;
+        }
+
+        main {
+            background: transparent !important;
+        }
+
+        /* Panels become paper/card-like */
+        main > section:first-child {
+            background: rgba(255,255,255,.55) !important;
+            border-right: 4px solid #b9e3f8 !important;
+        }
+        main > section:last-child {
+            background: rgba(255,255,255,.35) !important;
+        }
+
+        .grid-container {
+            background: linear-gradient(145deg, #c8efff, #e9fbff) !important;
+            border: 5px solid #ffffff;
+            border-radius: 28px !important;
+            box-shadow: 0 7px 0 #8ecbe7, 0 15px 30px rgba(65,128,170,.16) !important;
+        }
+
+        #gameGridContainer > #gameGrid {
+            filter: drop-shadow(0 3px 0 rgba(40,90,130,.08));
+        }
+
+        .cell-path {
+            background-color: #f7eecb !important;
+            background-image:
+                radial-gradient(rgba(198,170,91,.14) 1.2px, transparent 1.2px) !important;
+            border-color: #e4d59f !important;
+            box-shadow: inset 0 -3px 0 rgba(173,143,61,.12);
+        }
+
+        .cell-wall {
+            background: linear-gradient(145deg, #91a7c2, #657d9e) !important;
+            border-radius: 11px;
+            box-shadow: inset 0 3px 0 rgba(255,255,255,.3), inset 0 -5px 0 rgba(48,66,91,.22), 0 2px 0 rgba(53,76,105,.18) !important;
+        }
+
+        .cell-lava {
+            background: linear-gradient(145deg, #ff7b61, #f04c66) !important;
+            border-radius: 11px;
+            box-shadow: inset 0 3px 0 rgba(255,255,255,.3), 0 3px 0 #d13e55 !important;
+        }
+
+        #characterSprite img, #characterSprite span {
+            filter: drop-shadow(0 5px 2px rgba(44,71,99,.22)) !important;
+        }
+
+        /* Instruction/status card */
+        #gameStatusOverlay {
+            background: rgba(255,255,255,.88) !important;
+            border-radius: 24px;
+            backdrop-filter: blur(5px) !important;
+            color: var(--kid-ink) !important;
+        }
+        #statusTitle { color: #ff9d3f !important; text-shadow: 0 2px 0 #fff; }
+        #statusDesc { color: #6d7f98 !important; }
+
+        /* Run controls */
+        #btnRun {
+            background: linear-gradient(180deg, #65e79c, #35c978) !important;
+            border: 4px solid #fff !important;
+            color: #194f37 !important;
+            box-shadow: 0 6px 0 #26995a, 0 12px 20px rgba(49,175,106,.2) !important;
+        }
+        #btnReset {
+            background: #ffffff !important;
+            color: #657c99 !important;
+            border: 3px solid #c8e4f2 !important;
+            box-shadow: 0 4px 0 rgba(71,112,150,.12) !important;
+        }
+
+        /* Toolbox */
+        main > section:last-child > div:first-child {
+            background: rgba(255,255,255,.82) !important;
+            border-right: 4px solid #b9e3f8 !important;
+        }
+
+        main > section:last-child h3 {
+            color: #506986 !important;
+        }
+
+        .block-palette-item {
+            border-radius: 18px !important;
+            border: 3px solid rgba(255,255,255,.75) !important;
+            border-bottom-width: 6px !important;
+            box-shadow: 0 5px 0 rgba(45,75,110,.16), 0 8px 14px rgba(45,75,110,.08) !important;
+            transform: translateY(0);
+        }
+        .block-palette-item:hover {
+            transform: translateY(-2px) rotate(-.4deg);
+        }
+        .block-palette-item:active {
+            transform: translateY(3px) scale(.98);
+            box-shadow: 0 2px 0 rgba(45,75,110,.15) !important;
+        }
+
+        .block-palette-item.bg-blue-600 { background: linear-gradient(180deg,#62a5ff,#4384eb) !important; border-bottom-color:#2e63bf !important; }
+        .block-palette-item.bg-indigo-600 { background: linear-gradient(180deg,#8b84ff,#6965e8) !important; border-bottom-color:#4d49b4 !important; }
+        .block-palette-item.bg-amber-500 { background: linear-gradient(180deg,#ffe26a,#ffc84c) !important; border-bottom-color:#d99d22 !important; }
+        .block-palette-item.bg-amber-600 { background: linear-gradient(180deg,#ffbd55,#f39b39) !important; border-bottom-color:#c87522 !important; }
+        .block-palette-item.bg-rose-600 { background: linear-gradient(180deg,#ff83ad,#f05b8d) !important; border-bottom-color:#c73f6e !important; }
+
+        /* Workspace */
+        #workspace {
+            background:
+                radial-gradient(circle, rgba(92,137,177,.12) 1.5px, transparent 1.5px),
+                #f6fcff !important;
+            background-size: 18px 18px !important;
+            border: 4px dashed #a8d8ef !important;
+            border-radius: 24px !important;
+            box-shadow: inset 0 3px 14px rgba(75,135,170,.08), 0 5px 0 rgba(77,139,177,.08) !important;
+        }
+
+        #programBlocksContainer .block-item {
+            border-radius: 18px !important;
+            border: 3px solid rgba(255,255,255,.8) !important;
+            border-bottom-width: 6px !important;
+            box-shadow: 0 5px 0 rgba(45,75,110,.15), 0 8px 15px rgba(45,75,110,.08) !important;
+        }
+        #programBlocksContainer .block-item.bg-blue-600 { background: linear-gradient(180deg,#62a5ff,#4384eb) !important; border-bottom-color:#2e63bf !important; }
+        #programBlocksContainer .block-item.bg-indigo-600 { background: linear-gradient(180deg,#8b84ff,#6965e8) !important; border-bottom-color:#4d49b4 !important; }
+        #programBlocksContainer .block-item.bg-amber-500 { background: linear-gradient(180deg,#ffe26a,#ffc84c) !important; border-bottom-color:#d99d22 !important; }
+        #programBlocksContainer .block-item.bg-amber-600 { background: linear-gradient(180deg,#ffbd55,#f39b39) !important; border-bottom-color:#c87522 !important; }
+        #programBlocksContainer .block-item.bg-rose-600 { background: linear-gradient(180deg,#ff83ad,#f05b8d) !important; border-bottom-color:#c73f6e !important; }
+
+        #emptyWorkspaceHint {
+            color: #7c91aa !important;
+        }
+        #emptyWorkspaceHint i {
+            color: #7ba7ff !important;
+            filter: drop-shadow(0 4px 0 rgba(75,115,200,.12));
+        }
+
+        #blockCountBadge {
+            background: #ffffff !important;
+            color: #5c7492 !important;
+            border: 3px solid #c8e4f2 !important;
+            box-shadow: 0 3px 0 rgba(71,112,150,.10);
+        }
+        #btnClearWorkspace {
+            background: #fff0f3 !important;
+            color: #e45d78 !important;
+            border: 3px solid #ffd0d9 !important;
+        }
+
+        #trashZone {
+            background: #fff3f4 !important;
+            border-color: #ffabb9 !important;
+            color: #e96b82 !important;
+            border-radius: 17px !important;
+        }
+
+        /* Friendly badges and labels */
+        .bg-emerald-600 {
+            background: linear-gradient(180deg,#62dda0,#38bd79) !important;
+            color: #174d38 !important;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 0 #29985f;
+        }
+
+        /* Modals */
+        #codeModal, #sandboxModal {
+            background: rgba(52,89,125,.38) !important;
+            backdrop-filter: blur(6px) !important;
+        }
+        #codeModal > div, #sandboxModal > div {
+            background: #fffdf7 !important;
+            border: 5px solid #bde4f4 !important;
+            border-radius: 28px !important;
+            box-shadow: 0 10px 0 rgba(60,95,125,.15), 0 24px 50px rgba(49,91,125,.2) !important;
+            color: var(--kid-ink) !important;
+        }
+        #codeModal pre {
+            background: #243b59 !important;
+            border: 4px solid #8db5d2 !important;
+            border-radius: 18px !important;
+        }
+
+        /* Touch/drag feedback */
+        .block-item.dragging {
+            opacity: .55 !important;
+            transform: rotate(2deg) scale(.98) !important;
+            outline: 3px dashed #ff9f43 !important;
+        }
+        .drop-zone-active {
+            background: rgba(255,216,77,.22) !important;
+            border-color: #ffbd4a !important;
+        }
+        .drop-target-above, .drop-target-below {
+            border-color: #ff9f43 !important;
+        }
+
+        #dragGhost {
+            border: 4px solid #fff !important;
+            border-radius: 18px !important;
+            background: linear-gradient(180deg,#6fa6ff,#527ee4) !important;
+            box-shadow: 0 8px 0 rgba(54,88,140,.18), 0 18px 28px rgba(54,88,140,.2) !important;
+        }
+
+        /* Mobile */
+        @media (max-width: 767px) {
+            header {
+                padding-top: .55rem !important;
+                padding-bottom: .55rem !important;
+            }
+            header > div:first-child > div:first-child {
+                padding: .55rem !important;
+            }
+            #gameHeaderTitle { font-size: 1.2rem !important; }
+            main > section:first-child {
+                border-right: 0 !important;
+                border-bottom: 4px solid #b9e3f8 !important;
+            }
+            main > section:last-child > div:first-child {
+                border-right: 0 !important;
+                border-bottom: 4px solid #b9e3f8 !important;
+            }
+            .block-palette-item {
+                min-height: 48px;
+            }
+        }
+
+        /* Make clickable controls feel like toy buttons */
+        button {
+            transition: transform .12s ease, filter .12s ease, box-shadow .12s ease !important;
+        }
+        button:hover { filter: brightness(1.03); }
+        button:active { transform: translateY(2px) scale(.98); }
+
+        /* Keep accessibility focus visible */
+        button:focus-visible, input:focus-visible {
+            outline: 4px solid rgba(255,185,65,.55) !important;
+            outline-offset: 2px;
+        }
+
     </style>
 </head>
 <body class="min-h-screen flex flex-col overflow-y-auto lg:h-screen lg:overflow-hidden bg-slate-950 text-slate-100">
@@ -190,7 +550,7 @@
                         Block Dungeon
                     </h1>
                 </div>
-                <p class="text-xs text-slate-400 font-medium hidden sm:block">Генератор алгоритмічних мап & блочного коду з перетягуванням</p>
+                <p class="text-xs text-slate-400 font-medium hidden sm:block">🎮 Складай команди, веди героя та збирай усі зірочки!</p>
             </div>
         </div>
 
