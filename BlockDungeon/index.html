@@ -19,6 +19,7 @@
         * {
             user-select: none;
             -webkit-user-drag: none;
+            touch-action: manipulation;
         }
 
         body {
@@ -44,21 +45,21 @@
             background: rgba(99, 102, 241, 0.8);
         }
 
-        /* Interactive Blocks */
+        /* Interactive Dragging Blocks */
         .block-item {
-            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, border-color 0.15s ease;
             cursor: grab;
+            touch-action: none;
         }
         .block-item:active {
             cursor: grabbing;
-            transform: scale(1.02);
         }
 
         .block-executing {
             animation: pulse-border 0.5s infinite alternate;
             outline: 3px solid #f59e0b !important;
             box-shadow: 0 0 20px rgba(245, 158, 11, 0.8) !important;
-            transform: scale(1.03);
+            transform: scale(1.02);
             z-index: 10;
         }
 
@@ -115,25 +116,43 @@
             100% { transform: translateY(2px) scale(1.05); }
         }
 
+        /* Drag & Drop Reorder Visual Indicators */
+        .block-item.dragging {
+            opacity: 0.35;
+            transform: scale(0.96);
+            outline: 2px dashed #38bdf8;
+        }
+
         .drop-zone-active {
             border-color: #3b82f6 !important;
             background-color: rgba(59, 130, 246, 0.15) !important;
         }
 
-        /* Drag & Drop Visual Effects */
-        .block-item.dragging {
-            opacity: 0.4;
-            transform: scale(0.98);
-        }
         .drop-target-above {
-            border-top: 3px dashed #38bdf8 !important;
+            border-top: 4px solid #38bdf8 !important;
+            margin-top: 4px;
         }
+
         .drop-target-below {
-            border-bottom: 3px dashed #38bdf8 !important;
+            border-bottom: 4px solid #38bdf8 !important;
+            margin-bottom: 4px;
         }
+
         .drop-zone-nested-active {
-            background-color: rgba(99, 102, 241, 0.3) !important;
+            background-color: rgba(99, 102, 241, 0.35) !important;
             border-color: #818cf8 !important;
+            outline: 2px dashed #818cf8;
+        }
+
+        /* Drag Ghost Preview Element */
+        #dragGhost {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.9;
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+            display: none;
         }
     </style>
 </head>
@@ -147,10 +166,10 @@
             <div>
                 <div class="flex items-center space-x-2">
                     <h1 class="font-extrabold text-xl tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
-                        Block Dungeon <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">v2.5 ProcGen</span>
+                        Block Dungeon <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">v2.6 Drag-n-Drop</span>
                     </h1>
                 </div>
-                <p class="text-xs text-slate-400 font-medium hidden sm:block">Генератор алгоритмічних мап & блочного коду</p>
+                <p class="text-xs text-slate-400 font-medium hidden sm:block">Генератор алгоритмічних мап & блочного коду з перетягуванням</p>
             </div>
         </div>
 
@@ -304,15 +323,16 @@
                     <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center">
                         <i class="fa-solid fa-cubes mr-1.5 text-indigo-400"></i> Блоки Дій
                     </h3>
-                    <span class="text-[10px] bg-slate-800 text-slate-400 font-semibold px-2 py-0.5 rounded-full">Натисни / Тягни</span>
+                    <span class="text-[10px] bg-slate-800 text-indigo-300 font-bold px-2 py-0.5 rounded-full border border-indigo-500/30">Затисни й тягни</span>
                 </div>
 
                 <!-- Block Palette List -->
                 <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="toolboxList">
                     
                     <!-- Move Up -->
-                    <div class="block-palette-item bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-blue-800" data-type="move_up">
-                        <div class="flex items-center space-x-2">
+                    <div class="block-palette-item bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-grab active:cursor-grabbing border-b-4 border-blue-800" data-type="move_up" draggable="true">
+                        <div class="flex items-center space-x-2 pointer-events-none">
+                            <i class="fa-solid fa-grip-vertical opacity-50 mr-1"></i>
                             <i class="fa-solid fa-arrow-up text-base"></i>
                             <span>Рух вгору</span>
                         </div>
@@ -320,8 +340,9 @@
                     </div>
 
                     <!-- Move Down -->
-                    <div class="block-palette-item bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-blue-800" data-type="move_down">
-                        <div class="flex items-center space-x-2">
+                    <div class="block-palette-item bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-grab active:cursor-grabbing border-b-4 border-blue-800" data-type="move_down" draggable="true">
+                        <div class="flex items-center space-x-2 pointer-events-none">
+                            <i class="fa-solid fa-grip-vertical opacity-50 mr-1"></i>
                             <i class="fa-solid fa-arrow-down text-base"></i>
                             <span>Рух вниз</span>
                         </div>
@@ -329,8 +350,9 @@
                     </div>
 
                     <!-- Move Left -->
-                    <div class="block-palette-item bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-indigo-800" data-type="move_left">
-                        <div class="flex items-center space-x-2">
+                    <div class="block-palette-item bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-grab active:cursor-grabbing border-b-4 border-indigo-800" data-type="move_left" draggable="true">
+                        <div class="flex items-center space-x-2 pointer-events-none">
+                            <i class="fa-solid fa-grip-vertical opacity-50 mr-1"></i>
                             <i class="fa-solid fa-arrow-left text-base"></i>
                             <span>Рух вліво</span>
                         </div>
@@ -338,8 +360,9 @@
                     </div>
 
                     <!-- Move Right -->
-                    <div class="block-palette-item bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-indigo-800" data-type="move_right">
-                        <div class="flex items-center space-x-2">
+                    <div class="block-palette-item bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-grab active:cursor-grabbing border-b-4 border-indigo-800" data-type="move_right" draggable="true">
+                        <div class="flex items-center space-x-2 pointer-events-none">
+                            <i class="fa-solid fa-grip-vertical opacity-50 mr-1"></i>
                             <i class="fa-solid fa-arrow-right text-base"></i>
                             <span>Рух вправо</span>
                         </div>
@@ -347,8 +370,9 @@
                     </div>
 
                     <!-- Collect Star -->
-                    <div class="block-palette-item bg-amber-500 hover:bg-amber-400 text-slate-950 p-2.5 rounded-xl font-extrabold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-amber-700" data-type="collect">
-                        <div class="flex items-center space-x-2">
+                    <div class="block-palette-item bg-amber-500 hover:bg-amber-400 text-slate-950 p-2.5 rounded-xl font-extrabold text-xs md:text-sm shadow-md flex items-center justify-between cursor-grab active:cursor-grabbing border-b-4 border-amber-700" data-type="collect" draggable="true">
+                        <div class="flex items-center space-x-2 pointer-events-none">
+                            <i class="fa-solid fa-grip-vertical opacity-50 mr-1"></i>
                             <i class="fa-solid fa-star text-base"></i>
                             <span>Зібрати зірку</span>
                         </div>
@@ -356,8 +380,9 @@
                     </div>
 
                     <!-- Collect Key -->
-                    <div class="block-palette-item bg-amber-600 hover:bg-amber-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-amber-800" data-type="collect_key">
-                        <div class="flex items-center space-x-2">
+                    <div class="block-palette-item bg-amber-600 hover:bg-amber-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-grab active:cursor-grabbing border-b-4 border-amber-800" data-type="collect_key" draggable="true">
+                        <div class="flex items-center space-x-2 pointer-events-none">
+                            <i class="fa-solid fa-grip-vertical opacity-50 mr-1"></i>
                             <i class="fa-solid fa-key text-base"></i>
                             <span>Взяти ключ</span>
                         </div>
@@ -365,8 +390,9 @@
                     </div>
 
                     <!-- Repeat Loop Container -->
-                    <div class="block-palette-item bg-rose-600 hover:bg-rose-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-rose-800" data-type="repeat">
-                        <div class="flex items-center space-x-2">
+                    <div class="block-palette-item bg-rose-600 hover:bg-rose-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-grab active:cursor-grabbing border-b-4 border-rose-800" data-type="repeat" draggable="true">
+                        <div class="flex items-center space-x-2 pointer-events-none">
+                            <i class="fa-solid fa-grip-vertical opacity-50 mr-1"></i>
                             <i class="fa-solid fa-repeat text-base"></i>
                             <span>Повторити [N]</span>
                         </div>
@@ -374,8 +400,9 @@
                     </div>
 
                     <!-- Conditional If Path Ahead -->
-                    <div class="block-palette-item bg-teal-600 hover:bg-teal-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-teal-800" data-type="if_path">
-                        <div class="flex items-center space-x-2">
+                    <div class="block-palette-item bg-teal-600 hover:bg-teal-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-grab active:cursor-grabbing border-b-4 border-teal-800" data-type="if_path" draggable="true">
+                        <div class="flex items-center space-x-2 pointer-events-none">
+                            <i class="fa-solid fa-grip-vertical opacity-50 mr-1"></i>
                             <i class="fa-solid fa-code-branch text-base"></i>
                             <span>Якщо є шлях</span>
                         </div>
@@ -387,7 +414,7 @@
                 <!-- Trash Can Drop Delete Zone -->
                 <div id="trashZone" class="mt-3 border-2 border-dashed border-red-500/40 rounded-xl p-2.5 text-red-400 hover:bg-red-500/10 hover:border-red-400 text-center transition flex items-center justify-center space-x-2 text-xs font-semibold">
                     <i class="fa-solid fa-trash-can text-sm"></i>
-                    <span>Видалити блок</span>
+                    <span>Сюди для видалення</span>
                 </div>
             </div>
 
@@ -423,15 +450,15 @@
                     </div>
 
                     <!-- Active Program Blocks Container Tree -->
-                    <div id="programBlocksContainer" class="space-y-2 min-h-[200px]">
+                    <div id="programBlocksContainer" class="space-y-2 min-h-[220px] pb-12">
                         <!-- Dynamic program blocks inserted here -->
                     </div>
 
                     <!-- Empty Workspace Placeholder Hint -->
                     <div id="emptyWorkspaceHint" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 pointer-events-none p-4 text-center">
                         <i class="fa-solid fa-hand-pointer text-4xl mb-2 animate-bounce text-indigo-500/60"></i>
-                        <p class="font-bold text-sm text-slate-400">Натисни на блок ліворуч або перетягни його сюди,</p>
-                        <p class="text-xs text-slate-500 mt-1">щоб побудувати команду для робота!</p>
+                        <p class="font-bold text-sm text-slate-400">Затисни мишею та перетягни блок сюди</p>
+                        <p class="text-xs text-slate-500 mt-1">або натисни на нього, щоб побудувати програму!</p>
                     </div>
 
                 </div>
@@ -441,6 +468,11 @@
         </section>
 
     </main>
+
+    <!-- Floating Drag Ghost Element for Smooth Touch/Pointer Preview -->
+    <div id="dragGhost" class="p-3 rounded-xl text-white font-bold text-sm shadow-2xl border-2 border-white/50 bg-indigo-600/90 backdrop-blur-md">
+        Блок...
+    </div>
 
     <!-- Character Avatar Chooser Modal -->
     <div id="heroModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
@@ -549,7 +581,7 @@
         ];
         let currentHero = HEROES[0];
 
-        // Drag and Drop State
+        // Drag and Drop Global State
         let draggedBlockId = null;
         let draggedSource = null; // 'palette' | 'workspace'
         let draggedType = null;
@@ -600,8 +632,7 @@
             }
         };
 
-        // Grid Directions & Vectors
-        // 0 = East, 1 = South, 2 = West, 3 = North
+        // Grid Directions & Vectors (0 = East, 1 = South, 2 = West, 3 = North)
         const DIR_VECTORS = [
             { x: 1, y: 0, deg: 0 },
             { x: 0, y: 1, deg: 90 },
@@ -611,7 +642,6 @@
 
         /**
          * PROCEDURAL LEVEL GENERATOR
-         * Creates solvable, randomized levels with pathfinding guarantees.
          */
         function generateRandomLevel(levelNum = 1) {
             const width = Math.min(5 + Math.floor(levelNum / 2), 8);
@@ -649,7 +679,6 @@
                 }
             }
             
-            // Set up level mechanics based on level number
             const starCount = Math.min(1 + Math.floor(levelNum / 3), 3);
             const hasKeysAndDoors = levelNum >= 4 && path.length >= 6;
             const hasLava = levelNum >= 5;
@@ -662,7 +691,6 @@
                 grid[path[keyIdx].y][path[keyIdx].x] = 3; // Key
                 grid[path[doorIdx].y][path[doorIdx].x] = 4; // Door
 
-                // Place stars strictly AFTER the door so opening it is mandatory
                 const remainingPath = path.slice(doorIdx + 1);
                 if (remainingPath.length > 0) {
                     const endCell = remainingPath[remainingPath.length - 1];
@@ -677,7 +705,6 @@
                     grid[endCell.y][endCell.x] = 2;
                 }
             } else {
-                // Place Goal / Stars normally
                 const endCell = path[path.length - 1];
                 grid[endCell.y][endCell.x] = 2; // Star
 
@@ -711,8 +738,8 @@
                 title: `${levelNum}. Згенерована Пригода`,
                 category: cat,
                 instruction: hasKeysAndDoors ? `Знайди ключ 🔑, щоб відчинити двері 🚪 та забрати всі зірки!` : `Унікальний лабіринт! Проклади шлях робота, щоб зібрати усі зірки (${starCount}).`,
-                hint: hasKeysAndDoors ? `Без ключа двері не відчиняться. Спочатку дійди до ключа.` : `Спочатку прорахуй шлях від старту до зірок за допомогою блоків руху.`,
-                maxBlocks: optimalBlocks + 3,
+                hint: hasKeysAndDoors ? `Без ключа двері не відчиняться. Спочатку дійди до ключа.` : `Затисни мишею блок дій та перетягни його в робочу зону.`,
+                maxBlocks: optimalBlocks + 4,
                 optimalBlocks: optimalBlocks,
                 gridWidth: width,
                 gridHeight: height,
@@ -721,7 +748,7 @@
             };
         }
 
-        // BFS Solver Check for Solvability Guarantee
+        // BFS Solver Check
         function isLevelSolvable(level, ignoreKeys = false) {
             const start = level.start;
             const grid = level.grid;
@@ -754,8 +781,8 @@
                     let ny = curr.y + d.y;
                     if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
                         let nCell = grid[ny][nx];
-                        if (nCell !== 1 && nCell !== 5) { // Not wall or lava
-                            if (nCell === 4 && !hasKey) continue; // Door needs key
+                        if (nCell !== 1 && nCell !== 5) {
+                            if (nCell === 4 && !hasKey) continue;
                             let stateKey = `${nx},${ny},${hasKey ? 1 : 0}`;
                             if (!visited.has(stateKey)) {
                                 visited.add(stateKey);
@@ -774,9 +801,7 @@
                 let lvl = generateRandomLevel(levelNum);
                 const hasDoor = lvl.grid.some(row => row.includes(4));
 
-                // Check 1: Must be solvable normally with keys
                 if (isLevelSolvable(lvl, false)) {
-                    // Check 2: If there's a door, it MUST NOT be solvable without keys (ensures door is required)
                     if (!hasDoor || !isLevelSolvable(lvl, true)) {
                         return lvl;
                     }
@@ -786,7 +811,6 @@
             return generateRandomLevel(1);
         }
 
-        // Pre-generated solvability verified initial levels
         let LEVELS = Array.from({ length: 8 }, (_, i) => getValidRandomLevel(i + 1));
 
         // Global State
@@ -872,7 +896,6 @@
         function loadLevel(index) {
             if (isExecuting) resetLevel();
 
-            // Clear workspace blocks when transitioning levels
             currentWorkspaceBlocks = [];
 
             if (index === 'custom') {
@@ -909,6 +932,7 @@
 
             renderLevelSelectors();
             renderGrid();
+            renderWorkspace();
             updateBlockCount();
         }
 
@@ -919,7 +943,7 @@
             }
         }
 
-        // SVG Graphics Generators
+        // SVG Graphics
         function getWallSVG() {
             return `
             <svg viewBox="0 0 40 40" class="w-full h-full rounded-lg" xmlns="http://www.w3.org/2000/svg">
@@ -955,7 +979,6 @@
             gameGridEl.style.gridTemplateColumns = `repeat(${activeLevel.gridWidth}, minmax(0, 1fr))`;
             gameGridEl.innerHTML = '';
 
-            // Keep character sprite element in the grid container
             gameGridEl.appendChild(characterSprite);
 
             for (let r = 0; r < activeLevel.gridHeight; r++) {
@@ -988,7 +1011,7 @@
             });
         }
 
-        // Position Character Sprite with Exact DOM Relative Offsets
+        // Position Character Sprite
         function renderCharacterSprite() {
             const targetCell = gameGridEl.querySelector(`[data-x="${robotState.x}"][data-y="${robotState.y}"]`);
             if (!targetCell) return;
@@ -1027,15 +1050,15 @@
 
             // Header Row
             const header = document.createElement('div');
-            header.className = 'flex items-center justify-between w-full';
+            header.className = 'flex items-center justify-between w-full select-none';
 
             const leftBox = document.createElement('div');
-            leftBox.className = 'flex items-center space-x-2';
-            leftBox.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${title}</span>`;
+            leftBox.className = 'flex items-center space-x-2 pointer-events-none';
+            leftBox.innerHTML = `<i class="fa-solid fa-grip-vertical opacity-50 mr-0.5"></i> <i class="fa-solid ${icon}"></i> <span>${title}</span>`;
 
             if (type === 'repeat') {
                 const countSelect = document.createElement('select');
-                countSelect.className = 'bg-black/30 text-white rounded px-1.5 py-0.5 text-xs font-bold border border-white/20 outline-none cursor-pointer ml-1';
+                countSelect.className = 'bg-black/30 text-white rounded px-1.5 py-0.5 text-xs font-bold border border-white/20 outline-none cursor-pointer ml-1 pointer-events-auto';
                 [2, 3, 4, 5].forEach(num => {
                     const opt = document.createElement('option');
                     opt.value = num;
@@ -1048,19 +1071,24 @@
                     const blk = findBlockInAST(currentWorkspaceBlocks, blockId);
                     if (blk) blk.val = parseInt(e.target.value);
                 };
-                leftBox.appendChild(countSelect);
+                // Stop propagation so clicking select doesn't trigger drag
+                countSelect.onmousedown = (e) => e.stopPropagation();
+                header.appendChild(leftBox);
+                header.appendChild(countSelect);
+            } else {
+                header.appendChild(leftBox);
             }
 
             const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'opacity-70 hover:opacity-100 transition px-1';
+            deleteBtn.className = 'opacity-70 hover:opacity-100 transition px-1 text-red-200 hover:text-white pointer-events-auto';
             deleteBtn.innerHTML = `<i class="fa-solid fa-xmark text-sm"></i>`;
+            deleteBtn.onmousedown = (e) => e.stopPropagation();
             deleteBtn.onclick = (e) => {
                 e.stopPropagation();
                 removeBlockFromAST(currentWorkspaceBlocks, blockId);
                 renderWorkspace();
             };
 
-            header.appendChild(leftBox);
             header.appendChild(deleteBtn);
             container.appendChild(header);
 
@@ -1120,9 +1148,7 @@
                 container.appendChild(nestedBox);
             }
 
-            // Attach Drag and Drop Listeners for reordering within workspace
             attachBlockDragListeners(container, blockId);
-
             return container;
         }
 
@@ -1259,7 +1285,7 @@
             });
         }
 
-        function addBlockToWorkspace(type, targetContainerId = null) {
+        function addBlockToWorkspace(type) {
             const newBlock = {
                 id: `block_${blockIdCounter++}`,
                 type: type,
@@ -1267,13 +1293,7 @@
                 children: (type === 'repeat' || type === 'if_path') ? [] : undefined
             };
 
-            if (targetContainerId) {
-                const parent = findBlockInAST(currentWorkspaceBlocks, targetContainerId);
-                if (parent && parent.children) parent.children.push(newBlock);
-            } else {
-                currentWorkspaceBlocks.push(newBlock);
-            }
-
+            currentWorkspaceBlocks.push(newBlock);
             renderWorkspace();
             AudioEngine.playStep();
         }
@@ -1357,7 +1377,7 @@
                     const count = node.val || 2;
                     for (let c = 0; c < count; c++) {
                         queue.push({ action: 'HIGHLIGHT_BLOCK', id: node.id });
-                        queue.push(...compileAST(node.children));
+                        queue.push(...compileAST(node.children || []));
                     }
                 } else if (node.type === 'if_path') {
                     queue.push({ action: 'IF_CHECK', id: node.id, subTree: node.children });
@@ -1366,14 +1386,11 @@
             return queue;
         }
 
-        // Run Interpreter
         function runProgram() {
             if (isExecuting) return;
-            if (currentWorkspaceBlocks.length === 0) {
-                return;
-            }
+            if (currentWorkspaceBlocks.length === 0) return;
 
-            // Reset robot position and grid state to initial level values at program start
+            // Reset robot position and grid state
             robotState = { ...activeLevel.start };
             currentGrid = JSON.parse(JSON.stringify(activeLevel.grid));
             hasKey = false;
@@ -1421,19 +1438,18 @@
                     const nextX = robotState.x + dx;
                     const nextY = robotState.y + dy;
 
-                    // Bounds Check
                     if (nextX >= 0 && nextX < activeLevel.gridWidth && nextY >= 0 && nextY < activeLevel.gridHeight) {
                         const targetCell = currentGrid[nextY][nextX];
 
-                        if (targetCell === 1) { // Wall collision
+                        if (targetCell === 1) {
                             AudioEngine.playError();
                             finishExecution(false, "Робот врізався у стіну! 💥");
                             return;
-                        } else if (targetCell === 4 && !hasKey) { // Locked door
+                        } else if (targetCell === 4 && !hasKey) {
                             AudioEngine.playError();
                             finishExecution(false, "Двері зачинені! Спочатку знайди ключ 🔑!");
                             return;
-                        } else if (targetCell === 5) { // Lava
+                        } else if (targetCell === 5) {
                             AudioEngine.playError();
                             finishExecution(false, "Ой! Герой наступив на лаву 🌋!");
                             return;
@@ -1477,7 +1493,6 @@
 
                 renderGrid();
 
-                // Win condition
                 if (starsRemaining === 0) {
                     finishExecution(true);
                 }
@@ -1546,7 +1561,6 @@
             gameStatusOverlay.classList.remove('hidden');
         }
 
-        // Code Generator for Multiple Languages
         function generateCode(nodes, lang = 'js', indent = 0) {
             let code = "";
             const pad = "  ".repeat(indent);
@@ -1612,7 +1626,6 @@
             document.getElementById('codeModal').classList.remove('hidden');
         }
 
-        // Sandbox Level Builder
         let sandboxGridData = [
             [1, 1, 1, 1, 1],
             [1, 0, 3, 2, 1],
@@ -1676,9 +1689,14 @@
                 }
             };
 
-            // Palette Click
+            // Palette Click Fallback
             document.querySelectorAll('.block-palette-item').forEach(item => {
-                item.onclick = () => addBlockToWorkspace(item.dataset.type);
+                item.addEventListener('click', (e) => {
+                    // Only click if not currently dragging
+                    if (!draggedSource) {
+                        addBlockToWorkspace(item.dataset.type);
+                    }
+                });
             });
 
             // Clear Workspace
@@ -1762,26 +1780,26 @@
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sandboxGridData));
                 const dlAnchorElem = document.createElement('a');
                 dlAnchorElem.setAttribute("href", dataStr);
-                dlAnchorElem.setAttribute("download", "codekids_level.json");
+                dlAnchorElem.setAttribute("download", "block_dungeon_level.json");
                 dlAnchorElem.click();
             };
 
             window.addEventListener('resize', renderCharacterSprite);
         }
 
-        // Drag and Drop Logic
+        // Palette & Workspace Drag Setup
         function setupDragAndDrop() {
             const toolboxItems = document.querySelectorAll('.block-palette-item');
             const workspaceEl = document.getElementById('workspace');
             const trashZoneEl = document.getElementById('trashZone');
 
             toolboxItems.forEach(item => {
-                item.setAttribute('draggable', 'true');
                 item.addEventListener('dragstart', (e) => {
                     draggedSource = 'palette';
                     draggedType = item.dataset.type;
                     draggedBlockId = null;
                     e.dataTransfer.setData('text/plain', item.dataset.type);
+                    e.dataTransfer.effectAllowed = 'copy';
                 });
                 item.addEventListener('dragend', () => {
                     clearAllDropIndicators();
