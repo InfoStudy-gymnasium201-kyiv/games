@@ -1011,28 +1011,27 @@
         ];
 
         /**
-         * PROCEDURAL LEVEL GENERATOR WITH BALANCED PROGRESSIVE DIFFICULTY
+         * PROCEDURAL LEVEL GENERATOR
          */
         function generateRandomLevel(levelNum = 1) {
-            // Розмір сітки стабільно масштабується залежно від номера рівня
-            const width = Math.min(5 + Math.floor((levelNum - 1) / 2), 10);
-            const height = Math.min(4 + Math.floor((levelNum - 1) / 3), 8);
+            const width = Math.min(5 + Math.floor(levelNum / 2), 8);
+            const height = Math.min(4 + Math.floor(levelNum / 3), 6);
             
-            let grid = Array(height).fill().map(() => Array(width).fill(1)); // Заповнюємо стінами
+            let grid = Array(height).fill().map(() => Array(width).fill(1)); // Initialize filled with walls
             
             const startX = 1;
             const startY = 1;
-            grid[startY][startX] = 0; // Початкова позиція
+            grid[startY][startX] = 0; // Clear start cell
             
-            // Довжина маршруту збільшується з кожним рівнем
+            // Random Walk Path Carving
             let currX = startX;
             let currY = startY;
             let path = [{ x: currX, y: currY }];
-            const targetSteps = 6 + levelNum * 3;
+            const targetSteps = 5 + levelNum * 2;
             
             const dirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
             
-            for (let step = 0; step < targetSteps * 5; step++) {
+            for (let step = 0; step < targetSteps * 4; step++) {
                 const validDirs = dirs.filter(d => {
                     const nx = currX + d.x;
                     const ny = currY + d.y;
@@ -1048,27 +1047,24 @@
                     grid[currY][currX] = 0;
                     path.push({ x: currX, y: currY });
                 }
-
-                if (path.length >= targetSteps) break;
             }
             
-            // Динамічна кількість елементів
-            const starCount = Math.min(1 + Math.floor(levelNum / 2), 4);
-            const hasKeysAndDoors = levelNum >= 5 && path.length >= 8;
-            const hasLava = levelNum >= 7;
+            const starCount = Math.min(1 + Math.floor(levelNum / 3), 3);
+            const hasKeysAndDoors = levelNum >= 4 && path.length >= 6;
+            const hasLava = levelNum >= 5;
 
-            // Розміщення ключа, дверей та зірок
+            // Place Key, Door, and Stars
             if (hasKeysAndDoors) {
-                const keyIdx = Math.max(1, Math.floor(path.length * 0.3));
-                const doorIdx = Math.max(keyIdx + 1, Math.floor(path.length * 0.6));
+                const keyIdx = Math.max(1, Math.floor(path.length * 0.25));
+                const doorIdx = Math.max(keyIdx + 1, Math.floor(path.length * 0.55));
 
-                grid[path[keyIdx].y][path[keyIdx].x] = 3; // Ключ
-                grid[path[doorIdx].y][path[doorIdx].x] = 4; // Двері
+                grid[path[keyIdx].y][path[keyIdx].x] = 3; // Key
+                grid[path[doorIdx].y][path[doorIdx].x] = 4; // Door
 
                 const remainingPath = path.slice(doorIdx + 1);
                 if (remainingPath.length > 0) {
                     const endCell = remainingPath[remainingPath.length - 1];
-                    grid[endCell.y][endCell.x] = 2; // Зірка
+                    grid[endCell.y][endCell.x] = 2; // Star
 
                     for (let s = 1; s < starCount; s++) {
                         const sIdx = Math.floor(remainingPath.length * (s / starCount));
@@ -1080,7 +1076,7 @@
                 }
             } else {
                 const endCell = path[path.length - 1];
-                grid[endCell.y][endCell.x] = 2; // Фінальна зірка
+                grid[endCell.y][endCell.x] = 2; // Star
 
                 for (let s = 1; s < starCount; s++) {
                     const midIdx = Math.floor(path.length * (s / starCount));
@@ -1090,23 +1086,22 @@
                 }
             }
 
-            // Додаємо лаву поблизу проходу на високих рівнях
+            // Place Lava Hazards near path
             if (hasLava) {
-                const lavaChance = Math.min(0.15 + (levelNum - 7) * 0.05, 0.4);
                 for (let r = 1; r < height - 1; r++) {
                     for (let c = 1; c < width - 1; c++) {
-                        if (grid[r][c] === 1 && Math.random() < lavaChance) {
+                        if (grid[r][c] === 1 && Math.random() < 0.25) {
                             const adjToPath = dirs.some(d => grid[r + d.y] && grid[r + d.y][c + d.x] === 0);
-                            if (adjToPath) grid[r][c] = 5; // Лава
+                            if (adjToPath) grid[r][c] = 5; // Lava
                         }
                     }
                 }
             }
 
-            const categories = ["Послідовність", "Напрямки", "Короткі Цикли", "Довгі Маршрути", "Ключі та Двері", "Складні Двері", "Лава та Перешкоди", "Лабіринти з Лавою", "Експерт Робототехніки"];
-            const cat = categories[Math.min(levelNum - 1, categories.length - 1)] || "Вища Складність";
+            const categories = ["Послідовність", "Напрямки", "Цикли (Repeat)", "Ключі та Двері", "Перешкоди", "Генератор Робота"];
+            const cat = categories[Math.min(levelNum - 1, categories.length - 1)] || "Випадкова Карта";
 
-            const optimalBlocks = Math.max(3, Math.floor(path.length * 0.5) + starCount);
+            const optimalBlocks = Math.max(3, Math.floor(path.length * 0.6) + starCount);
             
             return {
                 id: levelNum,
@@ -1114,7 +1109,7 @@
                 category: cat,
                 instruction: hasKeysAndDoors ? `Знайди ключ 🔑, щоб відчинити двері 🚪 та забрати всі зірки!` : `Проклади шлях робота, щоб зібрати усі зірки.`,
                 hint: hasKeysAndDoors ? `Без ключа двері не відчиняться. Спочатку дійди до ключа.` : `Затисни мишею блок дій та перетягни його в робочу зону.`,
-                maxBlocks: optimalBlocks + 5,
+                maxBlocks: optimalBlocks + 4,
                 optimalBlocks: optimalBlocks,
                 gridWidth: width,
                 gridHeight: height,
@@ -1171,8 +1166,7 @@
         }
 
         function getValidRandomLevel(levelNum = 1) {
-            let attempts = 0;
-            while (attempts < 120) {
+            while (true) {
                 let lvl = generateRandomLevel(levelNum);
                 const hasDoor = lvl.grid.some(row => row.includes(4));
 
@@ -1181,13 +1175,11 @@
                         return lvl;
                     }
                 }
-                attempts++;
             }
-            return generateRandomLevel(levelNum);
         }
 
-        // 12 Фіксованих прогресивних рівнів
-        let LEVELS = Array.from({ length: 12 }, (_, i) => getValidRandomLevel(i + 1));
+        // Фіксовані рівні, створюються один раз
+        let LEVELS = Array.from({ length: 8 }, (_, i) => getValidRandomLevel(i + 1));
 
         // Global State
         let currentLevelIndex = 0;
@@ -1425,7 +1417,7 @@
             });
         }
 
-        // Position Character Sprite
+        // Position Character Sprite (БЕЗ КРУТІННЯ ПІД ЧАС РУХУ)
         function renderCharacterSprite() {
             const targetCell = gameGridEl.querySelector(`[data-x="${robotState.x}"][data-y="${robotState.y}"]`);
             if (!targetCell) return;
@@ -1434,7 +1426,7 @@
             characterSprite.style.height = `${targetCell.offsetHeight}px`;
             characterSprite.style.left = `${targetCell.offsetLeft}px`;
             characterSprite.style.top = `${targetCell.offsetTop}px`;
-            characterSprite.style.transform = `rotate(0deg)`;
+            characterSprite.style.transform = `rotate(0deg)`; // Вимикаємо обертання
 
             if (currentHero.customImg) {
                 characterSprite.innerHTML = `<img src="${currentHero.customImg}" class="w-full h-full object-contain filter drop-shadow-md"/>`;
