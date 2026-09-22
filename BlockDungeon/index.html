@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeKids 2.0 - Пригоди Програмування</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js for Audio Synthesis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800;900&display=swap');
+        
+        * {
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        body {
+            font-family: 'Fredoka', 'Nunito', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.8);
+        }
+
+        /* Interactive Blocks */
+        .block-item {
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
+            cursor: grab;
+        }
+        .block-item:active {
+            cursor: grabbing;
+            transform: scale(1.02);
+        }
+
+        .block-executing {
+            animation: pulse-border 0.5s infinite alternate;
+            outline: 3px solid #f59e0b !important;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.8) !important;
+            transform: scale(1.03);
+            z-index: 10;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); }
+            100% { box-shadow: 0 0 22px rgba(245, 158, 11, 0.95); }
+        }
+
+        /* Canvas & Grid Layering */
+        .grid-container {
+            position: relative;
+            background: #1e293b;
+            border-radius: 1rem;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 25px -5px rgba(0,0,0,0.5);
+        }
+
+        .cell-wall {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.15), inset 0 -3px 6px rgba(0,0,0,0.5);
+        }
+
+        .cell-lava {
+            background: radial-gradient(circle, #ef4444 10%, #991b1b 90%);
+            animation: lavaGlow 1.8s infinite alternate ease-in-out;
+        }
+
+        @keyframes lavaGlow {
+            0% { box-shadow: inset 0 0 8px #f87171; }
+            100% { box-shadow: inset 0 0 18px #dc2626; }
+        }
+
+        .cell-path {
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(rgba(56, 189, 248, 0.15) 1px, transparent 0),
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 10px 10px, 100% 100%, 100% 100%;
+        }
+
+        /* Character Smooth Movement */
+        #characterSprite {
+            transition: all 0.28s cubic-bezier(0.34, 1.25, 0.64, 1);
+            will-change: transform, left, top;
+        }
+
+        .star-item-glow {
+            animation: starFloat 2s infinite ease-in-out alternate;
+            filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.8));
+        }
+
+        @keyframes starFloat {
+            0% { transform: translateY(-2px) scale(0.95); }
+            100% { transform: translateY(2px) scale(1.05); }
+        }
+
+        .drop-zone-active {
+            border-color: #3b82f6 !important;
+            background-color: rgba(59, 130, 246, 0.15) !important;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-950 text-slate-100">
+
+    <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between z-20 backdrop-blur-md">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-tr from-indigo-500 to-purple-500 p-2 rounded-2xl shadow-lg shadow-indigo-500/30 flex items-center justify-center">
+                <i class="fa-solid fa-robot text-2xl text-yellow-300"></i>
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h1 class="font-extrabold text-xl tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
+                        CodeKids <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">v2.5 ProcGen</span>
+                    </h1>
+                </div>
+                <p class="text-xs text-slate-400 font-medium hidden sm:block">Генератор алгоритмічних мап & блочного коду</p>
+            </div>
+        </div>
+
+        <!-- Level Navigation Pills (Desktop) -->
+        <div class="hidden lg:flex items-center bg-slate-950/80 p-1 rounded-2xl border border-slate-800 space-x-1" id="levelSelectorContainer">
+            <!-- Dynamically injected -->
+        </div>
+
+        <!-- Action Tools -->
+        <div class="flex items-center space-x-2">
+            <!-- Generate Random Level Button -->
+            <button id="btnRandomizeLevel" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs md:text-sm px-3.5 py-1.5 rounded-xl shadow-md transition flex items-center space-x-1.5">
+                <i class="fa-solid fa-dice text-amber-300 animate-spin-slow"></i>
+                <span>Згенерувати випадковий</span>
+            </button>
+
+            <!-- Character Selector Button -->
+            <button id="btnSelectHero" class="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs md:text-sm font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center space-x-1.5 shadow-sm">
+                <span id="heroCurrentAvatar" class="text-base">🤖</span>
+                <span class="hidden sm:inline">Герой</span>
+            </button>
+
+            <!-- Show Code Button -->
+            <button id="btnShowCode" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs md:text-sm font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center space-x-1.5 shadow-sm">
+                <i class="fa-solid fa-code text-indigo-400"></i>
+                <span class="hidden sm:inline">Код</span>
+            </button>
+
+            <!-- Sandbox Button -->
+            <button id="btnSandbox" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs md:text-sm px-3.5 py-1.5 rounded-xl shadow-md transition flex items-center space-x-1.5">
+                <i class="fa-solid fa-hammer"></i>
+                <span class="hidden sm:inline">Пісочниця</span>
+            </button>
+
+            <!-- Audio Toggle -->
+            <button id="btnSoundToggle" class="bg-slate-800 hover:bg-slate-700 text-slate-300 w-9 h-9 rounded-xl border border-slate-700 flex items-center justify-center transition shadow-sm">
+                <i class="fa-solid fa-volume-high text-sm" id="soundIcon"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="lg:hidden bg-slate-900 border-b border-slate-800 px-3 py-1.5 flex items-center justify-between text-xs">
+        <span class="font-bold text-indigo-300 flex items-center space-x-1" id="mobileLevelTitle">
+            <span>Рівень 1</span>
+        </span>
+        <div class="flex space-x-1 overflow-x-auto py-0.5 max-w-[240px]" id="mobileLevelPills">
+            <!-- Mobile pills dynamically injected -->
+        </div>
+    </div>
+
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+        
+        <!-- Left Panel: Game Stage & Canvas -->
+        <section class="w-full lg:w-5/12 xl:w-4/12 bg-slate-900/60 border-r border-slate-800/80 flex flex-col p-3 md:p-4 overflow-y-auto space-y-3">
+            
+            <!-- Level Card Info -->
+            <div class="bg-slate-900 rounded-2xl p-3.5 border border-slate-800 shadow-md">
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full" id="levelCategoryTag">
+                        Послідовність
+                    </span>
+                    <div class="flex items-center space-x-1.5 text-amber-400 font-extrabold text-sm">
+                        <i class="fa-solid fa-star"></i>
+                        <span id="levelStarGoal">0/0</span>
+                    </div>
+                </div>
+                <h2 class="text-base md:text-lg font-bold text-slate-100 leading-snug flex items-center justify-between" id="levelTitle">
+                    Завантаження...
+                </h2>
+                <p class="text-xs md:text-sm text-slate-400 mt-1 leading-relaxed" id="levelInstruction">
+                    Інструкція...
+                </p>
+
+                <!-- Hint Accordion -->
+                <div class="mt-2.5 pt-2 border-t border-slate-800/60 flex items-center justify-between">
+                    <button id="btnToggleHint" class="text-xs font-semibold text-amber-400/90 hover:text-amber-300 transition flex items-center space-x-1">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        <span>Потрібна підказка?</span>
+                    </button>
+                    <span id="hintText" class="text-xs text-slate-400 italic hidden"></span>
+                </div>
+            </div>
+
+            <div class="flex-1 min-h-[270px] max-h-[380px] lg:max-h-none bg-slate-950 rounded-2xl p-3 border border-slate-800 shadow-inner flex flex-col items-center justify-center relative overflow-hidden group">
+                
+                <!-- Dynamic Canvas/Grid Container -->
+                <div id="gameGridContainer" class="grid-container p-2 relative transition-all duration-300">
+                    <div id="gameGrid" class="grid gap-1.5 relative">
+                        <!-- Dynamic Grid Cells -->
+                        <!-- Animated Character Sprite Overlay -->
+                        <div id="characterSprite" class="absolute z-20 pointer-events-none flex items-center justify-center transition-all duration-300">
+                            <!-- SVG / Emoji injected -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Win/Loss Modal Overlay -->
+                <div id="gameStatusOverlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center text-white text-center p-5 hidden z-30 transition-all">
+                    <div id="statusIcon" class="text-6xl mb-2 animate-bounce">🏆</div>
+                    <h3 id="statusTitle" class="text-2xl font-black mb-1 text-amber-400">Чудова робота!</h3>
+                    <p id="statusDesc" class="text-sm text-slate-300 mb-2">Ти успішно пройшов цей рівень!</p>
+
+                    <!-- Star Rating Display -->
+                    <div id="ratingStars" class="flex space-x-1 text-2xl text-amber-400 mb-4">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <button id="btnRetryLevel" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition border border-slate-700">
+                            <i class="fa-solid fa-rotate-left mr-1"></i> Ще раз
+                        </button>
+                        <button id="btnOverlayRegenerate" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition">
+                            <i class="fa-solid fa-dice mr-1"></i> Нова карта
+                        </button>
+                        <button id="btnNextLevel" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black px-5 py-2 rounded-xl text-sm shadow-lg transition">
+                            Наступний <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Program Execution Toolbar -->
+            <div class="bg-slate-900 rounded-2xl p-3 border border-slate-800 shadow-sm flex flex-col space-y-2">
+                <div class="flex items-center space-x-2">
+                    <button id="btnRun" class="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 active:scale-[0.98] text-slate-950 font-black py-2.5 px-4 rounded-xl shadow-lg shadow-emerald-950/40 transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-play text-lg"></i>
+                        <span class="text-base tracking-wide">ЗАПУСК</span>
+                    </button>
+                    <button id="btnReset" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition border border-slate-700 flex items-center justify-center" title="Скинути стан">
+                        <i class="fa-solid fa-rotate-left text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Execution Speed Control Slider -->
+                <div class="flex items-center justify-between text-xs text-slate-400 px-1 pt-1">
+                    <span class="flex items-center"><i class="fa-solid fa-gauge-high mr-1 text-indigo-400"></i> Швидкість:</span>
+                    <input type="range" id="speedSlider" min="150" max="750" step="50" value="400" class="w-32 accent-indigo-500 cursor-pointer">
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Panel: Code Toolbox & Drag-and-Drop Workspace -->
+        <section class="flex-1 bg-slate-950 flex flex-col md:flex-row overflow-hidden">
+            
+            <!-- Left Sub-Panel: Block Toolbox -->
+            <div class="w-full md:w-60 bg-slate-900/80 border-r border-slate-800 p-3 flex flex-col shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center">
+                        <i class="fa-solid fa-cubes mr-1.5 text-indigo-400"></i> Блоки Дій
+                    </h3>
+                    <span class="text-[10px] bg-slate-800 text-slate-400 font-semibold px-2 py-0.5 rounded-full">Натисни / Тягни</span>
+                </div>
+
+                <!-- Block Palette List -->
+                <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="toolboxList">
+                    
+                    <!-- Move Up -->
+                    <div class="block-palette-item bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-blue-800" data-type="move_up">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-arrow-up text-base"></i>
+                            <span>Рух вгору</span>
+                        </div>
+                        <i class="fa-solid fa-plus text-xs opacity-70"></i>
+                    </div>
+
+                    <!-- Move Down -->
+                    <div class="block-palette-item bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-blue-800" data-type="move_down">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-arrow-down text-base"></i>
+                            <span>Рух вниз</span>
+                        </div>
+                        <i class="fa-solid fa-plus text-xs opacity-70"></i>
+                    </div>
+
+                    <!-- Move Left -->
+                    <div class="block-palette-item bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-indigo-800" data-type="move_left">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-arrow-left text-base"></i>
+                            <span>Рух вліво</span>
+                        </div>
+                        <i class="fa-solid fa-plus text-xs opacity-70"></i>
+                    </div>
+
+                    <!-- Move Right -->
+                    <div class="block-palette-item bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-indigo-800" data-type="move_right">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-arrow-right text-base"></i>
+                            <span>Рух вправо</span>
+                        </div>
+                        <i class="fa-solid fa-plus text-xs opacity-70"></i>
+                    </div>
+
+                    <!-- Collect Star -->
+                    <div class="block-palette-item bg-amber-500 hover:bg-amber-400 text-slate-950 p-2.5 rounded-xl font-extrabold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-amber-700" data-type="collect">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-star text-base"></i>
+                            <span>Зібрати зірку</span>
+                        </div>
+                        <i class="fa-solid fa-plus text-xs opacity-70"></i>
+                    </div>
+
+                    <!-- Collect Key -->
+                    <div class="block-palette-item bg-amber-600 hover:bg-amber-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-amber-800" data-type="collect_key">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-key text-base"></i>
+                            <span>Взяти ключ</span>
+                        </div>
+                        <i class="fa-solid fa-plus text-xs opacity-70"></i>
+                    </div>
+
+                    <!-- Repeat Loop Container -->
+                    <div class="block-palette-item bg-rose-600 hover:bg-rose-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-rose-800" data-type="repeat">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-repeat text-base"></i>
+                            <span>Повторити [N]</span>
+                        </div>
+                        <i class="fa-solid fa-plus text-xs opacity-70"></i>
+                    </div>
+
+                    <!-- Conditional If Path Ahead -->
+                    <div class="block-palette-item bg-teal-600 hover:bg-teal-500 text-white p-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-between cursor-pointer border-b-4 border-teal-800" data-type="if_path">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-code-branch text-base"></i>
+                            <span>Якщо є шлях</span>
+                        </div>
+                        <i class="fa-solid fa-plus text-xs opacity-70"></i>
+                    </div>
+
+                </div>
+
+                <!-- Trash Can Drop Delete Zone -->
+                <div id="trashZone" class="mt-3 border-2 border-dashed border-red-500/40 rounded-xl p-2.5 text-red-400 hover:bg-red-500/10 hover:border-red-400 text-center transition flex items-center justify-center space-x-2 text-xs font-semibold">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                    <span>Видалити блок</span>
+                </div>
+            </div>
+
+            <!-- Right Sub-Panel: Workspace Assembly Area -->
+            <div class="flex-1 flex flex-col p-3 md:p-4 overflow-hidden relative bg-slate-950">
+                
+                <!-- Workspace Header Bar -->
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-puzzle-piece text-indigo-400 text-lg"></i>
+                        <h3 class="font-bold text-slate-200 text-sm md:text-base">Робоча зона алгоритму</h3>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <!-- Block Count Indicator -->
+                        <span class="text-xs bg-slate-900 border border-slate-800 text-slate-300 font-bold px-3 py-1 rounded-xl" id="blockCountBadge">
+                            Блоків: 0 / 10
+                        </span>
+                        <button id="btnClearWorkspace" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold px-2.5 py-1 rounded-xl transition flex items-center space-x-1">
+                            <i class="fa-solid fa-eraser"></i>
+                            <span>Очистити</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Workspace Block Drop Canvas -->
+                <div id="workspace" class="flex-1 bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-800 p-3 overflow-y-auto space-y-2 shadow-inner transition-colors relative">
+                    
+                    <!-- Start Flag Tag -->
+                    <div class="bg-emerald-600 text-slate-950 text-xs font-black px-3 py-1.5 rounded-lg inline-flex items-center space-x-1.5 shadow-md mb-2 pointer-events-none">
+                        <i class="fa-solid fa-flag-checkered"></i>
+                        <span>ПРИ СТАРТІ РОБОТА:</span>
+                    </div>
+
+                    <!-- Active Program Blocks Container Tree -->
+                    <div id="programBlocksContainer" class="space-y-2 min-h-[200px]">
+                        <!-- Dynamic program blocks inserted here -->
+                    </div>
+
+                    <!-- Empty Workspace Placeholder Hint -->
+                    <div id="emptyWorkspaceHint" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 pointer-events-none p-4 text-center">
+                        <i class="fa-solid fa-hand-pointer text-4xl mb-2 animate-bounce text-indigo-500/60"></i>
+                        <p class="font-bold text-sm text-slate-400">Натисни на блок ліворуч або перетягни його сюди,</p>
+                        <p class="text-xs text-slate-500 mt-1">щоб побудувати команду для робота!</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Character Avatar Chooser Modal -->
+    <div id="heroModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-5 shadow-2xl flex flex-col">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2 text-amber-400">
+                    <i class="fa-solid fa-user-astronaut text-xl"></i>
+                    <h3 class="font-black text-lg text-slate-100">Обери свого Героя</h3>
+                </div>
+                <button id="btnCloseHeroModal" class="text-slate-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3" id="heroPickerGrid">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Code View Modal -->
+    <div id="codeModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-900 border border-slate-800 text-slate-100 rounded-3xl max-w-xl w-full p-5 shadow-2xl flex flex-col">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2 text-indigo-400">
+                    <i class="fa-solid fa-code text-lg"></i>
+                    <h3 class="font-bold text-lg">Згенерований Код</h3>
+                </div>
+                <button id="btnCloseCodeModal" class="text-slate-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Language Tabs -->
+            <div class="flex space-x-2 mb-3">
+                <button class="lang-tab-btn active bg-indigo-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="js">JavaScript</button>
+                <button class="lang-tab-btn bg-slate-800 text-slate-400 font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="python">Python</button>
+                <button class="lang-tab-btn bg-slate-800 text-slate-400 font-bold text-xs px-3 py-1.5 rounded-lg" data-lang="pseudo">Псевдокод (Укр)</button>
+            </div>
+
+            <pre class="bg-slate-950 p-4 rounded-2xl text-emerald-400 font-mono text-xs md:text-sm overflow-x-auto border border-slate-800/80 leading-relaxed max-h-64" id="codeDisplay">
+// Завантаження...
+            </pre>
+
+            <div class="mt-4 flex justify-end">
+                <button id="btnCopyCode" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-copy"></i>
+                    <span>Скопіювати код</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sandbox / Level Creator Modal -->
+    <div id="sandboxModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-xl w-full p-5 shadow-2xl flex flex-col">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2 text-amber-400">
+                    <i class="fa-solid fa-hammer text-xl"></i>
+                    <h3 class="font-bold text-lg text-slate-100">Редактор Рівнів (Пісочниця)</h3>
+                </div>
+                <button id="btnCloseSandbox" class="text-slate-400 hover:text-slate-200 text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-400 mb-2">Натискай на клітинки поля, щоб змінювати їх вміст:</p>
+            
+            <!-- Sandbox Grid Designer -->
+            <div id="sandboxGrid" class="grid gap-1 p-2 bg-slate-950 rounded-2xl my-2 justify-center mx-auto border border-slate-800">
+                <!-- Dynamic cells -->
+            </div>
+
+            <!-- Tool Selector -->
+            <div class="flex flex-wrap justify-center gap-1.5 my-2 text-xs">
+                <button class="sandbox-tool-btn active bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg" data-tool="path">🟩 Шлях</button>
+                <button class="sandbox-tool-btn bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg" data-tool="wall">🧱 Стіна</button>
+                <button class="sandbox-tool-btn bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg" data-tool="star">⭐ Зірка</button>
+                <button class="sandbox-tool-btn bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg" data-tool="key">🔑 Ключ</button>
+                <button class="sandbox-tool-btn bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg" data-tool="door">🚪 Двері</button>
+                <button class="sandbox-tool-btn bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg" data-tool="lava">🌋 Лава</button>
+                <button class="sandbox-tool-btn bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg" data-tool="robot">🤖 Герой</button>
+            </div>
+
+            <!-- Import / Export Actions -->
+            <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-800">
+                <button id="btnExportLevel" class="text-xs text-indigo-400 hover:text-indigo-300 font-bold flex items-center space-x-1">
+                    <i class="fa-solid fa-file-export"></i>
+                    <span>Експорт JSON</span>
+                </button>
+                <button id="btnPlayCustomLevel" class="bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-sm px-5 py-2 rounded-xl shadow-lg transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-play"></i>
+                    <span>Грати Свій Рівень</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Hero Characters Collection
+        const HEROES = [
+            { id: 'robot', name: 'Робот Біп', icon: '🤖', svgColor: '#818cf8' },
+            { id: 'cat', name: 'Космо-Кіт', icon: '🐱', svgColor: '#f43f5e' },
+            { id: 'rocket', name: 'Ракета Стар', icon: '🚀', svgColor: '#38bdf8' },
+            { id: 'astro', name: 'Астронавт', icon: '🧑‍🚀', svgColor: '#fbbf24' }
+        ];
+        let currentHero = HEROES[0];
+
+        // Synthesizer Audio Engine
+        const AudioEngine = {
+            muted: false,
+            synth: null,
+            
+            init() {
+                try {
+                    this.synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                    this.synth.volume.value = -10;
+                } catch (e) {
+                    console.log("Audio init fallback:", e);
+                }
+            },
+
+            playStep() {
+                if (this.muted || !this.synth) return;
+                try { Tone.start(); this.synth.triggerAttackRelease("C4", "16n"); } catch(e){}
+            },
+
+            playCollect() {
+                if (this.muted || !this.synth) return;
+                try { Tone.start(); this.synth.triggerAttackRelease(["E5", "G5", "B5"], "12n"); } catch(e){}
+            },
+
+            playKey() {
+                if (this.muted || !this.synth) return;
+                try { Tone.start(); this.synth.triggerAttackRelease(["F4", "A4", "C5"], "10n"); } catch(e){}
+            },
+
+            playWin() {
+                if (this.muted || !this.synth) return;
+                try {
+                    Tone.start();
+                    const now = Tone.now();
+                    this.synth.triggerAttackRelease("C4", "8n", now);
+                    this.synth.triggerAttackRelease("E4", "8n", now + 0.12);
+                    this.synth.triggerAttackRelease("G4", "8n", now + 0.24);
+                    this.synth.triggerAttackRelease("C5", "4n", now + 0.36);
+                } catch(e){}
+            },
+
+            playError() {
+                if (this.muted || !this.synth) return;
+                try { Tone.start(); this.synth.triggerAttackRelease("G2", "8n"); } catch(e){}
+            }
+        };
+
+        // Grid Directions & Vectors
+        // 0 = East, 1 = South, 2 = West, 3 = North
+        const DIR_VECTORS = [
+            { x: 1, y: 0, deg: 0 },
+            { x: 0, y: 1, deg: 90 },
+            { x: -1, y: 0, deg: 180 },
+            { x: 0, y: -1, deg: 270 }
+        ];
+
+        /**
+         * PROCEDURAL LEVEL GENERATOR
+         * Creates solvable, randomized levels with pathfinding guarantees.
+         */
+        function generateRandomLevel(levelNum = 1) {
+            const width = Math.min(5 + Math.floor(levelNum / 2), 8);
+            const height = Math.min(4 + Math.floor(levelNum / 3), 6);
+            
+            let grid = Array(height).fill().map(() => Array(width).fill(1)); // Initialize filled with walls
+            
+            const startX = 1;
+            const startY = 1;
+            grid[startY][startX] = 0; // Clear start cell
+            
+            // Random Walk Path Carving
+            let currX = startX;
+            let currY = startY;
+            let path = [{ x: currX, y: currY }];
+            const targetSteps = 5 + levelNum * 2;
+            
+            const dirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
+            
+            for (let step = 0; step < targetSteps * 4; step++) {
+                const validDirs = dirs.filter(d => {
+                    const nx = currX + d.x;
+                    const ny = currY + d.y;
+                    return nx > 0 && nx < width - 1 && ny > 0 && ny < height - 1;
+                });
+                
+                if (validDirs.length === 0) break;
+                const choice = validDirs[Math.floor(Math.random() * validDirs.length)];
+                currX += choice.x;
+                currY += choice.y;
+                
+                if (grid[currY][currX] === 1) {
+                    grid[currY][currX] = 0;
+                    path.push({ x: currX, y: currY });
+                }
+            }
+            
+            // Set up level mechanics based on level number
+            const starCount = Math.min(1 + Math.floor(levelNum / 3), 3);
+            const hasKeysAndDoors = levelNum >= 4 && path.length >= 6;
+            const hasLava = levelNum >= 5;
+
+            // Place Key, Door, and Stars
+            if (hasKeysAndDoors) {
+                const keyIdx = Math.max(1, Math.floor(path.length * 0.25));
+                const doorIdx = Math.max(keyIdx + 1, Math.floor(path.length * 0.55));
+
+                grid[path[keyIdx].y][path[keyIdx].x] = 3; // Key
+                grid[path[doorIdx].y][path[doorIdx].x] = 4; // Door
+
+                // Place stars strictly AFTER the door so opening it is mandatory
+                const remainingPath = path.slice(doorIdx + 1);
+                if (remainingPath.length > 0) {
+                    const endCell = remainingPath[remainingPath.length - 1];
+                    grid[endCell.y][endCell.x] = 2; // Star
+
+                    for (let s = 1; s < starCount; s++) {
+                        const sIdx = Math.floor(remainingPath.length * (s / starCount));
+                        grid[remainingPath[sIdx].y][remainingPath[sIdx].x] = 2;
+                    }
+                } else {
+                    const endCell = path[path.length - 1];
+                    grid[endCell.y][endCell.x] = 2;
+                }
+            } else {
+                // Place Goal / Stars normally
+                const endCell = path[path.length - 1];
+                grid[endCell.y][endCell.x] = 2; // Star
+
+                for (let s = 1; s < starCount; s++) {
+                    const midIdx = Math.floor(path.length * (s / starCount));
+                    if (midIdx > 0 && grid[path[midIdx].y][path[midIdx].x] === 0) {
+                        grid[path[midIdx].y][path[midIdx].x] = 2;
+                    }
+                }
+            }
+
+            // Place Lava Hazards near path
+            if (hasLava) {
+                for (let r = 1; r < height - 1; r++) {
+                    for (let c = 1; c < width - 1; c++) {
+                        if (grid[r][c] === 1 && Math.random() < 0.25) {
+                            const adjToPath = dirs.some(d => grid[r + d.y] && grid[r + d.y][c + d.x] === 0);
+                            if (adjToPath) grid[r][c] = 5; // Lava
+                        }
+                    }
+                }
+            }
+
+            const categories = ["Послідовність", "Напрямки", "Цикли (Repeat)", "Ключі та Двері", "Перешкоди", "Розгалуження (If)", "Генератор Робота"];
+            const cat = categories[Math.min(levelNum - 1, categories.length - 1)] || "Випадкова Карта";
+
+            const optimalBlocks = Math.max(3, Math.floor(path.length * 0.6) + starCount);
+            
+            return {
+                id: levelNum,
+                title: `${levelNum}. Згенерована Пригода`,
+                category: cat,
+                instruction: hasKeysAndDoors ? `Знайди ключ 🔑, щоб відчинити двері 🚪 та забрати всі зірки!` : `Унікальний лабіринт! Проклади шлях робота, щоб зібрати усі зірки (${starCount}).`,
+                hint: hasKeysAndDoors ? `Без ключа двері не відчиняться. Спочатку дійди до ключа.` : `Спочатку прорахуй шлях від старту до зірок за допомогою блоків руху.`,
+                maxBlocks: optimalBlocks + 3,
+                optimalBlocks: optimalBlocks,
+                gridWidth: width,
+                gridHeight: height,
+                start: { x: startX, y: startY, dir: 0 },
+                grid: grid
+            };
+        }
+
+        // BFS Solver Check for Solvability Guarantee
+        function isLevelSolvable(level, ignoreKeys = false) {
+            const start = level.start;
+            const grid = level.grid;
+            const h = level.gridHeight;
+            const w = level.gridWidth;
+            
+            let queue = [{ x: start.x, y: start.y, keys: 0 }];
+            let visited = new Set();
+            visited.add(`${start.x},${start.y},0`);
+            
+            let totalStars = 0;
+            for (let r = 0; r < h; r++) {
+                for (let c = 0; c < w; c++) {
+                    if (grid[r][c] === 2) totalStars++;
+                }
+            }
+            let starsCollected = new Set();
+            
+            while (queue.length > 0) {
+                let curr = queue.shift();
+                let cell = grid[curr.y][curr.x];
+                
+                if (cell === 2) starsCollected.add(`${curr.x},${curr.y}`);
+                
+                let hasKey = ignoreKeys ? false : (curr.keys > 0 || cell === 3);
+                
+                const dirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
+                for (let d of dirs) {
+                    let nx = curr.x + d.x;
+                    let ny = curr.y + d.y;
+                    if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                        let nCell = grid[ny][nx];
+                        if (nCell !== 1 && nCell !== 5) { // Not wall or lava
+                            if (nCell === 4 && !hasKey) continue; // Door needs key
+                            let stateKey = `${nx},${ny},${hasKey ? 1 : 0}`;
+                            if (!visited.has(stateKey)) {
+                                visited.add(stateKey);
+                                queue.push({ x: nx, y: ny, keys: hasKey ? 1 : 0 });
+                            }
+                        }
+                    }
+                }
+            }
+            return starsCollected.size === totalStars && totalStars > 0;
+        }
+
+        function getValidRandomLevel(levelNum = 1) {
+            let attempts = 0;
+            while (attempts < 80) {
+                let lvl = generateRandomLevel(levelNum);
+                const hasDoor = lvl.grid.some(row => row.includes(4));
+
+                // Check 1: Must be solvable normally with keys
+                if (isLevelSolvable(lvl, false)) {
+                    // Check 2: If there's a door, it MUST NOT be solvable without keys (ensures door is required)
+                    if (!hasDoor || !isLevelSolvable(lvl, true)) {
+                        return lvl;
+                    }
+                }
+                attempts++;
+            }
+            return generateRandomLevel(1);
+        }
+
+        // Pre-generated solvability verified initial levels
+        let LEVELS = Array.from({ length: 8 }, (_, i) => getValidRandomLevel(i + 1));
+
+        // Global State
+        let currentLevelIndex = 0;
+        let activeLevel = LEVELS[0];
+        let robotState = { x: 0, y: 0, dir: 0 };
+        let currentGrid = [];
+        let starsRemaining = 0;
+        let hasKey = false;
+        let isExecuting = false;
+        let executionInterval = null;
+        let currentWorkspaceBlocks = [];
+        let blockIdCounter = 1;
+        let selectedCodeLang = 'js';
+        let sandboxTool = 'path';
+        let customLevelData = null;
+
+        // DOM Selectors
+        const gameGridEl = document.getElementById('gameGrid');
+        const characterSprite = document.getElementById('characterSprite');
+        const workspaceContainer = document.getElementById('programBlocksContainer');
+        const emptyWorkspaceHint = document.getElementById('emptyWorkspaceHint');
+        const blockCountBadge = document.getElementById('blockCountBadge');
+        const levelTitleEl = document.getElementById('levelTitle');
+        const levelCategoryTag = document.getElementById('levelCategoryTag');
+        const levelInstructionEl = document.getElementById('levelInstruction');
+        const levelStarGoalEl = document.getElementById('levelStarGoal');
+        const levelSelectorContainer = document.getElementById('levelSelectorContainer');
+        const mobileLevelPills = document.getElementById('mobileLevelPills');
+        const mobileLevelTitle = document.getElementById('mobileLevelTitle');
+        const gameStatusOverlay = document.getElementById('gameStatusOverlay');
+        const speedSlider = document.getElementById('speedSlider');
+
+        function initApp() {
+            AudioEngine.init();
+            renderLevelSelectors();
+            renderHeroPicker();
+            loadLevel(0);
+            setupEventListeners();
+            setupDragAndDrop();
+        }
+
+        // Render Hero Chooser
+        function renderHeroPicker() {
+            const grid = document.getElementById('heroPickerGrid');
+            grid.innerHTML = '';
+            HEROES.forEach(hero => {
+                const btn = document.createElement('button');
+                btn.className = `p-4 rounded-2xl border flex flex-col items-center justify-center space-y-2 transition ${hero.id === currentHero.id ? 'bg-indigo-600/20 border-indigo-500' : 'bg-slate-800/60 border-slate-700 hover:border-slate-500'}`;
+                btn.innerHTML = `<span class="text-4xl">${hero.icon}</span><span class="text-xs font-bold text-slate-200">${hero.name}</span>`;
+                btn.onclick = () => {
+                    currentHero = hero;
+                    document.getElementById('heroCurrentAvatar').innerText = hero.icon;
+                    renderHeroPicker();
+                    renderCharacterSprite();
+                    document.getElementById('heroModal').classList.add('hidden');
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        // Render Level Selector Pills Header
+        function renderLevelSelectors() {
+            levelSelectorContainer.innerHTML = '';
+            mobileLevelPills.innerHTML = '';
+
+            LEVELS.forEach((lvl, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition ${idx === currentLevelIndex ? 'bg-indigo-600 text-white shadow-md scale-105' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`;
+                btn.innerText = idx + 1;
+                btn.onclick = () => loadLevel(idx);
+                levelSelectorContainer.appendChild(btn);
+
+                const mBtn = document.createElement('button');
+                mBtn.className = `px-2.5 py-1 rounded-lg font-bold text-xs ${idx === currentLevelIndex ? 'bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-300'}`;
+                mBtn.innerText = `Рівень ${idx + 1}`;
+                mBtn.onclick = () => loadLevel(idx);
+                mobileLevelPills.appendChild(mBtn);
+            });
+        }
+
+        // Load Level State
+        function loadLevel(index) {
+            if (isExecuting) resetLevel();
+
+            if (index === 'custom') {
+                activeLevel = customLevelData;
+                currentLevelIndex = 'custom';
+            } else {
+                currentLevelIndex = index;
+                activeLevel = LEVELS[index];
+            }
+
+            // Update Labels
+            levelTitleEl.innerText = activeLevel.title;
+            levelCategoryTag.innerText = activeLevel.category;
+            levelInstructionEl.innerText = activeLevel.instruction;
+            mobileLevelTitle.innerText = activeLevel.title;
+            document.getElementById('hintText').innerText = activeLevel.hint || '';
+            document.getElementById('hintText').classList.add('hidden');
+
+            // Reset Level Grid State
+            currentGrid = JSON.parse(JSON.stringify(activeLevel.grid));
+            robotState = { ...activeLevel.start };
+            hasKey = false;
+
+            // Count Stars
+            starsRemaining = 0;
+            for (let r = 0; r < currentGrid.length; r++) {
+                for (let c = 0; c < currentGrid[r].length; c++) {
+                    if (currentGrid[r][c] === 2) starsRemaining++;
+                }
+            }
+
+            levelStarGoalEl.innerText = `Зірок: ${starsRemaining}`;
+            gameStatusOverlay.classList.add('hidden');
+
+            renderLevelSelectors();
+            renderGrid();
+            updateBlockCount();
+        }
+
+        function regenerateCurrentLevel() {
+            if (typeof currentLevelIndex === 'number') {
+                LEVELS[currentLevelIndex] = getValidRandomLevel(currentLevelIndex + 1);
+                loadLevel(currentLevelIndex);
+            }
+        }
+
+        // SVG Graphics Generators
+        function getWallSVG() {
+            return `
+            <svg viewBox="0 0 40 40" class="w-full h-full rounded-lg" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" fill="#334155"/>
+                <path d="M0,13 L40,13 M0,26 L40,26 M20,0 L20,13 M10,13 L10,26 M30,13 L30,26 M20,26 L20,40" stroke="#1e293b" stroke-width="2.5" fill="none"/>
+                <rect x="2" y="2" width="16" height="9" fill="#475569" rx="1"/>
+                <rect x="22" y="2" width="16" height="9" fill="#475569" rx="1"/>
+                <rect x="12" y="15" width="16" height="9" fill="#475569" rx="1"/>
+            </svg>`;
+        }
+
+        function getStarSVG() {
+            return `
+            <div class="star-item-glow w-8 h-8 md:w-9 md:h-9 flex items-center justify-center">
+                <svg viewBox="0 0 48 48" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#fef08a"/>
+                            <stop offset="100%" stop-color="#f59e0b"/>
+                        </linearGradient>
+                    </defs>
+                    <polygon points="24,2 30.5,15.5 45.5,17.5 34.5,28 37,43 24,35.5 11,43 13.5,28 2.5,17.5 17.5,15.5" fill="url(#starGrad)" stroke="#b45309" stroke-width="2"/>
+                </svg>
+            </div>`;
+        }
+
+        function getKeySVG() { return `<div class="text-2xl animate-bounce">🔑</div>`; }
+        function getDoorSVG() { return `<div class="text-2xl">🚪</div>`; }
+        function getLavaSVG() { return `<div class="text-xl">🌋</div>`; }
+
+        // Render Maze Grid Cells
+        function renderGrid() {
+            gameGridEl.style.gridTemplateColumns = `repeat(${activeLevel.gridWidth}, minmax(0, 1fr))`;
+            gameGridEl.innerHTML = '';
+
+            // Keep character sprite element in the grid container
+            gameGridEl.appendChild(characterSprite);
+
+            for (let r = 0; r < activeLevel.gridHeight; r++) {
+                for (let c = 0; c < activeLevel.gridWidth; c++) {
+                    const cellType = currentGrid[r][c];
+                    const cell = document.createElement('div');
+                    cell.className = 'w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-200';
+                    cell.dataset.x = c;
+                    cell.dataset.y = r;
+
+                    if (cellType === 1) {
+                        cell.classList.add('cell-wall');
+                        cell.innerHTML = getWallSVG();
+                    } else if (cellType === 5) {
+                        cell.classList.add('cell-lava');
+                        cell.innerHTML = getLavaSVG();
+                    } else {
+                        cell.classList.add('cell-path', 'border', 'border-slate-800');
+                        if (cellType === 2) cell.innerHTML = getStarSVG();
+                        else if (cellType === 3) cell.innerHTML = getKeySVG();
+                        else if (cellType === 4) cell.innerHTML = getDoorSVG();
+                    }
+
+                    gameGridEl.appendChild(cell);
+                }
+            }
+
+            requestAnimationFrame(() => {
+                renderCharacterSprite();
+            });
+        }
+
+        // Position Character Sprite with Exact DOM Relative Offsets
+        function renderCharacterSprite() {
+            const targetCell = gameGridEl.querySelector(`[data-x="${robotState.x}"][data-y="${robotState.y}"]`);
+            if (!targetCell) return;
+
+            characterSprite.style.width = `${targetCell.offsetWidth}px`;
+            characterSprite.style.height = `${targetCell.offsetHeight}px`;
+            characterSprite.style.left = `${targetCell.offsetLeft}px`;
+            characterSprite.style.top = `${targetCell.offsetTop}px`;
+            characterSprite.style.transform = `rotate(${DIR_VECTORS[robotState.dir].deg}deg)`;
+            characterSprite.innerHTML = `<span class="text-2xl md:text-3xl filter drop-shadow-md">${currentHero.icon}</span>`;
+        }
+
+        // Workspace Block AST Element Builder
+        function createBlockElement(type, id = null, val = 2) {
+            const blockId = id || `block_${blockIdCounter++}`;
+            const container = document.createElement('div');
+            container.className = 'block-item rounded-xl p-2.5 text-white font-bold text-xs md:text-sm shadow-md flex flex-col transition border-b-4 relative group';
+            container.dataset.id = blockId;
+            container.dataset.type = type;
+
+            let bgColor = 'bg-blue-600 border-blue-800';
+            let icon = 'fa-arrow-up';
+            let title = 'Рух вгору';
+
+            if (type === 'move_up') { bgColor = 'bg-blue-600 border-blue-800'; icon = 'fa-arrow-up'; title = 'Рух вгору'; }
+            else if (type === 'move_down') { bgColor = 'bg-blue-600 border-blue-800'; icon = 'fa-arrow-down'; title = 'Рух вниз'; }
+            else if (type === 'move_left') { bgColor = 'bg-indigo-600 border-indigo-800'; icon = 'fa-arrow-left'; title = 'Рух вліво'; }
+            else if (type === 'move_right') { bgColor = 'bg-indigo-600 border-indigo-800'; icon = 'fa-arrow-right'; title = 'Рух вправо'; }
+            else if (type === 'collect') { bgColor = 'bg-amber-500 border-amber-700 text-slate-950'; icon = 'fa-star'; title = 'Зібрати зірку'; }
+            else if (type === 'collect_key') { bgColor = 'bg-amber-600 border-amber-800'; icon = 'fa-key'; title = 'Взяти ключ'; }
+            else if (type === 'repeat') { bgColor = 'bg-rose-600 border-rose-800'; icon = 'fa-repeat'; title = 'Повторити'; }
+            else if (type === 'if_path') { bgColor = 'bg-teal-600 border-teal-800'; icon = 'fa-code-branch'; title = 'Якщо є шлях'; }
+
+            container.classList.add(...bgColor.split(' '));
+
+            // Header Row
+            const header = document.createElement('div');
+            header.className = 'flex items-center justify-between w-full';
+
+            const leftBox = document.createElement('div');
+            leftBox.className = 'flex items-center space-x-2';
+            leftBox.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${title}</span>`;
+
+            if (type === 'repeat') {
+                const countSelect = document.createElement('select');
+                countSelect.className = 'bg-black/30 text-white rounded px-1.5 py-0.5 text-xs font-bold border border-white/20 outline-none cursor-pointer ml-1';
+                [2, 3, 4, 5].forEach(num => {
+                    const opt = document.createElement('option');
+                    opt.value = num;
+                    opt.innerText = `${num} рази`;
+                    opt.className = 'text-slate-900';
+                    if (num === val) opt.selected = true;
+                    countSelect.appendChild(opt);
+                });
+                countSelect.onchange = (e) => {
+                    const blk = findBlockInAST(currentWorkspaceBlocks, blockId);
+                    if (blk) blk.val = parseInt(e.target.value);
+                };
+                leftBox.appendChild(countSelect);
+            }
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'opacity-70 hover:opacity-100 transition px-1';
+            deleteBtn.innerHTML = `<i class="fa-solid fa-xmark text-sm"></i>`;
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                removeBlockFromAST(currentWorkspaceBlocks, blockId);
+                renderWorkspace();
+            };
+
+            header.appendChild(leftBox);
+            header.appendChild(deleteBtn);
+            container.appendChild(header);
+
+            // Container for Nested Blocks
+            if (type === 'repeat' || type === 'if_path') {
+                const nestedBox = document.createElement('div');
+                nestedBox.className = 'nested-blocks mt-2 pl-2 pt-1 pb-1 space-y-1.5 bg-black/20 rounded-lg min-h-[44px] border-dashed border border-white/30';
+                nestedBox.dataset.containerId = blockId;
+                container.appendChild(nestedBox);
+            }
+
+            return container;
+        }
+
+        function addBlockToWorkspace(type, targetContainerId = null) {
+            const newBlock = {
+                id: `block_${blockIdCounter++}`,
+                type: type,
+                val: type === 'repeat' ? 2 : undefined,
+                children: (type === 'repeat' || type === 'if_path') ? [] : undefined
+            };
+
+            if (targetContainerId) {
+                const parent = findBlockInAST(currentWorkspaceBlocks, targetContainerId);
+                if (parent && parent.children) parent.children.push(newBlock);
+            } else {
+                currentWorkspaceBlocks.push(newBlock);
+            }
+
+            renderWorkspace();
+            AudioEngine.playStep();
+        }
+
+        function renderWorkspace() {
+            workspaceContainer.innerHTML = '';
+            
+            if (currentWorkspaceBlocks.length === 0) {
+                emptyWorkspaceHint.classList.remove('hidden');
+            } else {
+                emptyWorkspaceHint.classList.add('hidden');
+            }
+
+            function renderASTNodes(nodes, targetDOM) {
+                nodes.forEach(node => {
+                    const el = createBlockElement(node.type, node.id, node.val);
+                    targetDOM.appendChild(el);
+
+                    if (node.children && node.children.length > 0) {
+                        const childBox = el.querySelector(`.nested-blocks[data-container-id="${node.id}"]`);
+                        if (childBox) renderASTNodes(node.children, childBox);
+                    }
+                });
+            }
+
+            renderASTNodes(currentWorkspaceBlocks, workspaceContainer);
+            updateBlockCount();
+        }
+
+        function findBlockInAST(nodes, id) {
+            for (let node of nodes) {
+                if (node.id === id) return node;
+                if (node.children) {
+                    const found = findBlockInAST(node.children, id);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function removeBlockFromAST(nodes, id) {
+            for (let i = 0; i < nodes.length; i++) {
+                if (nodes[i].id === id) {
+                    nodes.splice(i, 1);
+                    return true;
+                }
+                if (nodes[i].children) {
+                    const removed = removeBlockFromAST(nodes[i].children, id);
+                    if (removed) return true;
+                }
+            }
+            return false;
+        }
+
+        function countTotalBlocks(nodes) {
+            let total = 0;
+            nodes.forEach(n => {
+                total += 1;
+                if (n.children) total += countTotalBlocks(n.children);
+            });
+            return total;
+        }
+
+        function updateBlockCount() {
+            const count = countTotalBlocks(currentWorkspaceBlocks);
+            blockCountBadge.innerText = `Блоків: ${count} / ${activeLevel.maxBlocks}`;
+            if (count > activeLevel.maxBlocks) {
+                blockCountBadge.className = 'text-xs bg-rose-500/20 border border-rose-500/40 text-rose-300 font-bold px-3 py-1 rounded-xl';
+            } else {
+                blockCountBadge.className = 'text-xs bg-slate-900 border border-slate-800 text-slate-300 font-bold px-3 py-1 rounded-xl';
+            }
+        }
+
+        // Flatten AST into Executable Commands Array
+        function compileAST(nodes) {
+            let queue = [];
+            nodes.forEach(node => {
+                if (['move_up', 'move_down', 'move_left', 'move_right', 'collect', 'collect_key'].includes(node.type)) {
+                    queue.push({ action: node.type.toUpperCase(), id: node.id });
+                } else if (node.type === 'repeat') {
+                    const count = node.val || 2;
+                    for (let c = 0; c < count; c++) {
+                        queue.push({ action: 'HIGHLIGHT_BLOCK', id: node.id });
+                        queue.push(...compileAST(node.children));
+                    }
+                } else if (node.type === 'if_path') {
+                    queue.push({ action: 'IF_CHECK', id: node.id, subTree: node.children });
+                }
+            });
+            return queue;
+        }
+
+        // Run Interpreter
+        function runProgram() {
+            if (isExecuting) return;
+            if (currentWorkspaceBlocks.length === 0) {
+                return;
+            }
+
+            isExecuting = true;
+            document.getElementById('btnRun').disabled = true;
+            document.getElementById('btnRun').classList.add('opacity-50');
+
+            const executionQueue = compileAST(currentWorkspaceBlocks);
+            let queueIndex = 0;
+            const speed = 850 - parseInt(speedSlider.value);
+
+            executionInterval = setInterval(() => {
+                if (queueIndex >= executionQueue.length) {
+                    finishExecution();
+                    return;
+                }
+
+                const item = executionQueue[queueIndex++];
+
+                clearBlockHighlights();
+                if (item.id) {
+                    const blockEl = document.querySelector(`.block-item[data-id="${item.id}"]`);
+                    if (blockEl) blockEl.classList.add('block-executing');
+                }
+
+                let dx = 0, dy = 0, targetDir = robotState.dir;
+                let isMove = false;
+
+                if (item.action === 'MOVE_UP') { dx = 0; dy = -1; targetDir = 3; isMove = true; }
+                else if (item.action === 'MOVE_DOWN') { dx = 0; dy = 1; targetDir = 1; isMove = true; }
+                else if (item.action === 'MOVE_LEFT') { dx = -1; dy = 0; targetDir = 2; isMove = true; }
+                else if (item.action === 'MOVE_RIGHT') { dx = 1; dy = 0; targetDir = 0; isMove = true; }
+
+                if (isMove) {
+                    robotState.dir = targetDir;
+                    const nextX = robotState.x + dx;
+                    const nextY = robotState.y + dy;
+
+                    // Bounds Check
+                    if (nextX >= 0 && nextX < activeLevel.gridWidth && nextY >= 0 && nextY < activeLevel.gridHeight) {
+                        const targetCell = currentGrid[nextY][nextX];
+
+                        if (targetCell === 1) { // Wall collision
+                            AudioEngine.playError();
+                            finishExecution(false, "Робот врізався у стіну! 💥");
+                            return;
+                        } else if (targetCell === 4 && !hasKey) { // Locked door
+                            AudioEngine.playError();
+                            finishExecution(false, "Двері зачинені! Спочатку знайди ключ 🔑!");
+                            return;
+                        } else if (targetCell === 5) { // Lava
+                            AudioEngine.playError();
+                            finishExecution(false, "Ой! Герой наступив на лаву 🌋!");
+                            return;
+                        } else {
+                            robotState.x = nextX;
+                            robotState.y = nextY;
+                            AudioEngine.playStep();
+                        }
+                    } else {
+                        AudioEngine.playError();
+                        finishExecution(false, "Робот вийшов за межі поля! 💥");
+                        return;
+                    }
+                } else if (item.action === 'COLLECT') {
+                    if (currentGrid[robotState.y][robotState.x] === 2) {
+                        currentGrid[robotState.y][robotState.x] = 0;
+                        starsRemaining--;
+                        levelStarGoalEl.innerText = `Зірок: ${starsRemaining}`;
+                        AudioEngine.playCollect();
+                    }
+                } else if (item.action === 'COLLECT_KEY') {
+                    if (currentGrid[robotState.y][robotState.x] === 3) {
+                        currentGrid[robotState.y][robotState.x] = 0;
+                        hasKey = true;
+                        AudioEngine.playKey();
+                    }
+                } else if (item.action === 'IF_CHECK') {
+                    const vec = DIR_VECTORS[robotState.dir];
+                    const aheadX = robotState.x + vec.x;
+                    const aheadY = robotState.y + vec.y;
+
+                    const isPathAhead = (aheadX >= 0 && aheadX < activeLevel.gridWidth &&
+                        aheadY >= 0 && aheadY < activeLevel.gridHeight &&
+                        currentGrid[aheadY][aheadX] !== 1 && currentGrid[aheadY][aheadX] !== 5);
+
+                    if (isPathAhead && item.subTree) {
+                        const subCompiled = compileAST(item.subTree);
+                        executionQueue.splice(queueIndex, 0, ...subCompiled);
+                    }
+                }
+
+                renderGrid();
+
+                // Win condition
+                if (starsRemaining === 0) {
+                    finishExecution(true);
+                }
+
+            }, speed);
+        }
+
+        function clearBlockHighlights() {
+            document.querySelectorAll('.block-executing').forEach(el => el.classList.remove('block-executing'));
+        }
+
+        function finishExecution(success = false, message = "") {
+            clearInterval(executionInterval);
+            isExecuting = false;
+            clearBlockHighlights();
+
+            document.getElementById('btnRun').disabled = false;
+            document.getElementById('btnRun').classList.remove('opacity-50');
+
+            if (success && starsRemaining === 0) {
+                AudioEngine.playWin();
+                confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 } });
+                showGameOverlay(true, "Перемога! 🎉", "Ти успішно пройшов рівень!");
+            } else if (!success && message) {
+                showGameOverlay(false, "Упс! 🤖", message);
+            }
+        }
+
+        function resetLevel() {
+            clearInterval(executionInterval);
+            isExecuting = false;
+            clearBlockHighlights();
+            loadLevel(currentLevelIndex);
+        }
+
+        function showGameOverlay(isWin, title, desc) {
+            document.getElementById('statusIcon').innerText = isWin ? "🏆" : "💥";
+            document.getElementById('statusTitle').innerText = title;
+            document.getElementById('statusDesc').innerText = desc;
+
+            const ratingContainer = document.getElementById('ratingStars');
+            if (isWin) {
+                const blockCount = countTotalBlocks(currentWorkspaceBlocks);
+                let starCount = 1;
+                if (blockCount <= activeLevel.optimalBlocks) starCount = 3;
+                else if (blockCount <= activeLevel.maxBlocks) starCount = 2;
+
+                ratingContainer.innerHTML = '';
+                for (let i = 0; i < 3; i++) {
+                    const s = document.createElement('i');
+                    s.className = i < starCount ? 'fa-solid fa-star text-amber-400' : 'fa-regular fa-star text-slate-600';
+                    ratingContainer.appendChild(s);
+                }
+                ratingContainer.classList.remove('hidden');
+            } else {
+                ratingContainer.classList.add('hidden');
+            }
+
+            const btnNext = document.getElementById('btnNextLevel');
+            if (isWin && typeof currentLevelIndex === 'number' && currentLevelIndex < LEVELS.length - 1) {
+                btnNext.classList.remove('hidden');
+            } else {
+                btnNext.classList.add('hidden');
+            }
+
+            gameStatusOverlay.classList.remove('hidden');
+        }
+
+        // Code Generator for Multiple Languages
+        function generateCode(nodes, lang = 'js', indent = 0) {
+            let code = "";
+            const pad = "  ".repeat(indent);
+
+            nodes.forEach(node => {
+                if (node.type === 'move_up') {
+                    if (lang === 'js') code += `${pad}hero.moveUp();\n`;
+                    else if (lang === 'python') code += `${pad}hero.move_up()\n`;
+                    else code += `${pad}Рухатися Вгору\n`;
+                } else if (node.type === 'move_down') {
+                    if (lang === 'js') code += `${pad}hero.moveDown();\n`;
+                    else if (lang === 'python') code += `${pad}hero.move_down()\n`;
+                    else code += `${pad}Рухатися Вниз\n`;
+                } else if (node.type === 'move_left') {
+                    if (lang === 'js') code += `${pad}hero.moveLeft();\n`;
+                    else if (lang === 'python') code += `${pad}hero.move_left()\n`;
+                    else code += `${pad}Рухатися Вліво\n`;
+                } else if (node.type === 'move_right') {
+                    if (lang === 'js') code += `${pad}hero.moveRight();\n`;
+                    else if (lang === 'python') code += `${pad}hero.move_right()\n`;
+                    else code += `${pad}Рухатися Вправо\n`;
+                } else if (node.type === 'collect') {
+                    if (lang === 'js') code += `${pad}hero.collectStar();\n`;
+                    else if (lang === 'python') code += `${pad}hero.collect_star()\n`;
+                    else code += `${pad}Взяти Зірку\n`;
+                } else if (node.type === 'collect_key') {
+                    if (lang === 'js') code += `${pad}hero.collectKey();\n`;
+                    else if (lang === 'python') code += `${pad}hero.collect_key()\n`;
+                    else code += `${pad}Взяти Ключ\n`;
+                } else if (node.type === 'repeat') {
+                    if (lang === 'js') {
+                        code += `${pad}for (let i = 0; i < ${node.val}; i++) {\n`;
+                        code += generateCode(node.children || [], lang, indent + 1);
+                        code += `${pad}}\n`;
+                    } else if (lang === 'python') {
+                        code += `${pad}for i in range(${node.val}):\n`;
+                        code += generateCode(node.children || [], lang, indent + 1);
+                    } else {
+                        code += `${pad}Повторити ${node.val} разів:\n`;
+                        code += generateCode(node.children || [], lang, indent + 1);
+                    }
+                } else if (node.type === 'if_path') {
+                    if (lang === 'js') {
+                        code += `${pad}if (hero.isPathAhead()) {\n`;
+                        code += generateCode(node.children || [], lang, indent + 1);
+                        code += `${pad}}\n`;
+                    } else if (lang === 'python') {
+                        code += `${pad}if hero.is_path_ahead():\n`;
+                        code += generateCode(node.children || [], lang, indent + 1);
+                    } else {
+                        code += `${pad}Якщо є шлях попереду:\n`;
+                        code += generateCode(node.children || [], lang, indent + 1);
+                    }
+                }
+            });
+
+            return code;
+        }
+
+        function showCodeModal() {
+            const code = generateCode(currentWorkspaceBlocks, selectedCodeLang);
+            document.getElementById('codeDisplay').innerText = code.trim() ? code : "// Робоча зона порожня";
+            document.getElementById('codeModal').classList.remove('hidden');
+        }
+
+        // Sandbox Level Builder
+        let sandboxGridData = [
+            [1, 1, 1, 1, 1],
+            [1, 0, 3, 2, 1],
+            [1, 1, 1, 1, 1]
+        ];
+        let sandboxStartPos = { x: 1, y: 1, dir: 0 };
+
+        function openSandbox() {
+            renderSandboxGrid();
+            document.getElementById('sandboxModal').classList.remove('hidden');
+        }
+
+        function renderSandboxGrid() {
+            const gridEl = document.getElementById('sandboxGrid');
+            gridEl.style.gridTemplateColumns = `repeat(5, minmax(0, 1fr))`;
+            gridEl.innerHTML = '';
+
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 5; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'w-11 h-11 bg-slate-800 rounded-lg flex items-center justify-center cursor-pointer border border-slate-700 hover:border-amber-400 overflow-hidden';
+                    
+                    const val = sandboxGridData[r][c];
+                    if (val === 1) cell.innerHTML = getWallSVG();
+                    else if (val === 2) cell.innerHTML = getStarSVG();
+                    else if (val === 3) cell.innerHTML = getKeySVG();
+                    else if (val === 4) cell.innerHTML = getDoorSVG();
+                    else if (val === 5) cell.innerHTML = getLavaSVG();
+                    else if (sandboxStartPos.x === c && sandboxStartPos.y === r) cell.innerText = currentHero.icon;
+                    else cell.className += ' cell-path';
+
+                    cell.onclick = () => {
+                        if (sandboxTool === 'path') sandboxGridData[r][c] = 0;
+                        else if (sandboxTool === 'wall') sandboxGridData[r][c] = 1;
+                        else if (sandboxTool === 'star') sandboxGridData[r][c] = 2;
+                        else if (sandboxTool === 'key') sandboxGridData[r][c] = 3;
+                        else if (sandboxTool === 'door') sandboxGridData[r][c] = 4;
+                        else if (sandboxTool === 'lava') sandboxGridData[r][c] = 5;
+                        else if (sandboxTool === 'robot') {
+                            sandboxGridData[r][c] = 0;
+                            sandboxStartPos = { x: c, y: r, dir: 0 };
+                        }
+                        renderSandboxGrid();
+                    };
+
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('btnRun').onclick = runProgram;
+            document.getElementById('btnReset').onclick = resetLevel;
+            document.getElementById('btnRetryLevel').onclick = resetLevel;
+            document.getElementById('btnOverlayRegenerate').onclick = regenerateCurrentLevel;
+            document.getElementById('btnRandomizeLevel').onclick = regenerateCurrentLevel;
+
+            document.getElementById('btnNextLevel').onclick = () => {
+                if (typeof currentLevelIndex === 'number' && currentLevelIndex < LEVELS.length - 1) {
+                    loadLevel(currentLevelIndex + 1);
+                }
+            };
+
+            // Palette Click
+            document.querySelectorAll('.block-palette-item').forEach(item => {
+                item.onclick = () => addBlockToWorkspace(item.dataset.type);
+            });
+
+            // Clear Workspace
+            document.getElementById('btnClearWorkspace').onclick = () => {
+                currentWorkspaceBlocks = [];
+                renderWorkspace();
+            };
+
+            // Sound Toggle
+            document.getElementById('btnSoundToggle').onclick = () => {
+                AudioEngine.muted = !AudioEngine.muted;
+                document.getElementById('soundIcon').className = AudioEngine.muted ? "fa-solid fa-volume-xmark text-sm" : "fa-solid fa-volume-high text-sm";
+            };
+
+            // Hero Selector Modal
+            document.getElementById('btnSelectHero').onclick = () => document.getElementById('heroModal').classList.remove('hidden');
+            document.getElementById('btnCloseHeroModal').onclick = () => document.getElementById('heroModal').classList.add('hidden');
+
+            // Hint Toggle
+            document.getElementById('btnToggleHint').onclick = () => {
+                document.getElementById('hintText').classList.toggle('hidden');
+            };
+
+            // Code Modal
+            document.getElementById('btnShowCode').onclick = showCodeModal;
+            document.getElementById('btnCloseCodeModal').onclick = () => document.getElementById('codeModal').classList.add('hidden');
+            
+            document.querySelectorAll('.lang-tab-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    document.querySelectorAll('.lang-tab-btn').forEach(b => {
+                        b.classList.remove('bg-indigo-600', 'text-white');
+                        b.classList.add('bg-slate-800', 'text-slate-400');
+                    });
+                    e.target.classList.replace('bg-slate-800', 'bg-indigo-600');
+                    e.target.classList.replace('text-slate-400', 'text-white');
+                    selectedCodeLang = e.target.dataset.lang;
+                    showCodeModal();
+                };
+            });
+
+            document.getElementById('btnCopyCode').onclick = () => {
+                const codeText = document.getElementById('codeDisplay').innerText;
+                document.execCommand('copy');
+            };
+
+            // Sandbox Modal Controls
+            document.getElementById('btnSandbox').onclick = openSandbox;
+            document.getElementById('btnCloseSandbox').onclick = () => document.getElementById('sandboxModal').classList.add('hidden');
+            
+            document.querySelectorAll('.sandbox-tool-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    document.querySelectorAll('.sandbox-tool-btn').forEach(b => {
+                        b.classList.remove('bg-indigo-600', 'text-white');
+                        b.classList.add('bg-slate-800', 'text-slate-300');
+                    });
+                    e.target.classList.replace('bg-slate-800', 'bg-indigo-600');
+                    e.target.classList.replace('text-slate-300', 'text-white');
+                    sandboxTool = e.target.dataset.tool;
+                };
+            });
+
+            document.getElementById('btnPlayCustomLevel').onclick = () => {
+                customLevelData = {
+                    id: 'custom',
+                    title: "🎨 Власний Рівень",
+                    category: "Пісочниця",
+                    instruction: "Пройди власний рівень, який ти створив!",
+                    hint: "Пройди свій винайдений лабіринт.",
+                    maxBlocks: 12,
+                    optimalBlocks: 8,
+                    gridWidth: 5,
+                    gridHeight: 3,
+                    start: { ...sandboxStartPos },
+                    grid: JSON.parse(JSON.stringify(sandboxGridData))
+                };
+                document.getElementById('sandboxModal').classList.add('hidden');
+                loadLevel('custom');
+            };
+
+            document.getElementById('btnExportLevel').onclick = () => {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sandboxGridData));
+                const dlAnchorElem = document.createElement('a');
+                dlAnchorElem.setAttribute("href", dataStr);
+                dlAnchorElem.setAttribute("download", "codekids_level.json");
+                dlAnchorElem.click();
+            };
+
+            window.addEventListener('resize', renderCharacterSprite);
+        }
+
+        // Drag and Drop Logic
+        function setupDragAndDrop() {
+            const toolboxItems = document.querySelectorAll('.block-palette-item');
+            const workspaceEl = document.getElementById('workspace');
+
+            toolboxItems.forEach(item => {
+                item.setAttribute('draggable', 'true');
+                item.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', item.dataset.type);
+                };
+            });
+
+            workspaceEl.ondragover = (e) => {
+                e.preventDefault();
+                workspaceEl.classList.add('drop-zone-active');
+            };
+
+            workspaceEl.ondragleave = () => {
+                workspaceEl.classList.remove('drop-zone-active');
+            };
+
+            workspaceEl.ondrop = (e) => {
+                e.preventDefault();
+                workspaceEl.classList.remove('drop-zone-active');
+                const type = e.dataTransfer.getData('text/plain');
+                if (type) addBlockToWorkspace(type);
+            };
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
