@@ -1,1 +1,11 @@
-
+{
+  "games": [
+    {
+      "id": 1,
+      "title": "Block Dungeon - Angry Birds Adventure",
+      "image": "https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/Images/BlockDungeonAngryBirds.jpg?raw=true",
+      "description": "Block Dungeon: Angry Bird Edition — це навчальна онлайн-гра та тренажер з програмування для засвоєння базових понять алгоритмізації, де гравцеві потрібно складати алгоритми дій, щоб разом зі злими птахами спіймати усіх свиней!",
+      "gameUrl": "https://infostudy-gymnasium201-kyiv.github.io/games/BlockDungeon/?tp=angry-birds"
+    }
+  ]
+}
