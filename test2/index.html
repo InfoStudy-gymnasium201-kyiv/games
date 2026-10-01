@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f172a;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #message {
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        // Конфігурація Google Sheet
+        const DOC_ID = "1wjPoMcCTK6gjVNgxSHcXTRLC8rVIj1HpKS3rFPfYD94";
+        const SHEET_GID = "1892629140";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetKey = urlParams.get('v') || urlParams.get('key');
+
+            if (!targetKey) {
+                document.getElementById('message').textContent = 'Помилка: Не вказано ключ для перенаправлення (?v=key)';
+                return;
+            }
+
+            executeRedirect(targetKey.trim());
+        });
+
+        async function executeRedirect(searchKey) {
+            const gvizUrl = `https://docs.google.com/spreadsheets/d/${DOC_ID}/gviz/tq?tqx=out:json&tq&gid=${SHEET_GID}`;
+
+            try {
+                const response = await fetch(gvizUrl);
+                if (!response.ok) throw new Error("Помилка завантаження даних з таблиці");
+
+                const responseText = await response.text();
+                const jsonStart = responseText.indexOf('{');
+                const jsonEnd = responseText.lastIndexOf('}');
+                
+                if (jsonStart === -1 || jsonEnd === -1) {
+                    throw new Error("Некоректний формат даних Google Sheets");
+                }
+
+                const jsonString = responseText.substring(jsonStart, jsonEnd + 1);
+                const parsed = JSON.parse(jsonString);
+
+                if (!parsed.table || !parsed.table.rows) {
+                    throw new Error("Таблиця порожня або не містить даних");
+                }
+
+                const normalizedSearch = searchKey.toLowerCase();
+                let foundUrl = null;
+
+                // Пошук ключа в колонці A (індекс 0) та посилання в колонці C (індекс 2)
+                for (const row of parsed.table.rows) {
+                    if (!row.c) continue;
+
+                    const keyCell = row.c[0];
+                    const urlCell = row.c[2];
+
+                    const keyVal = keyCell ? String(keyCell.v || keyCell.f || '').trim() : '';
+                    
+                    if (keyVal.toLowerCase() === normalizedSearch) {
+                        foundUrl = urlCell ? String(urlCell.v || urlCell.f || '').trim() : null;
+                        break;
+                    }
+                }
+
+                if (foundUrl) {
+                    // Форматування протоколу URL
+                    if (!/^https?:\/\//i.test(foundUrl)) {
+                        foundUrl = 'https://' + foundUrl;
+                    }
+                    // Миттєвий перехід без збереження проміжної сторінки в історії браузера
+                    window.location.replace(foundUrl);
+                } else {
+                    document.getElementById('message').textContent = `Ключ "${searchKey}" не знайдено в таблиці.`;
+                }
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('message').textContent = 'Помилка при обробці запиту.';
+            }
+        }
+    </script>
+</body>
+</html>
