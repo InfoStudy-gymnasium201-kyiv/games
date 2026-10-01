@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="uk" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets Link Redirector</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .pulse-animation {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <div class="flex-grow flex flex-col justify-between p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full">
+        
+        <!-- Header -->
+        <header class="flex flex-wrap justify-between items-center gap-4 mb-8 pb-6 border-b border-slate-800">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">SheetRedirector</h1>
+                    <p class="text-xs text-slate-400">Розумний перенаправлювач посилань з Google Таблиць</p>
+                </div>
+            </div>
+
+            <!-- Header status badge -->
+            <div id="statusBadge" class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 text-xs font-medium">
+                <span class="w-2 h-2 rounded-full bg-slate-500" id="statusDot"></span>
+                <span id="statusText" class="text-slate-300">Ініціалізація...</span>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow flex flex-col justify-center my-auto">
+            
+            <!-- REDIRECT VIEW (Shown when ?v= is present in URL) -->
+            <div id="redirectView" class="hidden max-w-lg mx-auto w-full">
+                <div class="bg-slate-800/90 border border-slate-700/60 rounded-3xl p-8 shadow-2xl text-center relative overflow-hidden backdrop-blur-xl">
+                    <div class="absolute -top-24 -left-24 w-48 h-48 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <!-- Loading State -->
+                    <div id="redirectLoading" class="py-6 flex flex-col items-center">
+                        <div class="relative w-16 h-16 mb-6">
+                            <div class="absolute inset-0 rounded-full border-4 border-brand-500/20 border-t-brand-500 animate-spin"></div>
+                            <div class="absolute inset-2 rounded-full border-4 border-indigo-400/20 border-b-indigo-400 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                        </div>
+                        <h2 class="text-xl font-semibold text-white mb-2">Шукаємо посилання...</h2>
+                        <p class="text-slate-400 text-sm">Перевіряємо ключ <span id="searchingKey" class="text-brand-400 font-mono font-semibold"></span> у таблиці</p>
+                    </div>
+
+                    <!-- Success State -->
+                    <div id="redirectSuccess" class="hidden py-4 flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-5 pulse-animation">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+
+                        <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-xs text-emerald-300 font-mono mb-3">
+                            Ключ: <span id="matchedKey" class="font-bold"></span>
+                        </span>
+
+                        <h2 class="text-2xl font-bold text-white mb-2">Знайдено!</h2>
+                        <p class="text-slate-300 text-sm mb-6 max-w-sm truncate" id="targetUrlDisplay">
+                            ...
+                        </p>
+
+                        <div class="w-full bg-slate-900/60 p-4 rounded-2xl border border-slate-700/50 mb-6 flex items-center justify-between">
+                            <div class="text-left">
+                                <div class="text-xs text-slate-400">Автоперехід через</div>
+                                <div class="text-2xl font-bold text-brand-400"><span id="countdown">3</span> сек</div>
+                            </div>
+                            <button id="toggleAutoRedirect" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 transition">
+                                Зупинити
+                            </button>
+                        </div>
+
+                        <div class="w-full flex flex-col gap-3">
+                            <a id="redirectBtn" href="#" target="_self" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-medium shadow-lg shadow-brand-500/25 flex items-center justify-center space-x-2 transition transform active:scale-95">
+                                <span>Перейти зараз</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                </svg>
+                            </a>
+                            <button onclick="showDashboard()" class="text-xs text-slate-400 hover:text-slate-200 transition">
+                                Переглянути всі ключі
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Error State -->
+                    <div id="redirectError" class="hidden py-4 flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mb-5">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-bold text-white mb-2">Ключ не знайдено</h2>
+                        <p class="text-slate-400 text-sm mb-6 max-w-sm">
+                            Ключ <span id="errorKey" class="text-rose-400 font-mono font-bold"></span> відсутній або не має відповідного посилання у колонці C.
+                        </p>
+                        <button onclick="showDashboard()" class="w-full py-3 px-6 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-medium transition">
+                            Відкрити список усіх ключів
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- DASHBOARD VIEW (Shown when no ?v= parameter or when browsing) -->
+            <div id="dashboardView" class="w-full space-y-6">
+                
+                <!-- Quick Test & Link Generator Card -->
+                <div class="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-6 shadow-xl backdrop-blur-md">
+                    <h2 class="text-lg font-semibold text-white mb-1 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        Швидка перевірка ключа або генерація посилання
+                    </h2>
+                    <p class="text-slate-400 text-xs mb-4">Введіть значення ключа (з Колонки A) для отримання прямого URL або миттєвого переходу.</p>
+
+                    <form id="keyTestForm" onsubmit="handleTestFormSubmit(event)" class="flex flex-col sm:flex-row gap-3">
+                        <div class="relative flex-grow">
+                            <input type="text" id="testKeyInput" placeholder="Введіть ключ (наприклад: promo2026)" required 
+                                class="w-full px-4 py-3 bg-slate-900/90 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition">
+                        </div>
+                        <button type="submit" class="px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl transition flex items-center justify-center space-x-2 shrink-0">
+                            <span>Перейти</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Main Data Card -->
+                <div class="bg-slate-800/70 border border-slate-700/60 rounded-2xl shadow-xl backdrop-blur-md overflow-hidden">
+                    
+                    <!-- Search and Controls Bar -->
+                    <div class="p-4 sm:p-6 border-b border-slate-700/60 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
+                        <div class="relative flex-grow max-w-md">
+                            <svg class="w-5 h-5 absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Пошук за ключем або посиланням..." 
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                        </div>
+
+                        <div class="flex items-center space-x-2 shrink-0">
+                            <button onclick="fetchData()" class="px-4 py-2.5 bg-slate-700/80 hover:bg-slate-700 text-slate-200 rounded-xl text-sm font-medium transition flex items-center space-x-2">
+                                <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                <span>Оновити дані</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-900/60 border-b border-slate-700/60 text-slate-400 font-medium">
+                                    <th class="py-3.5 px-4 sm:px-6 w-12 text-center">#</th>
+                                    <th class="py-3.5 px-4 sm:px-6">Ключ (Колонка A)</th>
+                                    <th class="py-3.5 px-4 sm:px-6">Посилання (Колонка C)</th>
+                                    <th class="py-3.5 px-4 sm:px-6 text-right">Дії</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="divide-y divide-slate-700/40 text-slate-300">
+                                <tr>
+                                    <td colspan="4" class="py-12 text-center text-slate-500">
+                                        <div class="inline-block animate-spin w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full mb-2"></div>
+                                        <div>Завантаження даних із Google Sheets...</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer info -->
+                    <div class="p-4 bg-slate-900/40 border-t border-slate-700/60 text-xs text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-2">
+                        <div id="recordCount">Знайдено записів: 0</div>
+                        <div class="flex items-center space-x-1">
+                            <span>Джерело:</span>
+                            <a href="https://docs.google.com/spreadsheets/d/1wjPoMcCTK6gjVNgxSHcXTRLC8rVIj1HpKS3rFPfYD94/edit?gid=1892629140" target="_blank" class="text-brand-400 hover:underline flex items-center">
+                                Google Sheet (GID: 1892629140)
+                                <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Settings / Config Section (Collapsible) -->
+                <details class="bg-slate-800/40 border border-slate-700/40 rounded-2xl p-4 transition">
+                    <summary class="font-medium text-sm text-slate-400 cursor-pointer hover:text-slate-200 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            Налаштування ID таблиці та листа
+                        </span>
+                        <span class="text-xs text-slate-500">Клацніть щоб розгорнути</span>
+                    </summary>
+                    <div class="mt-4 pt-4 border-t border-slate-700/50 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block text-slate-400 mb-1">Document ID</label>
+                            <input type="text" id="docIdInput" value="1wjPoMcCTK6gjVNgxSHcXTRLC8rVIj1HpKS3rFPfYD94" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1">Sheet GID</label>
+                            <input type="text" id="sheetGidInput" value="1892629140" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200">
+                        </div>
+                        <div class="sm:col-span-2 flex justify-end">
+                            <button onclick="saveAndReloadConfig()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition font-medium">
+                                Зберегти та завантажити
+                            </button>
+                        </div>
+                    </div>
+                </details>
+
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-8 pt-6 border-t border-slate-800 text-center text-xs text-slate-500">
+            Smart Google Sheets Link Redirector &bull; Створено з використанням Google Visualization API
+        </footer>
+
+    </div>
+
+    <!-- Toast notification container -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 text-white border border-slate-700 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 text-sm z-50">
+        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <span id="toastMessage">Повідомлення</span>
+    </div>
+
+    <script>
+        // Global State Configuration
+        let docId = "1wjPoMcCTK6gjVNgxSHcXTRLC8rVIj1HpKS3rFPfYD94";
+        let sheetGid = "1892629140";
+        let tableData = [];
+        let autoRedirectTimer = null;
+        let countdownSeconds = 3;
+        let isAutoRedirectEnabled = true;
+
+        // Initialize App on DOM Load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetKey = urlParams.get('v') || urlParams.get('key');
+
+            if (targetKey) {
+                // Show Redirect Overlay
+                document.getElementById('redirectView').classList.remove('hidden');
+                document.getElementById('dashboardView').classList.add('hidden');
+                document.getElementById('searchingKey').textContent = targetKey;
+                
+                // Fetch data and attempt redirect
+                fetchData(targetKey);
+            } else {
+                // Show Dashboard
+                showDashboard();
+                fetchData();
+            }
+        });
+
+        async function fetchData(targetKey = null) {
+            updateStatus('loading', 'Завантаження з Google Sheets...');
+            const refreshIcon = document.getElementById('refreshIcon');
+            if (refreshIcon) refreshIcon.classList.add('animate-spin');
+
+            const url = `https://docs.google.com/spreadsheets/d/${docId}/gviz/tq?tqx=out:json&tq&gid=${sheetGid}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Помилка мережі: ${response.status}`);
+                }
+
+                const responseText = await response.text();
+                tableData = parseGvizResponse(responseText);
+
+                updateStatus('success', `Успішно: завантажено ${tableData.length} записів`);
+                
+                if (targetKey) {
+                    handleKeySearch(targetKey);
+                } else {
+                    renderTable(tableData);
+                }
+
+            } catch (error) {
+                console.error("Помилка при отриманні даних:", error);
+                updateStatus('error', 'Помилка завантаження даних');
+
+                if (targetKey) {
+                    showRedirectError(targetKey);
+                } else {
+                    renderTableError(error.message);
+                }
+            } finally {
+                if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+            }
+        }
+
+        // Parse Google Visualization API response format
+        function parseGvizResponse(rawText) {
+            const jsonStart = rawText.indexOf('{');
+            const jsonEnd = rawText.lastIndexOf('}');
+            
+            if (jsonStart === -1 || jsonEnd === -1) {
+                throw new Error("Невідомий формат відповіді від Google Sheets");
+            }
+
+            const jsonString = rawText.substring(jsonStart, jsonEnd + 1);
+            const parsed = JSON.parse(jsonString);
+
+            if (!parsed.table || !parsed.table.rows) {
+                return [];
+            }
+
+            const items = [];
+
+            parsed.table.rows.forEach((row, index) => {
+                if (!row.c) return;
+
+                // Extract cell value helper
+                const getCellValue = (cell) => {
+                    if (!cell) return '';
+                    if (cell.v !== undefined && cell.v !== null) return String(cell.v).trim();
+                    if (cell.f !== undefined && cell.f !== null) return String(cell.f).trim();
+                    return '';
+                };
+
+                // Column A -> index 0 (Key)
+                const key = getCellValue(row.c[0]);
+                // Column C -> index 2 (URL Link)
+                const url = getCellValue(row.c[2]);
+
+                if (key || url) {
+                    items.push({
+                        id: index + 1,
+                        key: key,
+                        url: url
+                    });
+                }
+            });
+
+            return items;
+        }
+
+        function handleKeySearch(searchKey) {
+            const normalizedSearch = searchKey.trim().toLowerCase();
+            
+            // Find row where Column A matches key
+            const matchedRow = tableData.find(item => item.key.toLowerCase() === normalizedSearch);
+
+            if (matchedRow && matchedRow.url) {
+                const targetUrl = sanitizeUrl(matchedRow.url);
+                showRedirectSuccess(matchedRow.key, targetUrl);
+            } else {
+                showRedirectError(searchKey);
+            }
+        }
+
+        function sanitizeUrl(url) {
+            url = url.trim();
+            if (!/^https?:\/\//i.test(url)) {
+                return 'https://' + url;
+            }
+            return url;
+        }
+
+        function showRedirectSuccess(key, url) {
+            document.getElementById('redirectLoading').classList.add('hidden');
+            document.getElementById('redirectSuccess').classList.remove('hidden');
+
+            document.getElementById('matchedKey').textContent = key;
+            document.getElementById('targetUrlDisplay').textContent = url;
+            document.getElementById('redirectBtn').href = url;
+
+            // Setup auto-redirect timer
+            countdownSeconds = 3;
+            document.getElementById('countdown').textContent = countdownSeconds;
+
+            const toggleBtn = document.getElementById('toggleAutoRedirect');
+            toggleBtn.onclick = toggleAutoRedirect;
+
+            if (isAutoRedirectEnabled) {
+                startCountdown(url);
+            }
+        }
+
+        function startCountdown(targetUrl) {
+            clearInterval(autoRedirectTimer);
+            autoRedirectTimer = setInterval(() => {
+                countdownSeconds--;
+                document.getElementById('countdown').textContent = countdownSeconds;
+
+                if (countdownSeconds <= 0) {
+                    clearInterval(autoRedirectTimer);
+                    window.location.href = targetUrl;
+                }
+            }, 1000);
+        }
+
+        function toggleAutoRedirect() {
+            const toggleBtn = document.getElementById('toggleAutoRedirect');
+            if (isAutoRedirectEnabled) {
+                clearInterval(autoRedirectTimer);
+                isAutoRedirectEnabled = false;
+                toggleBtn.textContent = "Увімкнути";
+                toggleBtn.classList.replace('bg-slate-800', 'bg-brand-600');
+                showToast("Автоперехід зупинено");
+            } else {
+                isAutoRedirectEnabled = true;
+                toggleBtn.textContent = "Зупинити";
+                toggleBtn.classList.replace('bg-brand-600', 'bg-slate-800');
+                const targetUrl = document.getElementById('redirectBtn').href;
+                countdownSeconds = 3;
+                document.getElementById('countdown').textContent = countdownSeconds;
+                startCountdown(targetUrl);
+                showToast("Автоперехід відновлено");
+            }
+        }
+
+        function showRedirectError(key) {
+            document.getElementById('redirectLoading').classList.add('hidden');
+            document.getElementById('redirectError').classList.remove('hidden');
+            document.getElementById('errorKey').textContent = key;
+        }
+
+        function showDashboard() {
+            document.getElementById('redirectView').classList.add('hidden');
+            document.getElementById('dashboardView').classList.remove('hidden');
+            if (tableData.length > 0) {
+                renderTable(tableData);
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            const recordCount = document.getElementById('recordCount');
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="py-12 text-center text-slate-500">
+                            Не знайдено жодного запису.
+                        </td>
+                    </tr>
+                `;
+                recordCount.textContent = "Знайдено записів: 0";
+                return;
+            }
+
+            recordCount.textContent = `Знайдено записів: ${data.length}`;
+
+            const currentOrigin = window.location.origin + window.location.pathname;
+
+            tbody.innerHTML = data.map((item, index) => {
+                const directRedirectUrl = `${currentOrigin}?v=${encodeURIComponent(item.key)}`;
+                const validTargetUrl = item.url ? sanitizeUrl(item.url) : '';
+
+                return `
+                    <tr class="hover:bg-slate-700/30 transition">
+                        <td class="py-3.5 px-4 sm:px-6 text-center text-slate-500 font-mono text-xs">${index + 1}</td>
+                        <td class="py-3.5 px-4 sm:px-6 font-semibold text-white">
+                            <span class="px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg font-mono text-brand-400">
+                                ${escapeHtml(item.key || '—')}
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-4 sm:px-6 max-w-xs truncate">
+                            ${validTargetUrl ? `
+                                <a href="${validTargetUrl}" target="_blank" class="text-slate-300 hover:text-brand-400 transition flex items-center gap-1.5 truncate">
+                                    <span class="truncate">${escapeHtml(item.url)}</span>
+                                    <svg class="w-3.5 h-3.5 shrink-0 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                </a>
+                            ` : '<span class="text-slate-600 font-italic">Немає посилання</span>'}
+                        </td>
+                        <td class="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
+                            <div class="flex items-center justify-end space-x-2">
+                                <button onclick="copyToClipboard('${directRedirectUrl}')" title="Скопіювати коротке посилання ?v=" class="p-2 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                                </button>
+                                <a href="${directRedirectUrl}" class="px-3 py-1.5 rounded-lg bg-brand-600/80 hover:bg-brand-600 text-white text-xs font-medium transition flex items-center gap-1">
+                                    <span>Тест</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderTableError(msg) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="py-12 text-center text-rose-400">
+                        Помилка: ${escapeHtml(msg)}
+                    </td>
+                </tr>
+            `;
+        }
+
+        function filterTable() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filtered = tableData.filter(item => 
+                item.key.toLowerCase().includes(query) || 
+                item.url.toLowerCase().includes(query)
+            );
+            renderTable(filtered);
+        }
+
+        function handleTestFormSubmit(e) {
+            e.preventDefault();
+            const keyInput = document.getElementById('testKeyInput').value.trim();
+            if (keyInput) {
+                const currentOrigin = window.location.origin + window.location.pathname;
+                window.location.href = `${currentOrigin}?v=${encodeURIComponent(keyInput)}`;
+            }
+        }
+
+        function saveAndReloadConfig() {
+            docId = document.getElementById('docIdInput').value.trim();
+            sheetGid = document.getElementById('sheetGidInput').value.trim();
+            showToast("Конфігурацію оновлено");
+            fetchData();
+        }
+
+        function copyToClipboard(text) {
+            const input = document.createElement('textarea');
+            input.value = text;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            showToast("Посилання скопійовано в буфер обміну!");
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        function updateStatus(state, message) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            if (!statusDot || !statusText) return;
+
+            statusText.textContent = message;
+
+            if (state === 'loading') {
+                statusDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+            } else if (state === 'success') {
+                statusDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+            } else if (state === 'error') {
+                statusDot.className = "w-2 h-2 rounded-full bg-rose-500";
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
