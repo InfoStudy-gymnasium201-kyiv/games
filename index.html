@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InfoStudy — Навчальні Ігри з Інформатики 🎮🎈</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Fredoka & Nunito -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            kids: {
+              yellow: '#FFDE59',
+              orange: '#FF914D',
+              pink: '#FF66C4',
+              purple: '#8C52FF',
+              blue: '#5CE1E6',
+              green: '#7ED957',
+              darkBg: '#2C1B4D'
+            }
+          },
+          fontFamily: {
+            sans: ['Nunito', 'sans-serif'],
+            heading: ['Fredoka', 'cursive'],
+          },
+          boxShadow: {
+            'pop': '0 8px 0 0 rgba(0, 0, 0, 0.15)',
+            'pop-sm': '0 4px 0 0 rgba(0, 0, 0, 0.12)',
+            'pop-hover': '0 12px 0 0 rgba(0, 0, 0, 0.15)',
+            'kids': '0 10px 25px -5px rgba(140, 82, 255, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #F4F0FF;
+      background-image: radial-gradient(#E2D5FF 2px, transparent 2px);
+      background-size: 28px 28px;
+    }
+    .font-heading {
+      font-family: 'Fredoka', cursive;
+    }
+
+    /* Bouncy Button Animation */
+    .bounce-hover {
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .bounce-hover:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+    .bounce-hover:active {
+      transform: translateY(2px) scale(0.98);
+    }
+
+    /* Floating background items */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-12px) rotate(5deg); }
+    }
+    .animate-float {
+      animation: float 4s ease-in-out infinite;
+    }
+    .animate-float-delayed {
+      animation: float 5s ease-in-out 1.5s infinite;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-kids-pink selection:text-white min-h-screen flex flex-col">
+
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b-4 border-kids-purple/20 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-0 sm:h-20 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+      
+      <!-- Logo & Title -->
+      <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-kids-pink to-kids-yellow flex items-center justify-center text-xl sm:text-2xl shadow-pop-sm text-white transform -rotate-3 hover:rotate-0 transition flex-shrink-0">
+            🎮
+          </div>
+          <div>
+            <span class="text-[10px] sm:text-sm font-black text-kids-pink uppercase tracking-wider block bg-pink-100 px-2 py-0.5 rounded-full w-max">
+              Ігровий Острів (2-4 кл)
+            </span>
+            <h1 class="text-sm sm:text-xl font-bold font-heading text-slate-800 line-clamp-1">
+              InfoStudy — Навчальні Ігри 🎈
+            </h1>
+          </div>
+        </div>
+      </div>
+
+      <!-- Header Action Buttons & Status -->
+      <div class="flex items-center justify-end space-x-2 sm:space-x-3 w-full sm:w-auto">
+        <!-- Кнопка 1: Уроки -->
+        <a href="https://infostudy-gymnasium201-kyiv.github.io/e-school" 
+           class="flex-1 sm:flex-none justify-center flex items-center space-x-1 sm:space-x-1.5 text-xs sm:text-sm font-extrabold font-heading text-white bg-kids-purple hover:bg-purple-700 px-2.5 sm:px-3.5 py-2 rounded-2xl border-2 border-purple-800 shadow-pop-sm bounce-hover transition whitespace-nowrap">
+          <span>📚</span>
+          <span>Уроки (2-4 кл)</span>
+        </a>
+
+        <!-- Кнопка 2: Старша школа -->
+        <a href="https://infostudy-gymnasium201-kyiv.github.io" 
+           class="flex-1 sm:flex-none justify-center flex items-center space-x-1 sm:space-x-1.5 text-xs sm:text-sm font-extrabold font-heading text-white bg-kids-blue hover:bg-cyan-600 px-2.5 sm:px-3.5 py-2 rounded-2xl border-2 border-cyan-700 shadow-pop-sm bounce-hover transition whitespace-nowrap">
+          <span>🏫</span>
+          <span>Старша школа</span>
+        </a>
+
+        <!-- Header Status Badge -->
+        <div class="hidden lg:flex items-center space-x-2 text-sm font-bold text-purple-900 bg-kids-yellow px-4 py-2 rounded-2xl border-2 border-yellow-400 shadow-pop-sm">
+          <span>⭐</span>
+          <span class="font-heading uppercase tracking-wide">Грай та Навчайся!</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <section class="bg-gradient-to-r from-kids-purple via-kids-pink to-kids-orange text-white py-10 md:py-16 relative overflow-hidden shadow-lg border-b-8 border-kids-yellow">
+    
+    <!-- Decorative Floating Elements -->
+    <div class="absolute -top-6 -left-6 text-6xl opacity-30 animate-float pointer-events-none">🎮</div>
+    <div class="absolute top-1/2 right-4 text-7xl opacity-25 animate-float-delayed pointer-events-none">👾</div>
+    <div class="absolute bottom-2 left-1/3 text-5xl opacity-20 animate-float pointer-events-none">🏆</div>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+      
+      <div class="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-md border-2 border-white/40 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-white text-xs sm:text-base font-bold mb-4 shadow-sm">
+        <span>🎮 Веселі комп'ютерні тренажери для 2, 3 та 4 класів</span>
+      </div>
+
+      <h1 class="text-2xl sm:text-5xl lg:text-6xl font-black font-heading tracking-wide text-white mb-4 drop-shadow-md leading-tight">
+        Навчальні Ігри з Інформатики 🚀
+      </h1>
+
+      <p class="text-white/95 text-base sm:text-2xl font-semibold max-w-3xl mx-auto leading-relaxed mb-2 drop-shadow-sm">
+        Граючи, розвивай мислення, вивчай клавіатуру, алгоритми та безпеку в Інтернеті! 🕹️✨
+      </p>
+
+    </div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex-grow w-full">
+    
+    <!-- Пошук та інформація -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-white p-4 sm:p-5 rounded-3xl border-4 border-purple-200 shadow-pop">
+      
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl">🎯</span>
+        <h2 class="text-xl sm:text-2xl font-black font-heading text-slate-800">
+          Усі навчальні ігри
+        </h2>
+        <span id="games-count-badge" class="text-xs sm:text-sm font-extrabold text-purple-900 bg-purple-100 px-3 py-1 rounded-2xl border border-purple-200 ml-2">
+          Завантаження...
+        </span>
+      </div>
+
+      <!-- Пошуковий рядок -->
+      <div class="relative max-w-md w-full sm:w-80">
+        <input type="text" id="search-input" oninput="filterGames()" placeholder="Пошук гри за назвою..." class="w-full pl-11 pr-4 py-2.5 sm:py-3 bg-purple-50/50 border-2 border-purple-200 rounded-2xl text-sm sm:text-base font-bold text-slate-800 placeholder-purple-400 focus:outline-none focus:border-kids-pink focus:bg-white transition">
+        <span class="absolute left-3.5 top-2.5 sm:top-3 text-lg sm:text-xl">🔍</span>
+      </div>
+    </div>
+
+    <!-- Контейнер для списку ігор -->
+    <div id="games-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+      <div class="col-span-full text-center py-16 bg-white rounded-3xl border-4 border-purple-200 shadow-pop">
+        <div class="inline-block animate-spin text-5xl sm:text-6xl mb-4">🌀</div>
+        <p class="text-lg sm:text-xl font-bold text-purple-900 font-heading">Завантажуємо веселі ігри з бази даних...</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t-4 border-purple-200 py-6 sm:py-8 mt-8 sm:mt-12">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs sm:text-sm font-bold text-slate-600">
+      &copy; InfoStudy. Вчитель інформатики Гімназії №201 Скопінцев Данііл Дмитрович. Усі права захищено. 🎈
+    </div>
+  </footer>
+
+  <script>
+    const DB_URL = 'https://raw.githubusercontent.com/InfoStudy-gymnasium201-kyiv/games/refs/heads/main/gamesdb.json';
+    
+    /* 
+      Очікувана структура JSON у вашому репозиторії:
+      [
+        {
+          "title": "Назва гри",
+          "image": "https://посилання-на-картинку.png",
+          "description": "Короткий опис гри для учнів...",
+          "url": "https://посилання-на-саму-гру.com"
+        },
+        ...
+      ]
+    */
+    let allGames = [];
+
+    async function fetchGamesDatabase() {
+      try {
+        const response = await fetch(DB_URL);
+        if (!response.ok) throw new Error('Не вдалося завантажити базу даних ігор');
+        
+        const data = await response.json();
+        
+        // Supports array directly or object containing "games" array
+        if (Array.isArray(data)) {
+          allGames = data;
+        } else if (data.games && Array.isArray(data.games)) {
+          allGames = data.games;
+        } else {
+          allGames = [];
+        }
+
+        renderGames(allGames);
+      } catch (err) {
+        document.getElementById('games-grid').innerHTML = `
+          <div class="col-span-full bg-red-100 text-red-900 p-8 rounded-3xl border-4 border-red-400 shadow-pop text-center">
+            <div class="text-5xl mb-3">😿</div>
+            <h3 class="font-heading font-black text-2xl mb-2">Помилка завантаження ігор</h3>
+            <p class="text-base sm:text-lg font-bold mb-4">${err.message}</p>
+            <p class="text-xs sm:text-sm font-semibold text-slate-600">Перевірте структуру JSON файлу за посиланням.</p>
+          </div>
+        `;
+        document.getElementById('games-count-badge').innerText = '0 ігор';
+      }
+    }
+
+    function filterGames() {
+      const query = document.getElementById('search-input').value.toLowerCase().trim();
+      
+      const filtered = allGames.filter(game => {
+        const title = (game.title || game.name || '').toLowerCase();
+        const description = (game.description || game.desc || '').toLowerCase();
+        return title.includes(query) || description.includes(query);
+      });
+
+      renderGames(filtered);
+    }
+
+    function renderGames(gamesList) {
+      const grid = document.getElementById('games-grid');
+      document.getElementById('games-count-badge').innerText = `Знайдено ігор: ${gamesList.length}`;
+
+      if (!gamesList || gamesList.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-12 sm:py-16 bg-white rounded-3xl border-4 border-purple-200 shadow-pop">
+            <div class="text-5xl sm:text-6xl mb-3">🎮</div>
+            <h3 class="text-xl sm:text-2xl font-black font-heading text-purple-900 mb-2">Ігор не знайдено</h3>
+            <p class="text-sm sm:text-base font-bold text-slate-600">Спробуйте змінити пошуковий запит або перевірте базу даних.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Fallback placeholder image if none provided
+      const defaultPlaceholder = 'https://placehold.co/600x400/8C52FF/ffffff?text=InfoStudy+Game+🎮';
+
+      grid.innerHTML = gamesList.map(game => {
+        const title = game.title || game.name || 'Навчальна гра';
+        const image = game.image || game.imageUrl || game.img || defaultPlaceholder;
+        const description = game.description || game.desc || 'Цікаве навчальне завдання з інформатики.';
+        const url = game.url || game.link || game.gameUrl || game.externalUrl || '#';
+
+        return `
+          <div class="bg-white rounded-3xl border-4 border-kids-purple p-5 sm:p-6 shadow-pop-sm hover:shadow-pop bounce-hover flex flex-col justify-between transition-all duration-200 group overflow-hidden">
+            
+            <div>
+              <!-- Game Image (Зображення з БД) -->
+              <div class="relative w-full h-44 sm:h-48 rounded-2xl overflow-hidden mb-4 border-2 border-purple-200 bg-purple-50 flex items-center justify-center">
+                <img src="${image}" 
+                     alt="${title}" 
+                     loading="lazy"
+                     class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                     onerror="this.onerror=null; this.src='${defaultPlaceholder}';">
+              </div>
+
+              <!-- Game Title (Назва гри) -->
+              <h3 class="font-black font-heading text-slate-800 text-lg sm:text-2xl mb-2.5 leading-snug group-hover:text-kids-purple transition-colors">
+                ${title}
+              </h3>
+
+              <!-- Game Description (Опис) -->
+              <p class="text-xs sm:text-sm font-semibold text-slate-600 leading-relaxed mb-6">
+                ${description}
+              </p>
+            </div>
+
+            <!-- Game Link (Посилання на гру) -->
+            <div>
+              <a href="${url}" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 class="w-full flex items-center justify-center space-x-2 text-sm sm:text-base font-black font-heading text-white bg-kids-purple hover:bg-purple-700 py-3 px-4 rounded-2xl border-2 border-purple-900 shadow-pop-sm bounce-hover transition">
+                <span>Грати в гру</span>
+                <span class="text-xl">🚀</span>
+              </a>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Load data on start
+    window.addEventListener('DOMContentLoaded', fetchGamesDatabase);
+  </script>
+</body>
+</html>
