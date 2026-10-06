@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Пазли для Чомучок - Дитяча Гра</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for child-friendly typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti Library for celebration effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Comfortaa', cursive, sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 50%, #fbcfe8 100%);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .font-kids {
+            font-family: 'Fredoka', cursive, sans-serif;
+        }
+
+        .puzzle-board-shadow {
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .piece-shadow {
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+            transition: transform 0.1s ease, filter 0.1s ease;
+        }
+
+        .piece-dragging {
+            filter: drop-shadow(4px 10px 15px rgba(0,0,0,0.4));
+            transform: scale(1.05);
+            z-index: 1000 !important;
+        }
+
+        .btn-bounce {
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-bounce:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-bounce:active {
+            transform: scale(0.95);
+        }
+
+        /* Custom Scrollbar for puzzle tray */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 10px;
+            width: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Pulse highlight for hint button */
+        @keyframes subtle-pulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 0.4; }
+        }
+        .pulse-hint {
+            animation: subtle-pulse 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden text-slate-800">
+
+    <!-- Top Header Navigation -->
+    <header class="bg-white/80 backdrop-blur-md border-b-4 border-yellow-400 p-3 shadow-md sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-2">
+            
+            <!-- Title / Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-yellow-400 rounded-2xl flex items-center justify-center text-2xl shadow-inner transform -rotate-3">
+                    🧩
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold font-kids text-indigo-600 tracking-wide">Пазли для Чомучок</h1>
+                    <p class="text-xs text-slate-500 font-semibold hidden sm:block">Складай яскрава картинки!</p>
+                </div>
+            </div>
+
+            <!-- Action Controls Header -->
+            <div class="flex items-center gap-2 md:gap-3">
+                <!-- Custom Upload Button -->
+                <label class="btn-bounce bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-2xl font-bold text-xs md:text-sm flex items-center gap-2 cursor-pointer shadow-md border-b-4 border-emerald-700">
+                    <i class="fa-solid fa-camera text-base"></i>
+                    <span class="hidden sm:inline">Своє фото</span>
+                    <input type="file" id="imageUploader" accept="image/*" class="hidden">
+                </label>
+
+                <!-- Preset Gallery Button -->
+                <button id="openGalleryBtn" class="btn-bounce bg-sky-500 hover:bg-sky-600 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-2xl font-bold text-xs md:text-sm flex items-center gap-2 shadow-md border-b-4 border-sky-700">
+                    <i class="fa-solid fa-images text-base"></i>
+                    <span class="hidden sm:inline">Галерея</span>
+                </button>
+
+                <!-- Audio Toggle -->
+                <button id="soundToggleBtn" class="btn-bounce bg-amber-100 text-amber-700 p-2.5 rounded-2xl font-bold text-sm flex items-center justify-center w-10 h-10 shadow-sm border-2 border-amber-300">
+                    <i class="fa-solid fa-volume-high text-lg" id="soundIcon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto w-full p-2 md:p-4 flex-1 flex flex-col items-center justify-start gap-4">
+
+        <!-- Controls Toolbar: Difficulty & Settings -->
+        <section class="w-full bg-white/90 backdrop-blur-sm rounded-3xl p-3 md:p-4 shadow-lg border-2 border-indigo-100 flex flex-wrap items-center justify-between gap-3">
+            
+            <!-- Grid Difficulty Selector -->
+            <div class="flex items-center gap-2">
+                <span class="text-xs md:text-sm font-bold text-slate-600 mr-1"><i class="fa-solid fa-layer-group text-indigo-500"></i> Складність:</span>
+                <div class="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
+                    <button data-grid="2" class="diff-btn px-3 py-1.5 rounded-xl font-bold text-xs md:text-sm transition-all bg-indigo-600 text-white shadow-sm">2x2 (4)</button>
+                    <button data-grid="3" class="diff-btn px-3 py-1.5 rounded-xl font-bold text-xs md:text-sm transition-all text-slate-600 hover:text-indigo-600">3x3 (9)</button>
+                    <button data-grid="4" class="diff-btn px-3 py-1.5 rounded-xl font-bold text-xs md:text-sm transition-all text-slate-600 hover:text-indigo-600">4x4 (16)</button>
+                    <button data-grid="5" class="diff-btn px-3 py-1.5 rounded-xl font-bold text-xs md:text-sm transition-all text-slate-600 hover:text-indigo-600">5x5 (25)</button>
+                </div>
+            </div>
+
+            <!-- Toggles & Helpers -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <!-- Hint Toggle Button -->
+                <button id="toggleHintBtn" class="btn-bounce bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded-xl font-bold text-xs md:text-sm flex items-center gap-1.5 border border-purple-300">
+                    <i class="fa-solid fa-lightbulb text-yellow-500"></i>
+                    <span>Підказка</span>
+                </button>
+
+                <!-- Full Preview Button -->
+                <button id="previewBtn" class="btn-bounce bg-rose-100 hover:bg-rose-200 text-rose-700 px-3 py-1.5 rounded-xl font-bold text-xs md:text-sm flex items-center gap-1.5 border border-rose-300">
+                    <i class="fa-solid fa-eye"></i>
+                    <span>Зразок</span>
+                </button>
+
+                <!-- Restart Button -->
+                <button id="restartBtn" class="btn-bounce bg-amber-400 hover:bg-amber-500 text-slate-900 px-3 py-1.5 rounded-xl font-bold text-xs md:text-sm flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Перемішати</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Progress Bar and Score Board -->
+        <div class="w-full flex items-center justify-between px-2 text-sm font-bold text-slate-700">
+            <div class="flex items-center gap-2">
+                <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs md:text-sm">
+                    🧩 Деталі: <span id="progressText" class="font-extrabold text-indigo-900">0 / 4</span>
+                </span>
+            </div>
+            <div id="timerDisplay" class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs md:text-sm flex items-center gap-1">
+                <i class="fa-regular fa-clock"></i> <span id="timeCounter">00:00</span>
+            </div>
+        </div>
+
+        <!-- Puzzle Workspace Area (Board + Tray) -->
+        <div class="w-full flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6 my-2">
+            
+            <!-- Target Puzzle Board -->
+            <div class="relative flex flex-col items-center">
+                <div id="boardContainer" class="relative bg-white border-8 border-yellow-400 rounded-3xl puzzle-board-shadow overflow-hidden flex items-center justify-center transition-all shadow-xl" style="width: 340px; height: 340px;">
+                    <!-- Canvas for faint background hint -->
+                    <canvas id="hintCanvas" class="absolute inset-0 opacity-25 transition-opacity duration-300 pointer-events-none"></canvas>
+                    
+                    <!-- SVG Overlay for piece outline guide grid -->
+                    <svg id="gridGuideSvg" class="absolute inset-0 w-full h-full pointer-events-none opacity-40 z-10"></svg>
+
+                    <!-- Completed Image Reveal Canvas -->
+                    <canvas id="completedCanvas" class="absolute inset-0 w-full h-full pointer-events-none hidden z-20"></canvas>
+                </div>
+            </div>
+
+            <!-- Puzzle Pieces Tray -->
+            <div class="w-full lg:flex-1 flex flex-col items-center">
+                <div class="w-full bg-white/80 backdrop-blur-sm rounded-3xl p-4 border-2 border-indigo-100 shadow-lg">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-bold font-kids text-indigo-700 text-base md:text-lg flex items-center gap-2">
+                            <i class="fa-solid fa-box-open text-amber-500"></i> Деталі пазла
+                        </h2>
+                        <span class="text-xs text-slate-400 font-medium">Перетягуй деталі на дошку</span>
+                    </div>
+
+                    <!-- Pieces Container Tray -->
+                    <div id="piecesTray" class="w-full min-h-[160px] max-h-[300px] md:max-h-[380px] overflow-y-auto custom-scrollbar p-3 bg-slate-50 border-2 border-dashed border-indigo-200 rounded-2xl flex flex-wrap items-center justify-center gap-3 relative">
+                        <!-- Piece HTML elements dynamically populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal: Image Gallery Selection -->
+    <div id="galleryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-5 md:p-6 shadow-2xl border-4 border-yellow-400 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold font-kids text-indigo-600 flex items-center gap-2">
+                    <i class="fa-solid fa-palette text-pink-500"></i> Обери картинку
+                </h3>
+                <button id="closeGalleryBtn" class="text-slate-400 hover:text-slate-600 text-2xl font-bold w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Gallery Grid -->
+            <div id="galleryGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto p-1 custom-scrollbar flex-1">
+                <!-- Dynamically generated image cards -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Full Image Preview -->
+    <div id="previewModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-4 shadow-2xl border-4 border-indigo-400 flex flex-col items-center">
+            <h3 class="text-lg font-bold font-kids text-indigo-600 mb-3">Зразок готової картинки</h3>
+            <img id="previewModalImg" src="" alt="Зразок" class="max-h-[60vh] rounded-2xl object-contain border-2 border-slate-200">
+            <button id="closePreviewBtn" class="mt-4 bg-indigo-600 text-white font-bold px-6 py-2 rounded-2xl btn-bounce">
+                Зрозуміло!
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Victory Celebration -->
+    <div id="victoryModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 text-center shadow-2xl border-8 border-yellow-400 transform transition-all scale-95 animate-bounce-once">
+            <div class="text-6xl mb-2 animate-bounce">🏆</div>
+            <h2 class="text-2xl md:text-3xl font-extrabold font-kids text-indigo-600 mb-1">УРА! ПЕРЕМОГА!</h2>
+            <p class="text-slate-600 font-semibold mb-4 text-sm">Ти чудово впорався з пазлом!</p>
+            
+            <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-3 mb-5 flex justify-around text-center">
+                <div>
+                    <p class="text-xs text-slate-500 font-bold">Час складання</p>
+                    <p id="winTime" class="text-lg font-extrabold text-amber-600">00:00</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-bold">Складність</p>
+                    <p id="winGrid" class="text-lg font-extrabold text-indigo-600">3x3</p>
+                </div>
+            </div>
+
+            <!-- Star Rating Display -->
+            <div class="flex justify-center gap-2 text-3xl text-yellow-400 mb-6">
+                <i class="fa-solid fa-star animate-pulse"></i>
+                <i class="fa-solid fa-star animate-pulse" style="animation-delay: 0.2s"></i>
+                <i class="fa-solid fa-star animate-pulse" style="animation-delay: 0.4s"></i>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <button id="playAgainBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-3 rounded-2xl text-base btn-bounce shadow-lg border-b-4 border-emerald-700">
+                    Грати ще раз! 🧩
+                </button>
+                <button id="victoryGalleryBtn" class="w-full bg-sky-100 hover:bg-sky-200 text-sky-700 font-bold py-2.5 rounded-2xl text-sm btn-bounce">
+                    Обрати іншу картинку 🎨
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-3 text-center text-xs text-slate-500 font-medium">
+        Пазли для розвитку логіки та уважності ✨
+    </footer>
+
+    <script>
+        // Preset Kid-Friendly High Quality Images (SVG generated / Unsplash curated)
+        const PRESET_IMAGES = [
+            { title: "Веселе Леченя", url: "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=600&auto=format&fit=crop&q=80" },
+            { title: "Миле Кошеня", url: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop&q=80" },
+            { title: "Космічна Ракета", url: "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=600&auto=format&fit=crop&q=80" },
+            { title: "Підводний Світ", url: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&auto=format&fit=crop&q=80" },
+            { title: "Барвистий Папуга", url: "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=600&auto=format&fit=crop&q=80" },
+            { title: "Казковий Ліс", url: "https://images.unsplash.com/photo-1511497584788-876761c11969?w=600&auto=format&fit=crop&q=80" }
+        ];
+
+        // Game Configuration & State
+        let currentGridSize = 2; // 2x2 default
+        let currentImageObj = new Image();
+        let soundEnabled = true;
+        let isHintVisible = true;
+        let puzzlePieces = [];
+        let placedPiecesCount = 0;
+        let totalPiecesCount = 4;
+        let boardWidth = 340;
+        let boardHeight = 340;
+        let timerInterval = null;
+        let secondsElapsed = 0;
+        let isGameActive = false;
+
+        // Audio Effects Synthesizer using Web Audio API (No external sound files required)
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playSnap() {
+                if (!soundEnabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.08);
+                
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+
+            playPickup() {
+                if (!soundEnabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(250, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(350, this.ctx.currentTime + 0.05);
+                
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            }
+
+            playVictory() {
+                if (!soundEnabled) return;
+                this.init();
+                const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+                notes.forEach((freq, index) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + index * 0.12);
+                    
+                    gain.gain.setValueAtTime(0.25, this.ctx.currentTime + index * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + index * 0.12 + 0.3);
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + index * 0.12);
+                    osc.stop(this.ctx.currentTime + index * 0.12 + 0.3);
+                });
+            }
+        }
+
+        const audio = new SoundFX();
+
+        // DOM Elements
+        const boardContainer = document.getElementById('boardContainer');
+        const hintCanvas = document.getElementById('hintCanvas');
+        const gridGuideSvg = document.getElementById('gridGuideSvg');
+        const completedCanvas = document.getElementById('completedCanvas');
+        const piecesTray = document.getElementById('piecesTray');
+        const progressText = document.getElementById('progressText');
+        const timeCounter = document.getElementById('timeCounter');
+        const toggleHintBtn = document.getElementById('toggleHintBtn');
+        const soundToggleBtn = document.getElementById('soundToggleBtn');
+        const soundIcon = document.getElementById('soundIcon');
+        const galleryModal = document.getElementById('galleryModal');
+        const galleryGrid = document.getElementById('galleryGrid');
+        const previewModal = document.getElementById('previewModal');
+        const previewModalImg = document.getElementById('previewModalImg');
+        const victoryModal = document.getElementById('victoryModal');
+        const imageUploader = document.getElementById('imageUploader');
+
+        // Initialize App on Window Load
+        window.addEventListener('load', () => {
+            setupResponsiveBoardSize();
+            populateGallery();
+            loadDefaultImage(PRESET_IMAGES[0].url);
+            setupEventListeners();
+        });
+
+        // Adjust board sizing dynamically based on viewport
+        function setupResponsiveBoardSize() {
+            const screenWidth = window.innerWidth;
+            if (screenWidth < 400) {
+                boardWidth = boardHeight = 280;
+            } else if (screenWidth < 640) {
+                boardWidth = boardHeight = 320;
+            } else if (screenWidth < 1024) {
+                boardWidth = boardHeight = 360;
+            } else {
+                boardWidth = boardHeight = 400;
+            }
+            boardContainer.style.width = `${boardWidth}px`;
+            boardContainer.style.height = `${boardHeight}px`;
+        }
+
+        window.addEventListener('resize', () => {
+            const prevWidth = boardWidth;
+            setupResponsiveBoardSize();
+            if (prevWidth !== boardWidth && currentImageObj.complete) {
+                initPuzzle();
+            }
+        });
+
+        // Load default image
+        function loadDefaultImage(src) {
+            currentImageObj = new Image();
+            currentImageObj.crossOrigin = "anonymous";
+            currentImageObj.onload = () => {
+                initPuzzle();
+            };
+            currentImageObj.src = src;
+        }
+
+        // Custom File Upload Handler
+        imageUploader.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        currentImageObj = img;
+                        initPuzzle();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+            e.target.value = ''; // Reset input to allow re-uploading same file
+        });
+
+        // Populate Gallery Modal
+        function populateGallery() {
+            galleryGrid.innerHTML = '';
+            PRESET_IMAGES.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = "cursor-pointer rounded-2xl overflow-hidden border-2 border-indigo-100 hover:border-yellow-400 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-1 bg-white flex flex-col";
+                card.innerHTML = `
+                    <div class="h-28 overflow-hidden bg-slate-100">
+                        <img src="${item.url}" alt="${item.title}" class="w-full h-full object-cover">
+                    </div>
+                    <span class="text-xs font-bold font-kids text-slate-700 p-2 text-center truncate">${item.title}</span>
+                `;
+                card.addEventListener('click', () => {
+                    loadDefaultImage(item.url);
+                    galleryModal.classList.add('hidden');
+                });
+                galleryGrid.appendChild(card);
+            });
+        }
+
+        function initPuzzle() {
+            resetTimer();
+            placedPiecesCount = 0;
+            totalPiecesCount = currentGridSize * currentGridSize;
+            progressText.innerText = `${placedPiecesCount} / ${totalPiecesCount}`;
+            
+            // CLEAR BOARD: Remove all previously snapped puzzle piece elements from board
+            const existingBoardPieces = boardContainer.querySelectorAll('.puzzle-piece');
+            existingBoardPieces.forEach(p => p.remove());
+
+            // Clear pieces tray
+            piecesTray.innerHTML = '';
+
+            // Hide completed overlay
+            completedCanvas.classList.add('hidden');
+
+            // 1. Prepare Hint Canvas (scaled cover aspect ratio)
+            hintCanvas.width = boardWidth;
+            hintCanvas.height = boardHeight;
+            const hCtx = hintCanvas.getContext('2d');
+            hCtx.clearRect(0, 0, boardWidth, boardHeight);
+
+            // Compute object-fit cover positioning
+            const imgAspect = currentImageObj.width / currentImageObj.height;
+            const boardAspect = boardWidth / boardHeight;
+            let renderW, renderH, offsetX, offsetY;
+
+            if (imgAspect > boardAspect) {
+                renderH = boardHeight;
+                renderW = boardHeight * imgAspect;
+                offsetX = (boardWidth - renderW) / 2;
+                offsetY = 0;
+            } else {
+                renderW = boardWidth;
+                renderH = boardWidth / imgAspect;
+                offsetX = 0;
+                offsetY = (boardHeight - renderH) / 2;
+            }
+
+            // Draw full image to hint canvas
+            hCtx.drawImage(currentImageObj, offsetX, offsetY, renderW, renderH);
+
+            // 2. Prepare Completed Canvas
+            completedCanvas.width = boardWidth;
+            completedCanvas.height = boardHeight;
+            const cCtx = completedCanvas.getContext('2d');
+            cCtx.drawImage(hintCanvas, 0, 0);
+
+            const pieceW = boardWidth / currentGridSize;
+            const pieceH = boardHeight / currentGridSize;
+
+            puzzlePieces = [];
+
+            // Render SVG Grid Lines on Board Guide
+            renderGridSvgGuide(pieceW, pieceH);
+
+            // Create Square Pieces
+            for (let r = 0; r < currentGridSize; r++) {
+                for (let c = 0; c < currentGridSize; c++) {
+                    const pCanvas = document.createElement('canvas');
+                    pCanvas.width = pieceW;
+                    pCanvas.height = pieceH;
+                    const pCtx = pCanvas.getContext('2d');
+
+                    const sourceX = c * pieceW;
+                    const sourceY = r * pieceH;
+
+                    // Draw square image segment
+                    pCtx.drawImage(
+                        hintCanvas,
+                        sourceX, sourceY, pieceW, pieceH,
+                        0, 0, pieceW, pieceH
+                    );
+
+                    // Add subtle border outline around square piece
+                    pCtx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+                    pCtx.lineWidth = 3;
+                    pCtx.strokeRect(0, 0, pieceW, pieceH);
+                    pCtx.strokeStyle = "rgba(0, 0, 0, 0.15)";
+                    pCtx.lineWidth = 1;
+                    pCtx.strokeRect(0, 0, pieceW, pieceH);
+
+                    // Piece Data Object
+                    const pieceData = {
+                        id: `piece_${r}_${c}`,
+                        row: r,
+                        col: c,
+                        targetX: sourceX,
+                        targetY: sourceY,
+                        width: pieceW,
+                        height: pieceH,
+                        canvas: pCanvas,
+                        placed: false
+                    };
+
+                    puzzlePieces.push(pieceData);
+                }
+            }
+
+            // Shuffle pieces and render in tray
+            const shuffledPieces = [...puzzlePieces].sort(() => Math.random() - 0.5);
+            shuffledPieces.forEach(pData => createPieceElement(pData));
+
+            startTimer();
+        }
+
+        // Render clean SVG grid guide overlay on board
+        function renderGridSvgGuide(pieceW, pieceH) {
+            gridGuideSvg.innerHTML = '';
+            for (let r = 0; r <= currentGridSize; r++) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', 0);
+                line.setAttribute('y1', r * pieceH);
+                line.setAttribute('x2', boardWidth);
+                line.setAttribute('y2', r * pieceH);
+                line.setAttribute('stroke', '#818cf8');
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('stroke-dasharray', '4 4');
+                gridGuideSvg.appendChild(line);
+            }
+            for (let c = 0; c <= currentGridSize; c++) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', c * pieceW);
+                line.setAttribute('y1', 0);
+                line.setAttribute('x2', c * pieceW);
+                line.setAttribute('y2', boardHeight);
+                line.setAttribute('stroke', '#818cf8');
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('stroke-dasharray', '4 4');
+                gridGuideSvg.appendChild(line);
+            }
+        }
+
+        // Create Interactive HTML Element for a Puzzle Piece
+        function createPieceElement(pieceData) {
+            const pieceContainer = document.createElement('div');
+            pieceContainer.id = pieceData.id;
+            pieceContainer.className = 'puzzle-piece piece-shadow cursor-grab active:cursor-grabbing touch-none select-none inline-block';
+            
+            // Adjust visual size for tray
+            const displayScale = Math.min(1, 100 / pieceData.width);
+            pieceContainer.style.width = `${pieceData.width * displayScale}px`;
+            pieceContainer.style.height = `${pieceData.height * displayScale}px`;
+            
+            pieceData.canvas.style.width = '100%';
+            pieceData.canvas.style.height = '100%';
+            pieceContainer.appendChild(pieceData.canvas);
+
+            // Pointer events for Drag and Drop (Works seamlessly on Mobile Touch + Desktop Mouse)
+            let isDragging = false;
+            let startX, startY;
+            let initialLeft, initialTop;
+            let boardRect;
+
+            const onPointerDown = (e) => {
+                if (pieceData.placed) return;
+                e.preventDefault();
+                audio.playPickup();
+
+                isDragging = true;
+                pieceContainer.classList.add('piece-dragging');
+
+                // Move piece to global body level so it floats freely across tray & board
+                boardRect = boardContainer.getBoundingClientRect();
+                const rect = pieceContainer.getBoundingClientRect();
+
+                // Lock initial display dimensions to full target canvas size during drag
+                pieceContainer.style.width = `${pieceData.width}px`;
+                pieceContainer.style.height = `${pieceData.height}px`;
+
+                // Set absolute position at current mouse pointer
+                pieceContainer.style.position = 'fixed';
+                pieceContainer.style.left = `${rect.left}px`;
+                pieceContainer.style.top = `${rect.top}px`;
+                pieceContainer.style.zIndex = '1000';
+                document.body.appendChild(pieceContainer);
+
+                startX = e.clientX || (e.touches && e.touches[0].clientX);
+                startY = e.clientY || (e.touches && e.touches[0].clientY);
+                initialLeft = rect.left;
+                initialTop = rect.top;
+
+                window.addEventListener('pointermove', onPointerMove);
+                window.addEventListener('pointerup', onPointerUp);
+            };
+
+            const onPointerMove = (e) => {
+                if (!isDragging) return;
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+                const deltaX = clientX - startX;
+                const deltaY = clientY - startY;
+
+                pieceContainer.style.left = `${initialLeft + deltaX}px`;
+                pieceContainer.style.top = `${initialTop + deltaY}px`;
+            };
+
+            const onPointerUp = (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                pieceContainer.classList.remove('piece-dragging');
+
+                window.removeEventListener('pointermove', onPointerMove);
+                window.removeEventListener('pointerup', onPointerUp);
+
+                // Check Snap onto Board
+                boardRect = boardContainer.getBoundingClientRect();
+                const pieceRect = pieceContainer.getBoundingClientRect();
+
+                // Target piece top-left position relative to board
+                const currentPieceBoardX = pieceRect.left - boardRect.left;
+                const currentPieceBoardY = pieceRect.top - boardRect.top;
+
+                // Threshold tolerance for magnetic snap (28px radius)
+                const snapTolerance = 28;
+                const dist = Math.hypot(currentPieceBoardX - pieceData.targetX, currentPieceBoardY - pieceData.targetY);
+
+                if (dist < snapTolerance) {
+                    // SNAP TO CORRECT POSITION!
+                    snapPieceToBoard(pieceContainer, pieceData);
+                } else {
+                    // Return piece to tray if dropped outside or incorrect
+                    returnPieceToTray(pieceContainer, pieceData);
+                }
+            };
+
+            pieceContainer.addEventListener('pointerdown', onPointerDown);
+            piecesTray.appendChild(pieceContainer);
+        }
+
+        // Snap piece onto board precisely
+        function snapPieceToBoard(element, pieceData) {
+            pieceData.placed = true;
+            audio.playSnap();
+
+            // Position inside board container relative wrapper
+            element.style.position = 'absolute';
+            element.style.left = `${pieceData.targetX}px`;
+            element.style.top = `${pieceData.targetY}px`;
+            element.style.width = `${pieceData.width}px`;
+            element.style.height = `${pieceData.height}px`;
+            element.style.zIndex = '15';
+            element.classList.remove('cursor-grab', 'piece-shadow');
+            element.classList.add('cursor-default');
+
+            boardContainer.appendChild(element);
+
+            // Update Progress
+            placedPiecesCount++;
+            progressText.innerText = `${placedPiecesCount} / ${totalPiecesCount}`;
+
+            // Check Win Condition
+            if (placedPiecesCount === totalPiecesCount) {
+                setTimeout(handleWinGame, 250);
+            }
+        }
+
+        // Return piece back to tray seamlessly
+        function returnPieceToTray(element, pieceData) {
+            element.style.position = 'relative';
+            element.style.left = '0px';
+            element.style.top = '0px';
+            element.style.zIndex = '1';
+
+            const displayScale = Math.min(1, 100 / pieceData.width);
+            element.style.width = `${pieceData.width * displayScale}px`;
+            element.style.height = `${pieceData.height * displayScale}px`;
+
+            piecesTray.appendChild(element);
+        }
+
+        // Game Victory Handling
+        function handleWinGame() {
+            stopTimer();
+            audio.playVictory();
+
+            // Reveal full completed crisp canvas
+            completedCanvas.classList.remove('hidden');
+
+            // Trigger Confetti explosion
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            // Display Victory Modal
+            document.getElementById('winTime').innerText = timeCounter.innerText;
+            document.getElementById('winGrid').innerText = `${currentGridSize}x${currentGridSize}`;
+            victoryModal.classList.remove('hidden');
+        }
+
+        // Timer Logic
+        function startTimer() {
+            stopTimer();
+            secondsElapsed = 0;
+            timeCounter.innerText = "00:00";
+            isGameActive = true;
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+                const secs = String(secondsElapsed % 60).padStart(2, '0');
+                timeCounter.innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            isGameActive = false;
+        }
+
+        function resetTimer() {
+            stopTimer();
+            secondsElapsed = 0;
+            timeCounter.innerText = "00:00";
+        }
+
+        // Event Listener Bindings
+        function setupEventListeners() {
+            // Difficulty Selector Buttons
+            document.querySelectorAll('.diff-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.diff-btn').forEach(b => {
+                        b.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+                        b.classList.add('text-slate-600');
+                    });
+                    btn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+                    btn.classList.remove('text-slate-600');
+
+                    currentGridSize = parseInt(btn.getAttribute('data-grid'));
+                    initPuzzle();
+                });
+            });
+
+            // Toggle Background Hint
+            toggleHintBtn.addEventListener('click', () => {
+                isHintVisible = !isHintVisible;
+                hintCanvas.style.opacity = isHintVisible ? '0.25' : '0';
+                toggleHintBtn.classList.toggle('bg-purple-200');
+            });
+
+            // Sound Toggle
+            soundToggleBtn.addEventListener('click', () => {
+                soundEnabled = !soundEnabled;
+                if (soundEnabled) {
+                    soundIcon.className = "fa-solid fa-volume-high text-lg";
+                    soundToggleBtn.classList.remove('bg-slate-200', 'text-slate-500');
+                    soundToggleBtn.classList.add('bg-amber-100', 'text-amber-700');
+                } else {
+                    soundIcon.className = "fa-solid fa-volume-xmark text-lg";
+                    soundToggleBtn.classList.add('bg-slate-200', 'text-slate-500');
+                    soundToggleBtn.classList.remove('bg-amber-100', 'text-amber-700');
+                }
+            });
+
+            // Gallery Modals
+            document.getElementById('openGalleryBtn').addEventListener('click', () => {
+                galleryModal.classList.remove('hidden');
+            });
+            document.getElementById('closeGalleryBtn').addEventListener('click', () => {
+                galleryModal.classList.add('hidden');
+            });
+
+            // Image Preview Modal
+            document.getElementById('previewBtn').addEventListener('click', () => {
+                previewModalImg.src = hintCanvas.toDataURL();
+                previewModal.classList.remove('hidden');
+            });
+            document.getElementById('closePreviewBtn').addEventListener('click', () => {
+                previewModal.classList.add('hidden');
+            });
+
+            // Restart Button
+            document.getElementById('restartBtn').addEventListener('click', () => {
+                initPuzzle();
+            });
+
+            // Victory Modal Play Again Buttons
+            document.getElementById('playAgainBtn').addEventListener('click', () => {
+                victoryModal.classList.add('hidden');
+                initPuzzle();
+            });
+            document.getElementById('victoryGalleryBtn').addEventListener('click', () => {
+                victoryModal.classList.add('hidden');
+                galleryModal.classList.remove('hidden');
+            });
+        }
+    </script>
+</body>
+</html>
