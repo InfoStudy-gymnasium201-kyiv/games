@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Математика на Дошці</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for Chalk Effect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Neucha&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Neucha', 'Caveat', cursive, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            background-color: #1a1512;
+            overflow: hidden;
+        }
+
+        .chalk-font {
+            font-family: 'Caveat', cursive;
+        }
+
+        .neucha-font {
+            font-family: 'Neucha', cursive;
+        }
+
+        /* Chalkboard frame & board background */
+        .wooden-frame {
+            background: linear-gradient(135deg, #a06332 0%, #633816 50%, #3e1f08 100%);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 20px 40px rgba(0,0,0,0.9);
+            border: 4px solid #2b1304;
+        }
+
+        .chalkboard {
+            background-color: #212724;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.3) 100%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0, rgba(255,255,255,0.01) 2px, transparent 2px, transparent 10px);
+            box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.85);
+            position: relative;
+        }
+
+        /* Chalk text glow effect */
+        .chalk-text {
+            color: #f3f4f6;
+            text-shadow: 
+                0 0 2px rgba(255, 255, 255, 0.9), 
+                0 0 5px rgba(255, 255, 255, 0.5), 
+                1px 1px 1px rgba(0,0,0,0.8);
+            letter-spacing: 2px;
+        }
+
+        .chalk-yellow {
+            color: #ffea79;
+            text-shadow: 
+                0 0 2px rgba(255, 234, 121, 0.9), 
+                0 0 6px rgba(255, 234, 121, 0.5);
+        }
+
+        /* Chalk custom progress bar */
+        .chalk-progress-border {
+            border: 3px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 0 4px rgba(255, 255, 255, 0.6), inset 0 0 4px rgba(255, 255, 255, 0.3);
+            background: rgba(0,0,0,0.3);
+        }
+
+        .chalk-progress-fill {
+            background: linear-gradient(90deg, #ffffff, #e0e0e0);
+            box-shadow: 0 0 8px rgba(255,255,255,0.8);
+            border-radius: 6px;
+            transition: width 0.1s linear;
+        }
+
+        /* Circle chalk buttons */
+        .chalk-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 0 10px rgba(0, 0, 0, 0.5),
+                inset 0 0 10px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(2px);
+            transition: all 0.15s ease-out;
+        }
+
+        .chalk-btn:hover {
+            background: rgba(255, 255, 255, 0.28);
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: scale(1.08);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+
+        .chalk-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Star styling */
+        .star-icon {
+            filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.8));
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .star-active {
+            color: #ffea75;
+            filter: drop-shadow(0 0 6px rgba(255, 234, 117, 0.9));
+            transform: scale(1.15);
+        }
+
+        .star-empty {
+            color: transparent;
+            -webkit-text-stroke: 2px rgba(255, 255, 255, 0.6);
+        }
+
+        /* Keyframes for answer feedback */
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); color: #4ade80; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-12px); color: #f87171; }
+            40%, 80% { transform: translateX(12px); color: #f87171; }
+        }
+
+        .animate-correct {
+            animation: correctPulse 0.4s ease-in-out;
+        }
+
+        .animate-wrong {
+            animation: wrongShake 0.4s ease-in-out;
+        }
+
+        /* Modal backdrop */
+        .modal-blur {
+            backdrop-filter: blur(5px);
+            background: rgba(15, 20, 18, 0.85);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-2 sm:p-4 md:p-6 text-white">
+
+    <!-- Outer Board Container -->
+    <div class="relative w-full max-w-4xl h-[92vh] sm:h-[85vh] max-h-[680px] wooden-frame rounded-2xl p-3 sm:p-6 md:p-8 flex flex-col justify-between overflow-hidden">
+        
+        <!-- Blackboard Surface -->
+        <div id="board" class="chalkboard w-full h-full rounded-lg flex flex-col justify-between p-4 sm:p-6 relative overflow-hidden border border-white/10">
+            
+            <!-- Canvas for Chalk Dust Effects -->
+            <canvas id="dustCanvas" class="absolute inset-0 pointer-events-none z-10"></canvas>
+
+            <!-- Top Header Controls (Level, Progress Bar, Close) -->
+            <div class="flex items-center justify-between w-full z-20">
+                <!-- Level Indicator -->
+                <div class="text-2xl sm:text-3xl md:text-4xl chalk-font chalk-text font-bold tracking-wide">
+                    <span id="levelLabel">Рівень 1</span>
+                </div>
+
+                <!-- Timer / Progress Bar -->
+                <div class="w-2/5 sm:w-1/2 max-w-md px-2">
+                    <div class="chalk-progress-border h-5 sm:h-6 p-0.5 flex items-center">
+                        <div id="timerBar" class="chalk-progress-fill h-full w-full"></div>
+                    </div>
+                </div>
+
+                <!-- Exit / Sound Buttons -->
+                <div class="flex items-center space-x-3">
+                    <button id="soundToggleBtn" onclick="toggleSound()" class="text-xl sm:text-2xl chalk-text hover:text-yellow-300 transition-transform active:scale-95 p-1" title="Звук">
+                        <i id="soundIcon" class="fas fa-volume-up"></i>
+                    </button>
+                    <button onclick="showExitMenu()" class="text-2xl sm:text-3xl chalk-text hover:text-red-400 transition-transform active:scale-95 p-1" title="Вихід">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stars Rating Display -->
+            <div id="starsContainer" class="flex justify-center items-center space-x-2 sm:space-x-4 my-2 z-20">
+                <i class="fas fa-star text-2xl sm:text-3xl md:text-4xl star-icon star-empty" data-star="1"></i>
+                <i class="fas fa-star text-2xl sm:text-3xl md:text-4xl star-icon star-empty" data-star="2"></i>
+                <i class="fas fa-star text-2xl sm:text-3xl md:text-4xl star-icon star-empty" data-star="3"></i>
+                <i class="fas fa-star text-2xl sm:text-3xl md:text-4xl star-icon star-empty" data-star="4"></i>
+                <i class="fas fa-star text-2xl sm:text-3xl md:text-4xl star-icon star-empty" data-star="5"></i>
+            </div>
+
+            <!-- Main Math Question Area -->
+            <div class="flex-grow flex items-center justify-center my-2 z-20">
+                <div id="questionText" class="text-6xl sm:text-7xl md:text-8xl font-bold chalk-font chalk-text text-center transition-all">
+                    1 + 0 = ?
+                </div>
+            </div>
+
+            <!-- Answer Choice Buttons Container -->
+            <div id="answersContainer" class="flex justify-center items-center gap-6 sm:gap-10 md:gap-12 mb-4 sm:mb-8 z-20 min-h-[90px]">
+                <!-- Buttons dynamically generated by JS -->
+            </div>
+
+            <!-- Bottom Chalkboard Tray / Decor -->
+            <div class="absolute bottom-0 left-0 right-0 h-2 bg-white/10 shadow-inner pointer-events-none"></div>
+        </div>
+    </div>
+
+    <!-- Start / Main Menu Modal -->
+    <div id="startModal" class="fixed inset-0 modal-blur flex items-center justify-center z-50 p-4">
+        <div class="bg-[#1f2623] border-4 border-[#8b5a2b] rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl relative">
+            <h1 class="text-4xl sm:text-5xl chalk-font chalk-yellow font-bold mb-4">Математика на Дошці</h1>
+            <p class="neucha-font text-xl text-gray-200 mb-6">Розв'язуй приклади, отримуй зірочки та ставай майстром математики!</p>
+            
+            <div class="space-y-4">
+                <button onclick="startGame(1)" class="w-full py-3 text-2xl neucha-font chalk-text bg-emerald-700/80 hover:bg-emerald-600 rounded-xl border-2 border-emerald-400 shadow-lg transition active:scale-95">
+                    <i class="fas fa-play mr-2"></i> Почати Гру
+                </button>
+                <button onclick="showLevelSelect()" class="w-full py-3 text-2xl neucha-font chalk-text bg-amber-700/80 hover:bg-amber-600 rounded-xl border-2 border-amber-400 shadow-lg transition active:scale-95">
+                    <i class="fas fa-list-ol mr-2"></i> Вибір Рівня
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Select Modal -->
+    <div id="levelModal" class="fixed inset-0 modal-blur flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-[#1f2623] border-4 border-[#8b5a2b] rounded-2xl p-6 sm:p-8 max-w-lg w-full text-center shadow-2xl">
+            <h2 class="text-3xl sm:text-4xl chalk-font chalk-yellow font-bold mb-6">Обери Рівень</h2>
+            <div id="levelGrid" class="grid grid-cols-3 gap-4 mb-6">
+                <!-- Level buttons generated by JS -->
+            </div>
+            <button onclick="closeModal('levelModal')" class="py-2 px-6 text-xl neucha-font chalk-text bg-gray-700 hover:bg-gray-600 rounded-xl border border-gray-400">
+                Назад
+            </button>
+        </div>
+    </div>
+
+    <!-- Level Complete / Result Modal -->
+    <div id="resultModal" class="fixed inset-0 modal-blur flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-[#1f2623] border-4 border-[#8b5a2b] rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl relative">
+            <h2 id="resultTitle" class="text-4xl chalk-font chalk-yellow font-bold mb-2">Чудово!</h2>
+            <p id="resultSubtitle" class="neucha-font text-2xl text-gray-200 mb-4">Рівень Пройдено!</p>
+            
+            <div id="resultStars" class="flex justify-center space-x-2 my-4 text-3xl sm:text-4xl">
+                <!-- Dynamic stars -->
+            </div>
+
+            <p id="resultScoreText" class="neucha-font text-xl text-gray-300 mb-6">Ти зібрав 5 із 5 зірок!</p>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button id="nextLevelBtn" onclick="nextLevel()" class="py-3 px-6 text-xl neucha-font chalk-text bg-emerald-700 hover:bg-emerald-600 rounded-xl border-2 border-emerald-400 shadow transition active:scale-95">
+                    Наступний Рівень <i class="fas fa-arrow-right ml-1"></i>
+                </button>
+                <button onclick="restartLevel()" class="py-3 px-6 text-xl neucha-font chalk-text bg-blue-700 hover:bg-blue-600 rounded-xl border-2 border-blue-400 shadow transition active:scale-95">
+                    <i class="fas fa-redo mr-1"></i> Ще раз
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exit / Pause Modal -->
+    <div id="exitModal" class="fixed inset-0 modal-blur flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-[#1f2623] border-4 border-[#8b5a2b] rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl">
+            <h2 class="text-3xl chalk-font chalk-text font-bold mb-4">Пауза</h2>
+            <p class="neucha-font text-xl text-gray-300 mb-6">Бажаєш повернутися в головне меню?</p>
+            <div class="flex justify-center space-x-4">
+                <button onclick="closeModal('exitModal'); resumeGame();" class="py-2 px-5 text-xl neucha-font chalk-text bg-emerald-700 hover:bg-emerald-600 rounded-xl border border-emerald-400">
+                    Продовжити
+                </button>
+                <button onclick="goToMainMenu()" class="py-2 px-5 text-xl neucha-font chalk-text bg-red-700 hover:bg-red-600 rounded-xl border border-red-400">
+                    Меню
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sound System using Native Web Audio API
+        class SoundSystem {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+            }
+
+            playTone(freq, type = 'sine', duration = 0.15, gainVal = 0.2) {
+                if (this.muted) return;
+                this.init();
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+                gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            }
+
+            playChalkClick() {
+                if (this.muted) return;
+                this.init();
+                // Short noise pop simulating chalk tap
+                const bufferSize = this.ctx.sampleRate * 0.04;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1200;
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                noise.start();
+            }
+
+            playCorrect() {
+                if (this.muted) return;
+                const now = this.ctx ? this.ctx.currentTime : 0;
+                this.playTone(523.25, 'triangle', 0.15, 0.25); // C5
+                setTimeout(() => this.playTone(659.25, 'triangle', 0.15, 0.25), 100); // E5
+                setTimeout(() => this.playTone(783.99, 'triangle', 0.25, 0.3), 200); // G5
+            }
+
+            playWrong() {
+                if (this.muted) return;
+                this.playTone(220, 'sawtooth', 0.2, 0.25); // A3
+                setTimeout(() => this.playTone(180, 'sawtooth', 0.3, 0.25), 150);
+            }
+
+            playWinFanfare() {
+                if (this.muted) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, index) => {
+                    setTimeout(() => this.playTone(freq, 'triangle', 0.3, 0.3), index * 120);
+                });
+            }
+        }
+
+        const sound = new SoundSystem();
+
+        function toggleSound() {
+            sound.muted = !sound.muted;
+            const icon = document.getElementById('soundIcon');
+            if (sound.muted) {
+                icon.className = 'fas fa-volume-mute text-red-400';
+            } else {
+                icon.className = 'fas fa-volume-up';
+                sound.playChalkClick();
+            }
+        }
+
+        const canvas = document.getElementById('dustCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            const board = document.getElementById('board');
+            canvas.width = board.clientWidth;
+            canvas.height = board.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class ChalkParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 4 + 2;
+                this.speedX = (Math.random() - 0.5) * 4;
+                this.speedY = (Math.random() - 0.5) * 4 - 1;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.03 + 0.02;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.alpha -= this.decay;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createChalkDust(x, y, count = 20) {
+            const rect = canvas.getBoundingClientRect();
+            const posX = x - rect.left;
+            const posY = y - rect.top;
+            for (let i = 0; i < count; i++) {
+                particles.push(new ChalkParticle(posX, posY));
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        let currentLevel = 1;
+        let maxLevels = 6;
+        let score = 0; // Stars filled (0 to 5)
+        let totalQuestionsPerLevel = 5;
+        let currentQuestionIndex = 0;
+        let currentQuestion = null;
+        let timerInterval = null;
+        let timerTimeLeft = 100; // Percentage
+        let timerDuration = 12; // Seconds per question
+        let isPaused = false;
+        let canAnswer = true;
+
+        // Level Configurations
+        const levelConfigs = {
+            1: { name: "Рівень 1", time: 14, choicesCount: 2, type: "add_sub_easy" },
+            2: { name: "Рівень 2", time: 12, choicesCount: 3, type: "add_sub_medium" },
+            3: { name: "Рівень 3", time: 10, choicesCount: 3, type: "add_sub_hard" },
+            4: { name: "Рівень 4", time: 10, choicesCount: 4, type: "missing_number" },
+            5: { name: "Рівень 5", time: 10, choicesCount: 4, type: "multiplication" },
+            6: { name: "Рівень 6", time: 8,  choicesCount: 4, type: "mixed" }
+        };
+
+        function generateQuestion(level) {
+            const cfg = levelConfigs[level] || levelConfigs[1];
+            let num1, num2, op, answer, text;
+
+            switch (cfg.type) {
+                case "add_sub_easy":
+                    op = Math.random() > 0.3 ? '+' : '-';
+                    if (op === '+') {
+                        num1 = Math.floor(Math.random() * 4) + 1;
+                        num2 = Math.floor(Math.random() * 4);
+                        answer = num1 + num2;
+                    } else {
+                        num1 = Math.floor(Math.random() * 5) + 1;
+                        num2 = Math.floor(Math.random() * (num1 + 1));
+                        answer = num1 - num2;
+                    }
+                    text = `${num1} ${op} ${num2} = ?`;
+                    break;
+
+                case "add_sub_medium":
+                    op = Math.random() > 0.5 ? '+' : '-';
+                    if (op === '+') {
+                        num1 = Math.floor(Math.random() * 8) + 1;
+                        num2 = Math.floor(Math.random() * 8) + 1;
+                        answer = num1 + num2;
+                    } else {
+                        num1 = Math.floor(Math.random() * 10) + 3;
+                        num2 = Math.floor(Math.random() * num1) + 1;
+                        answer = num1 - num2;
+                    }
+                    text = `${num1} ${op} ${num2} = ?`;
+                    break;
+
+                case "add_sub_hard":
+                    op = Math.random() > 0.5 ? '+' : '-';
+                    if (op === '+') {
+                        num1 = Math.floor(Math.random() * 12) + 4;
+                        num2 = Math.floor(Math.random() * 10) + 2;
+                        answer = num1 + num2;
+                    } else {
+                        num1 = Math.floor(Math.random() * 18) + 5;
+                        num2 = Math.floor(Math.random() * (num1 - 2)) + 1;
+                        answer = num1 - num2;
+                    }
+                    text = `${num1} ${op} ${num2} = ?`;
+                    break;
+
+                case "missing_number":
+                    op = Math.random() > 0.5 ? '+' : '-';
+                    if (op === '+') {
+                        answer = Math.floor(Math.random() * 7) + 1;
+                        num2 = Math.floor(Math.random() * 8) + 1;
+                        let total = answer + num2;
+                        text = `? + ${num2} = ${total}`;
+                    } else {
+                        answer = Math.floor(Math.random() * 6) + 1;
+                        num1 = answer + Math.floor(Math.random() * 6) + 1;
+                        let diff = num1 - answer;
+                        text = `${num1} - ? = ${diff}`;
+                    }
+                    break;
+
+                case "multiplication":
+                    num1 = Math.floor(Math.random() * 5) + 1;
+                    num2 = Math.floor(Math.random() * 5) + 1;
+                    answer = num1 * num2;
+                    text = `${num1} × ${num2} = ?`;
+                    break;
+
+                case "mixed":
+                default:
+                    const r = Math.random();
+                    if (r < 0.4) {
+                        num1 = Math.floor(Math.random() * 10) + 2;
+                        num2 = Math.floor(Math.random() * 10) + 2;
+                        answer = num1 * num2;
+                        text = `${num1} × ${num2} = ?`;
+                    } else if (r < 0.7) {
+                        num1 = Math.floor(Math.random() * 15) + 5;
+                        num2 = Math.floor(Math.random() * 12) + 3;
+                        answer = num1 + num2;
+                        text = `${num1} + ${num2} = ?`;
+                    } else {
+                        num1 = Math.floor(Math.random() * 20) + 5;
+                        num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
+                        answer = num1 - num2;
+                        text = `${num1} - ${num2} = ?`;
+                    }
+                    break;
+            }
+
+            // Generate unique options
+            let choices = [answer];
+            while (choices.length < cfg.choicesCount) {
+                let offset = (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? 1 : -1);
+                let fakeOption = answer + offset;
+                if (fakeOption >= 0 && !choices.includes(fakeOption)) {
+                    choices.push(fakeOption);
+                }
+            }
+
+            // Shuffle choices
+            choices.sort(() => Math.random() - 0.5);
+
+            return { text, answer, choices };
+        }
+
+        function startGame(level = 1) {
+            currentLevel = level;
+            score = 0;
+            currentQuestionIndex = 0;
+            
+            document.getElementById('startModal').classList.add('hidden');
+            document.getElementById('levelModal').classList.add('hidden');
+            document.getElementById('resultModal').classList.add('hidden');
+            document.getElementById('exitModal').classList.add('hidden');
+
+            updateLevelHeader();
+            updateStarsDisplay();
+            nextQuestion();
+        }
+
+        function updateLevelHeader() {
+            document.getElementById('levelLabel').innerText = `Рівень ${currentLevel}`;
+        }
+
+        function updateStarsDisplay() {
+            const stars = document.querySelectorAll('#starsContainer .star-icon');
+            stars.forEach((star, index) => {
+                if (index < score) {
+                    star.classList.remove('star-empty');
+                    star.classList.add('star-active');
+                } else {
+                    star.classList.remove('star-active');
+                    star.classList.add('star-empty');
+                }
+            });
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            const cfg = levelConfigs[currentLevel] || levelConfigs[1];
+            timerDuration = cfg.time;
+            timerTimeLeft = 100;
+            
+            const timerBar = document.getElementById('timerBar');
+            timerBar.style.width = '100%';
+
+            const intervalMs = 100;
+            const decrement = (100 / (timerDuration * 1000)) * intervalMs;
+
+            timerInterval = setInterval(() => {
+                if (isPaused) return;
+
+                timerTimeLeft -= decrement;
+                if (timerTimeLeft <= 0) {
+                    timerTimeLeft = 0;
+                    timerBar.style.width = '0%';
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                } else {
+                    timerBar.style.width = `${timerTimeLeft}%`;
+                }
+            }, intervalMs);
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex >= totalQuestionsPerLevel) {
+                finishLevel();
+                return;
+            }
+
+            canAnswer = true;
+            currentQuestionIndex++;
+            currentQuestion = generateQuestion(currentLevel);
+
+            const qTextEl = document.getElementById('questionText');
+            qTextEl.className = "text-6xl sm:text-7xl md:text-8xl font-bold chalk-font chalk-text text-center transition-all";
+            qTextEl.innerText = currentQuestion.text;
+
+            renderAnswers(currentQuestion.choices);
+            startTimer();
+        }
+
+        function renderAnswers(choices) {
+            const container = document.getElementById('answersContainer');
+            container.innerHTML = '';
+
+            choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'chalk-btn w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center text-3xl sm:text-4xl md:text-5xl font-bold chalk-font chalk-text shadow-lg transform transition active:scale-90';
+                btn.innerText = choice;
+                btn.onclick = (e) => selectAnswer(choice, btn, e);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(selected, buttonEl, event) {
+            if (!canAnswer) return;
+            canAnswer = false;
+            clearInterval(timerInterval);
+
+            // Trigger dust particles on tap
+            if (event) {
+                createChalkDust(event.clientX, event.clientY, 25);
+            }
+
+            const qTextEl = document.getElementById('questionText');
+
+            if (selected === currentQuestion.answer) {
+                // Correct answer
+                sound.playCorrect();
+                buttonEl.classList.add('bg-emerald-500/40', 'border-emerald-300');
+                qTextEl.classList.add('animate-correct');
+                score++;
+                updateStarsDisplay();
+
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1000);
+            } else {
+                // Wrong answer
+                sound.playWrong();
+                buttonEl.classList.add('bg-red-500/40', 'border-red-300');
+                qTextEl.classList.add('animate-wrong');
+
+                // Highlight correct one
+                highlightCorrectAnswer();
+
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1200);
+            }
+        }
+
+        function handleTimeout() {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            sound.playWrong();
+            const qTextEl = document.getElementById('questionText');
+            qTextEl.classList.add('animate-wrong');
+
+            highlightCorrectAnswer();
+
+            setTimeout(() => {
+                nextQuestion();
+            }, 1200);
+        }
+
+        function highlightCorrectAnswer() {
+            const container = document.getElementById('answersContainer');
+            Array.from(container.children).forEach(btn => {
+                if (parseInt(btn.innerText) === currentQuestion.answer) {
+                    btn.classList.add('bg-emerald-500/40', 'border-emerald-300', 'scale-110');
+                }
+            });
+        }
+
+        function finishLevel() {
+            clearInterval(timerInterval);
+            
+            const resultModal = document.getElementById('resultModal');
+            const titleEl = document.getElementById('resultTitle');
+            const subTitleEl = document.getElementById('resultSubtitle');
+            const scoreTextEl = document.getElementById('resultScoreText');
+            const starsContainer = document.getElementById('resultStars');
+            const nextBtn = document.getElementById('nextLevelBtn');
+
+            starsContainer.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const star = document.createElement('i');
+                if (i < score) {
+                    star.className = 'fas fa-star chalk-yellow drop-shadow-md animate-bounce';
+                    star.style.animationDelay = `${i * 0.1}s`;
+                } else {
+                    star.className = 'fas fa-star text-gray-600 opacity-40';
+                }
+                starsContainer.appendChild(star);
+            }
+
+            scoreTextEl.innerText = `Тій результат: ${score} з 5 зірочок!`;
+
+            if (score >= 3) {
+                sound.playWinFanfare();
+                titleEl.innerText = score === 5 ? "Чудово! 🌟" : "Молодець! 👍";
+                subTitleEl.innerText = `Рівень ${currentLevel} Пройдено!`;
+                
+                if (currentLevel < maxLevels) {
+                    nextBtn.classList.remove('hidden');
+                } else {
+                    nextBtn.classList.add('hidden');
+                    subTitleEl.innerText = "Вітаємо! Ти пройшов усі рівні!";
+                }
+            } else {
+                sound.playWrong();
+                titleEl.innerText = "Спробуй ще! ✏️";
+                subTitleEl.innerText = "Потрібно принаймні 3 зірочки";
+                nextBtn.classList.add('hidden');
+            }
+
+            resultModal.classList.remove('hidden');
+        }
+
+        function nextLevel() {
+            if (currentLevel < maxLevels) {
+                startGame(currentLevel + 1);
+            }
+        }
+
+        function restartLevel() {
+            startGame(currentLevel);
+        }
+
+        function showLevelSelect() {
+            const grid = document.getElementById('levelGrid');
+            grid.innerHTML = '';
+
+            for (let i = 1; i <= maxLevels; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'py-3 bg-white/10 hover:bg-white/20 border-2 border-white/30 rounded-xl neucha-font text-2xl chalk-text transition active:scale-95 flex flex-col items-center justify-center gap-1';
+                btn.innerHTML = `<span>Рівень ${i}</span>`;
+                btn.onclick = () => {
+                    sound.playChalkClick();
+                    startGame(i);
+                };
+                grid.appendChild(btn);
+            }
+
+            document.getElementById('startModal').classList.add('hidden');
+            document.getElementById('levelModal').classList.remove('hidden');
+        }
+
+        function showExitMenu() {
+            sound.playChalkClick();
+            isPaused = true;
+            document.getElementById('exitModal').classList.remove('hidden');
+        }
+
+        function resumeGame() {
+            isPaused = false;
+        }
+
+        function goToMainMenu() {
+            sound.playChalkClick();
+            clearInterval(timerInterval);
+            isPaused = false;
+            document.getElementById('exitModal').classList.add('hidden');
+            document.getElementById('resultModal').classList.add('hidden');
+            document.getElementById('startModal').classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            sound.playChalkClick();
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        window.onload = function() {
+            // Render initial background demo state
+            document.getElementById('questionText').innerText = "1 + 0 = ?";
+            const container = document.getElementById('answersContainer');
+            container.innerHTML = `
+                <button onclick="startGame(1)" class="chalk-btn w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-4xl sm:text-5xl font-bold chalk-font chalk-text shadow-lg">1</button>
+                <button onclick="startGame(1)" class="chalk-btn w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-4xl sm:text-5xl font-bold chalk-font chalk-text shadow-lg">3</button>
+            `;
+        };
+    </script>
+</body>
+</html>
