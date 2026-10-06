@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дитяча Алхімія - Гра для розвитку та знань</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Comfortaa:wght@500;700&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti for magical discovery effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        body {
+            font-family: 'Nunito', 'Comfortaa', sans-serif;
+            background-color: #1e0b2b;
+            color: #f3e8ff;
+            overflow: hidden;
+        }
+        .logo-font {
+            font-family: 'Caveat', cursive;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 11, 43, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #eab308;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #facc15;
+        }
+        /* Glow animations */
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(234, 179, 8, 0.6)); }
+            50% { filter: drop-shadow(0 0 18px rgba(250, 204, 21, 0.9)); }
+        }
+        .glow-element {
+            animation: pulse-glow 2.5s infinite ease-in-out;
+        }
+        @keyframes merge-bounce {
+            0% { transform: scale(0.3) rotate(-10deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .animate-merge {
+            animation: merge-bounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        /* Custom workspace shadow grid */
+        .alchemy-canvas {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+            background-size: 28px 28px;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col md:flex-row overflow-hidden select-none bg-[#1e0b2b]">
+
+    <!-- LEFT CONTROL BAR -->
+    <div class="w-full md:w-24 bg-[#14061e] border-b md:border-b-0 md:border-r border-amber-500/20 flex md:flex-col justify-around md:justify-start items-center p-2 md:py-6 gap-2 md:gap-8 z-20 shrink-0">
+        <!-- Clean Up Workspace -->
+        <button id="btn-cleanup" onclick="game.clearWorkspace()" class="flex flex-col items-center justify-center text-amber-400 hover:text-amber-200 hover:scale-110 transition-all group" title="Очистити робоче поле">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center group-hover:border-amber-400 group-hover:bg-amber-500/20 transition-all">
+                <i class="fa-solid fa-broom text-xl"></i>
+            </div>
+            <span class="text-[11px] font-bold mt-1 text-amber-200/80 group-hover:text-amber-300">Очистити</span>
+        </button>
+
+        <!-- Settings -->
+        <button id="btn-settings" onclick="game.toggleModal('modal-settings')" class="flex flex-col items-center justify-center text-amber-400 hover:text-amber-200 hover:scale-110 transition-all group" title="Налаштування">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center group-hover:border-amber-400 group-hover:bg-amber-500/20 transition-all">
+                <i class="fa-solid fa-sliders text-xl"></i>
+            </div>
+            <span class="text-[11px] font-bold mt-1 text-amber-200/80 group-hover:text-amber-300">Опції</span>
+        </button>
+
+        <!-- Encyclopedia / Book -->
+        <button id="btn-encyclopedia" onclick="game.toggleModal('modal-encyclopedia')" class="flex flex-col items-center justify-center text-amber-400 hover:text-amber-200 hover:scale-110 transition-all group relative" title="Енциклопедія відкриттів">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center group-hover:border-amber-400 group-hover:bg-amber-500/20 transition-all">
+                <i class="fa-solid fa-book-bookmark text-xl"></i>
+            </div>
+            <span id="badge-new" class="hidden absolute -top-1 right-2 bg-red-500 text-white text-[10px] font-black rounded-full px-1.5 py-0.5 animate-bounce">0</span>
+            <span class="text-[11px] font-bold mt-1 text-amber-200/80 group-hover:text-amber-300">Книга</span>
+        </button>
+
+        <!-- Hints -->
+        <button id="btn-hints" onclick="game.showHint()" class="flex flex-col items-center justify-center text-amber-400 hover:text-amber-200 hover:scale-110 transition-all group" title="Підказка">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center group-hover:border-amber-400 group-hover:bg-amber-500/20 transition-all">
+                <i class="fa-solid fa-lightbulb text-xl"></i>
+            </div>
+            <span class="text-[11px] font-bold mt-1 text-amber-200/80 group-hover:text-amber-300">Підказка</span>
+        </button>
+    </div>
+
+    <!-- CENTRAL WORKSPACE -->
+    <div id="workspace" class="flex-1 relative alchemy-canvas overflow-hidden cursor-crosshair min-h-[350px]">
+        
+        <!-- Workspace Header Banner -->
+        <div class="absolute top-4 left-4 pointer-events-none z-10 flex items-center gap-3">
+            <div class="bg-purple-950/80 backdrop-blur-md border border-amber-500/30 px-4 py-2 rounded-2xl shadow-lg flex items-center gap-3">
+                <span class="text-amber-400 text-lg"><i class="fa-solid fa-flask-vial"></i></span>
+                <div>
+                    <h1 class="text-xs font-bold text-amber-200/70 uppercase tracking-wider">Прогрес Алхіміка</h1>
+                    <div id="progress-text" class="text-base font-extrabold text-amber-300">4 / 35 елементів</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions callout for young kids -->
+        <div id="tutorial-tip" class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-amber-500/20 border border-amber-400/40 text-amber-100 text-xs md:text-sm px-4 py-2 rounded-full pointer-events-none transition-opacity duration-500 backdrop-blur-sm flex items-center gap-2">
+            <i class="fa-solid fa-hand-pointer text-amber-300 animate-bounce"></i>
+            <span>Перетягуй елементи з правої панелі та поєднуй їх тут!</span>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR (ELEMENTS PALETTE) -->
+    <div class="w-full md:w-80 bg-[#14061e] border-t md:border-t-0 md:border-l border-amber-500/20 flex flex-col h-64 md:h-full z-20 shrink-0">
+        <!-- Search & Filter Header -->
+        <div class="p-3 border-b border-amber-500/20 flex items-center gap-2 bg-[#1b0829]">
+            <div class="relative flex-1">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-amber-400/60 text-sm"></i>
+                <input type="text" id="element-search" placeholder="Пошук елемента..." oninput="game.filterElements(this.value)" class="w-full bg-purple-950/60 border border-amber-500/30 rounded-xl pl-9 pr-3 py-1.5 text-sm text-amber-100 placeholder-amber-200/40 focus:outline-none focus:border-amber-400 transition-all">
+            </div>
+            <button onclick="game.toggleSort()" title="Сортування" class="p-2 bg-purple-900/40 border border-amber-500/30 text-amber-300 rounded-xl hover:bg-amber-500/20 transition-all text-sm">
+                <i class="fa-solid fa-arrow-down-a-z"></i>
+            </button>
+        </div>
+
+        <!-- Scrollable Element List -->
+        <div id="elements-list" class="flex-1 overflow-y-auto p-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-1 gap-2.5">
+            <!-- Dynamically populated elements -->
+        </div>
+    </div>
+
+    <!-- MODAL: NEW DISCOVERY CELEBRATION -->
+    <div id="modal-discovery" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden transition-opacity">
+        <div class="bg-gradient-to-b from-[#2e1047] to-[#170526] border-2 border-amber-400/80 rounded-3xl p-6 max-w-md w-full text-center shadow-2xl relative overflow-hidden animate-merge">
+            <div class="absolute -top-10 -left-10 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl"></div>
+
+            <div class="text-amber-400 text-sm font-black tracking-widest uppercase mb-1">🎉 Нове Відкриття! 🎉</div>
+            <h2 id="discovery-title" class="text-3xl font-black text-amber-200 mb-4">Назва елемента</h2>
+            
+            <div id="discovery-icon-container" class="w-28 h-28 mx-auto my-4 bg-purple-900/60 border-2 border-amber-400/50 rounded-2xl flex items-center justify-center text-6xl shadow-inner glow-element">
+                <!-- SVG Icon inserted here -->
+            </div>
+
+            <p id="discovery-recipe" class="text-xs text-amber-300/80 font-bold mb-3 bg-purple-950/80 py-1.5 px-3 rounded-full inline-block border border-amber-500/20">
+                Рецепт: Елемент 1 + Елемент 2
+            </p>
+
+            <div class="bg-purple-950/90 border border-amber-500/30 rounded-2xl p-4 my-4 text-left">
+                <div class="text-xs font-extrabold text-amber-400 mb-1 flex items-center gap-1.5">
+                    <i class="fa-solid fa-graduation-cap"></i> Цікавий факт для алхіміків:
+                </div>
+                <p id="discovery-fact" class="text-sm text-purple-100 leading-relaxed font-medium">
+                    Цікавий факт про цей елемент для учнів початкової школи...
+                </p>
+            </div>
+
+            <button onclick="game.closeDiscoveryModal()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-purple-950 font-black py-3 rounded-xl shadow-lg transform active:scale-95 transition-all text-base tracking-wide">
+                Чудово! Продовжити <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: ENCYCLOPEDIA -->
+    <div id="modal-encyclopedia" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-[#1a082b] border border-amber-500/40 rounded-3xl p-6 max-w-2xl w-full h-[85vh] flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center pb-4 border-b border-amber-500/20">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-amber-200">Енциклопедія Алхіміка</h2>
+                        <p class="text-xs text-amber-300/60">Зібрані знання про всі відкриті елементи</p>
+                    </div>
+                </div>
+                <button onclick="game.toggleModal('modal-encyclopedia')" class="text-amber-400/60 hover:text-amber-200 text-2xl p-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="encyclopedia-grid" class="flex-1 overflow-y-auto my-4 grid grid-cols-1 sm:grid-cols-2 gap-3 pr-2">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div class="pt-3 border-t border-amber-500/20 text-center text-xs text-amber-300/60">
+                Потрібно більше знань? Експериментуй та поєднуй нові елементи!
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SETTINGS -->
+    <div id="modal-settings" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-[#1a082b] border border-amber-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl">
+            <div class="flex justify-between items-center pb-4 border-b border-amber-500/20 mb-4">
+                <h2 class="text-xl font-extrabold text-amber-200 flex items-center gap-2">
+                    <i class="fa-solid fa-gear text-amber-400"></i> Налаштування
+                </h2>
+                <button onclick="game.toggleModal('modal-settings')" class="text-amber-400/60 hover:text-amber-200 text-2xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Sound Toggle -->
+                <div class="flex items-center justify-between p-3 bg-purple-950/60 border border-amber-500/20 rounded-2xl">
+                    <span class="font-bold text-amber-100 flex items-center gap-2">
+                        <i class="fa-solid fa-volume-high text-amber-400"></i> Звукові ефекти
+                    </span>
+                    <input type="checkbox" id="setting-sound" checked onchange="game.toggleSound(this.checked)" class="w-6 h-6 accent-amber-500 cursor-pointer">
+                </div>
+
+                <!-- Reset Game -->
+                <div class="p-4 bg-red-950/30 border border-red-500/30 rounded-2xl">
+                    <h3 class="font-bold text-red-300 mb-1 text-sm">Скинути весь прогрес</h3>
+                    <p class="text-xs text-red-200/70 mb-3">Усі відкриті елементи та досягнення будуть видалені.</p>
+                    <button onclick="game.resetGame()" class="w-full bg-red-600/80 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-left"></i> Почати спочатку
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* WEB AUDIO SYNTHESIZER FOR SOUND EFFECTS */
+        class AudioFX {
+            constructor() {
+                this.enabled = true;
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playPop() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.08);
+                
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+
+            playMerge() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                
+                // Play major chord pop
+                [523.25, 659.25, 783.99].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+                    
+                    gain.gain.setValueAtTime(0.2, now + idx * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.25);
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.start(now + idx * 0.05);
+                    osc.stop(now + idx * 0.05 + 0.25);
+                });
+            }
+
+            playDiscovery() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                // Fanfare melody: C5, E5, G5, C6
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.12);
+                    
+                    gain.gain.setValueAtTime(0.3, now + i * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.35);
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.start(now + i * 0.12);
+                    osc.stop(now + i * 0.12 + 0.35);
+                });
+            }
+        }
+
+        const audio = new AudioFX();
+    </script>
+
+    <script>
+        /* ELEMENT DATABASE & RECIPES (Ukrainian Primary School Alchemy) */
+        const ELEMENTS_DATA = {
+            'air': {
+                name: 'Повітря',
+                isBasic: true,
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><g fill="none" stroke="#60a5fa" stroke-width="4" stroke-linecap="round"><path d="M12 20h30a8 8 0 1 0-8-8"/><path d="M8 32h40a6 6 0 1 1-6 6"/><path d="M16 44h24a6 6 0 1 0-6-6"/></g></svg>`,
+                fact: 'Повітря прозоре і невидиме, але воно оточує всю нашу Планету! Без повітря люди, тварини та рослини не змогли б дихати.'
+            },
+            'earth': {
+                name: 'Земля',
+                isBasic: true,
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M8 48 C16 28, 48 28, 56 48 Z" fill="#92400e" stroke="#d97706" stroke-width="3"/><circle cx="24" cy="42" r="2" fill="#fef3c7"/><circle cx="36" cy="38" r="2.5" fill="#fef3c7"/><circle cx="44" cy="44" r="1.5" fill="#fef3c7"/></svg>`,
+                fact: 'Земля дає життя всім рослинам на нашій планеті! В ній живуть корисні черв’ячки та росте смачна їжа.'
+            },
+            'fire': {
+                name: 'Вогонь',
+                isBasic: true,
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M32 6 C32 6, 12 28, 12 44 C12 54, 20 58, 32 58 C44 58, 52 54, 52 44 C52 28, 32 6, 32 6 Z" fill="#ef4444"/><path d="M32 20 C32 20, 20 34, 20 46 C20 52, 25 54, 32 54 C39 54, 44 52, 44 46 C44 34, 32 20, 32 20 Z" fill="#f97316"/><path d="M32 32 C32 32, 26 40, 26 48 C26 51, 28 52, 32 52 C36 52, 38 51, 38 48 C38 40, 32 32, 32 32 Z" fill="#facc15"/></svg>`,
+                fact: 'Вогонь дарує тепло та світло, але з ним треба бути дуже обережним! Давні люди навчилися готувати їжу завдяки вогню.'
+            },
+            'water': {
+                name: 'Вода',
+                isBasic: true,
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M32 8 C32 8, 12 34, 12 46 C12 56, 20 60, 32 60 C44 60, 52 56, 52 46 C52 34, 32 8, 32 8 Z" fill="#38bdf8"/><ellipse cx="24" cy="38" rx="4" ry="8" transform="rotate(-30 24 38)" fill="#e0f2fe"/></svg>`,
+                fact: 'Вода — це основа життя на Землі! Наше тіло більше ніж на половину складається з води, тому важливо пити достатньо води щодня.'
+            },
+            // COMBINATIONS
+            'steam': {
+                name: 'Пара',
+                recipe: ['water', 'fire'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><g fill="none" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"><path d="M18 48 C12 36, 24 24, 18 12"/><path d="M32 52 C26 40, 38 28, 32 16"/><path d="M46 48 C40 36, 52 24, 46 12"/></g></svg>`,
+                fact: 'Коли вода дуже сильно нагрівається, вона перетворюється на невидимий газ — пару! Саме пара закипає в чайнику.'
+            },
+            'mud': {
+                name: 'Глина',
+                recipe: ['water', 'earth'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><ellipse cx="32" cy="42" rx="22" ry="12" fill="#78350f"/><path d="M18 40 C22 30, 32 32, 38 28 C42 24, 48 32, 46 40 Z" fill="#b45309"/></svg>`,
+                fact: 'З глини люди здавна ліплять гарний посуд, глечики та загартовують її у печі, щоб вона стала міцною!'
+            },
+            'lava': {
+                name: 'Лава',
+                recipe: ['earth', 'fire'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M10 48 C15 32, 49 32, 54 48 Z" fill="#7f1d1d"/><path d="M18 42 Q 28 30, 36 42 T 50 42" fill="none" stroke="#f97316" stroke-width="6" stroke-linecap="round"/><circle cx="28" cy="36" r="3" fill="#facc15"/></svg>`,
+                fact: 'Лава — це розплавлені від страшної спеки гірські породи, які вириваються з вулканів!'
+            },
+            'dust': {
+                name: 'Пил',
+                recipe: ['air', 'earth'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><g fill="#a8a29e"><circle cx="16" cy="40" r="3"/><circle cx="28" cy="44" r="2"/><circle cx="22" cy="32" r="1.5"/><circle cx="40" cy="38" r="4"/><circle cx="48" cy="44" r="2.5"/><circle cx="34" cy="28" r="2"/></g></svg>`,
+                fact: 'Пил складається з мікроскопічних частинок піску, землі та мінералів. Рослинам пил допомагає переносити пилок!'
+            },
+            'energy': {
+                name: 'Енергія',
+                recipe: ['air', 'fire'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M36 8 L18 34 H32 L26 56 L46 28 H32 Z" fill="#facc15" stroke="#eab308" stroke-width="2"/></svg>`,
+                fact: 'Енергія дає силу рухатися абсолютно всьому — від машини на вулиці до нашого серця!'
+            },
+            'rain': {
+                name: 'Дощ',
+                recipe: ['water', 'air'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M18 28 C18 20, 26 16, 34 18 C38 12, 48 14, 50 22 C56 22, 58 30, 52 36 C48 38, 20 38, 18 28 Z" fill="#94a3b8"/><path d="M22 44 L18 52 M32 44 L28 54 M42 44 L38 52" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/></svg>`,
+                fact: 'Краплинки дощу утворюються у хмарах, коли пара охолоджується. Дощ вмиває природу та напоює дерева!'
+            },
+            'stone': {
+                name: 'Камінь',
+                recipe: ['lava', 'air'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M14 44 L22 20 L44 16 L54 36 L42 52 L20 50 Z" fill="#64748b" stroke="#475569" stroke-width="3"/><path d="M22 20 L32 34 L42 52 M32 34 L54 36" fill="none" stroke="#475569" stroke-width="2"/></svg>`,
+                fact: 'Камінь — це застигла прадавня лава чи ущільнена земля. Камені дуже міцні і зберігають історію мільйонів років.'
+            },
+            'plant': {
+                name: 'Рослина',
+                recipe: ['rain', 'earth'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M32 54 V28" stroke="#15803d" stroke-width="4" stroke-linecap="round"/><path d="M32 38 C20 34, 16 20, 32 24 C48 20, 44 34, 32 38 Z" fill="#22c55e"/><path d="M32 28 C24 16, 20 8, 32 10 C44 8, 40 16, 32 28 Z" fill="#4ade80"/></svg>`,
+                fact: 'Рослини — справжні чарівники! Вони вдихають вуглекислий газ, а видихають чистий кисень, яким ми дихаємо.'
+            },
+            'sun': {
+                name: 'Сонце',
+                recipe: ['energy', 'air'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><circle cx="32" cy="32" r="16" fill="#facc15"/><g stroke="#f59e0b" stroke-width="3" stroke-linecap="round"><path d="M32 6 V12 M32 52 V58 M6 32 H12 M52 32 H58 M14 14 L18 18 M46 46 L50 50 M14 50 L18 46 M46 18 L50 14"/></g></svg>`,
+                fact: 'Сонце — це величезна гаряча зоря! Світло від Сонця доходить до Землі всього за 8 хвилин.'
+            },
+            'rainbow': {
+                name: 'Веселка',
+                recipe: ['rain', 'sun'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M8 48 A24 24 0 0 1 56 48" fill="none" stroke="#ef4444" stroke-width="4"/><path d="M12 48 A20 20 0 0 1 52 48" fill="none" stroke="#f97316" stroke-width="4"/><path d="M16 48 A16 16 0 0 1 48 48" fill="none" stroke="#facc15" stroke-width="4"/><path d="M20 48 A12 12 0 0 1 44 48" fill="none" stroke="#22c55e" stroke-width="4"/><path d="M24 48 A8 8 0 0 1 40 48" fill="none" stroke="#3b82f6" stroke-width="4"/></svg>`,
+                fact: 'Веселка виникає, коли промені сонячного світла заломлюються у мільйонах маленьких краплинок дощу.'
+            },
+            'tree': {
+                name: 'Дерево',
+                recipe: ['plant', 'plant'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><rect x="26" y="36" width="12" height="22" rx="3" fill="#78350f"/><circle cx="32" cy="24" r="18" fill="#15803d"/><circle cx="24" cy="20" r="12" fill="#22c55e"/><circle cx="40" cy="22" r="10" fill="#16a34a"/></svg>`,
+                fact: 'Дерева — це найбільші рослини на нашій планеті. Деякі дерева можуть жити понад 1000 років!'
+            },
+            'algae': {
+                name: 'Водорості',
+                recipe: ['plant', 'water'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M20 54 Q14 38 24 24 T18 8" fill="none" stroke="#047857" stroke-width="4" stroke-linecap="round"/><path d="M34 54 Q42 38 32 24 T38 12" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round"/><path d="M46 54 Q40 42 48 30" fill="none" stroke="#059669" stroke-width="4" stroke-linecap="round"/></svg>`,
+                fact: 'Водорості ростуть у воді океанів, морів та річок. Вони є головною їжею для багатьох рибок!'
+            },
+            'life': {
+                name: 'Життя',
+                recipe: ['energy', 'algae'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M32 12 C20 4 8 20 20 36 L32 52 L44 36 C56 20 44 4 32 12 Z" fill="#ec4899"/><path d="M22 20 A 4 4 0 0 1 28 20" fill="none" stroke="#fbcfe8" stroke-width="2"/></svg>`,
+                fact: 'Життя зародилося у прадавньому океані! З дивовижних маленьких клітин утворилися всі тварини та рослини.'
+            },
+            'worm': {
+                name: 'Черв’як',
+                recipe: ['life', 'earth'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M12 44 Q20 32 28 42 T44 36 T52 24" fill="none" stroke="#f472b6" stroke-width="6" stroke-linecap="round"/><circle cx="52" cy="24" r="2" fill="#831843"/></svg>`,
+                fact: 'Дощові черв’яки розпушують ґрунт, допомагаючи корінню рослин дихати. Вони справжні помічники садівника!'
+            },
+            'fish': {
+                name: 'Риба',
+                recipe: ['life', 'water'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M12 32 C24 16, 48 20, 52 32 C48 44, 24 48, 12 32 Z" fill="#f97316"/><path d="M12 32 L4 22 V42 Z" fill="#ea580c"/><circle cx="42" cy="28" r="2.5" fill="#000"/><path d="M30 26 C34 30, 34 34, 30 38" fill="none" stroke="#fdba74" stroke-width="2"/></svg>`,
+                fact: 'Риби плавають у воді та дихають за допомогою зябер, які вибирають кисень прямо з води.'
+            },
+            'bird': {
+                name: 'Птах',
+                recipe: ['life', 'air'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M12 28 C20 16, 32 20, 40 28 C48 24, 56 20, 52 32 C44 40, 32 44, 20 40 Z" fill="#38bdf8"/><path d="M52 30 L60 28 L54 34 Z" fill="#f59e0b"/><circle cx="44" cy="28" r="2" fill="#000"/></svg>`,
+                fact: 'Птахи мають легкі порожнисті кістки та пір’я, що дозволяє їм легко ширяти в небесах!'
+            },
+            'brick': {
+                name: 'Цегла',
+                recipe: ['mud', 'fire'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><rect x="10" y="20" width="44" height="24" rx="4" fill="#b91c1c" stroke="#7f1d1d" stroke-width="3"/><line x1="10" y1="32" x2="54" y2="32" stroke="#7f1d1d" stroke-width="2"/><line x1="32" y1="20" x2="32" y2="32" stroke="#7f1d1d" stroke-width="2"/><line x1="22" y1="32" x2="22" y2="44" stroke="#7f1d1d" stroke-width="2"/><line x1="42" y1="32" x2="42" y2="44" stroke="#7f1d1d" stroke-width="2"/></svg>`,
+                fact: 'Цеглу роблять із глини та обпалюють у дуже гарячій печі, щоб вона стала міцною як камінь.'
+            },
+            'house': {
+                name: 'Будинок',
+                recipe: ['brick', 'brick'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M12 30 L32 12 L52 30 V52 H12 Z" fill="#fef3c7" stroke="#d97706" stroke-width="3"/><path d="M8 32 L32 10 L56 32" fill="none" stroke="#b91c1c" stroke-width="5" stroke-linecap="round"/><rect x="26" y="38" width="12" height="14" fill="#92400e"/></svg>`,
+                fact: 'Будинок дарує людям затишок, захищає від дощу, вітру та зимового холоду.'
+            },
+            'human': {
+                name: 'Людина',
+                recipe: ['life', 'house'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><circle cx="32" cy="18" r="10" fill="#fde047"/><path d="M16 54 C16 38, 22 32, 32 32 C42 32, 48 38, 48 54 Z" fill="#0284c7"/></svg>`,
+                fact: 'Людина має дивовижний мозок, здатна мріяти, створювати мистецтво, досліджувати космос та науки!'
+            },
+            'paper': {
+                name: 'Папір',
+                recipe: ['tree', 'human'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><rect x="14" y="10" width="36" height="44" rx="3" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/><line x1="22" y1="20" x2="42" y2="20" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/><line x1="22" y1="28" x2="42" y2="28" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/><line x1="22" y1="36" x2="34" y2="36" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/></svg>`,
+                fact: 'Папір виготовляють із деревини. На ньому ми малюємо чудові малюнки та пишемо цікаві історії!'
+            },
+            'book': {
+                name: 'Книга',
+                recipe: ['paper', 'human'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M10 16 C20 12, 30 16, 32 20 C34 16, 44 12, 54 16 V50 C44 46, 34 50, 32 46 C30 50, 20 46, 10 50 Z" fill="#3b82f6" stroke="#1d4ed8" stroke-width="3"/><path d="M32 20 V46" stroke="#1d4ed8" stroke-width="3"/></svg>`,
+                fact: 'Книги — це вірні друзі та джерело знань! Читанка допомагає дізнатися все про наш світ.'
+            },
+            'metal': {
+                name: 'Метал',
+                recipe: ['stone', 'fire'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M16 20 L32 10 L48 20 L48 44 L32 54 L16 44 Z" fill="#94a3b8" stroke="#64748b" stroke-width="3"/><path d="M16 20 L32 32 L48 20 M32 32 V54" fill="none" stroke="#64748b" stroke-width="2"/></svg>`,
+                fact: 'Метал дуже міцний і блискучий! З нього роблять ключі, велосипедні рами, монети та космічні ракети.'
+            },
+            'electricity': {
+                name: 'Електрика',
+                recipe: ['metal', 'energy'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M26 6 L12 36 H30 L22 58 L52 26 H34 L42 6 Z" fill="#eab308" stroke="#fef08a" stroke-width="2"/></svg>`,
+                fact: 'Електрика біжить дротами та оживляє наші комп’ютери, ліхтарики, іграшки та холодильники.'
+            },
+            'bulb': {
+                name: 'Лампочка',
+                recipe: ['electricity', 'human'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M22 28 C22 16, 42 16, 42 28 C42 34, 36 38, 36 44 H28 C28 38, 22 34, 22 28 Z" fill="#fef08a" stroke="#eab308" stroke-width="3"/><rect x="27" y="44" width="10" height="8" rx="2" fill="#94a3b8"/></svg>`,
+                fact: 'Винахід лампочки дозволив людям працювати та читати книжки у затишку навіть пізно ввечері.'
+            },
+            'sea': {
+                name: 'Море',
+                recipe: ['water', 'water'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M8 28 Q 18 20, 28 28 T 48 28 T 56 28 V 52 H 8 Z" fill="#0284c7"/><path d="M8 38 Q 18 30, 28 38 T 48 38 T 56 38 V 52 H 8 Z" fill="#0369a1"/></svg>`,
+                fact: 'Море солоне і дуже глибоке! В морях та океанах мешкає більша частина істот нашої планети.'
+            },
+            'cloud': {
+                name: 'Хмара',
+                recipe: ['steam', 'air'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><path d="M18 42 C12 42, 10 32, 18 28 C18 20, 28 16, 36 22 C42 18, 52 22, 50 30 C56 32, 54 42, 46 42 Z" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="2"/></svg>`,
+                fact: 'Хмаринки виглядають як пухнаста вата, але насправді вони складаються з мільярдів крихітних крапельок води.'
+            },
+            'snow': {
+                name: 'Сніг',
+                recipe: ['rain', 'cloud'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><g fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"><path d="M32 10 V54 M10 32 H54 M16 16 L48 48 M16 48 L48 16"/></g></svg>`,
+                fact: 'Кожна сніжинка унікальна! У світі немає двох абсолютно однакових сніжинок.'
+            },
+            'flower': {
+                name: 'Квітка',
+                recipe: ['plant', 'sun'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><circle cx="32" cy="32" r="7" fill="#facc15"/><circle cx="32" cy="18" r="7" fill="#f43f5e"/><circle cx="32" cy="46" r="7" fill="#f43f5e"/><circle cx="18" cy="32" r="7" fill="#f43f5e"/><circle cx="46" cy="32" r="7" fill="#f43f5e"/></svg>`,
+                fact: 'Яскраві квіти приваблюють бджілок своїм солодким нектаром, з якого бджоли виготовляють духмяний мед!'
+            },
+            'sunflower': {
+                name: 'Соняшник',
+                recipe: ['flower', 'sun'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><circle cx="32" cy="32" r="10" fill="#78350f"/><path d="M32 10 L35 20 L32 22 L29 20 Z M32 54 L35 44 L32 42 L29 44 Z M10 32 L20 35 L22 32 L20 29 Z M54 32 L44 35 L42 32 L44 29 Z" fill="#facc15"/></svg>`,
+                fact: 'Соняшник — символ України! Ця дивовижна рослина повертає свою голівку за рухом Сонця на небі.'
+            },
+            'scientist': {
+                name: 'Науковець',
+                recipe: ['human', 'book'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><circle cx="32" cy="20" r="10" fill="#fde047"/><path d="M18 54 C18 40, 24 34, 32 34 C40 34, 46 40, 46 54 Z" fill="#7e22ce"/><circle cx="28" cy="20" r="3" fill="none" stroke="#000" stroke-width="2"/><circle cx="36" cy="20" r="3" fill="none" stroke="#000" stroke-width="2"/><line x1="31" y1="20" x2="33" y2="20" stroke="#000" stroke-width="2"/></svg>`,
+                fact: 'Науковці постійно ставлять запитання "Чому?" та роблять нові відкриття, щоб зробити наш світ кращим!'
+            },
+            'robot': {
+                name: 'Робот',
+                recipe: ['metal', 'scientist'],
+                svg: `<svg viewBox="0 0 64 64" class="w-10 h-10"><rect x="18" y="16" width="28" height="22" rx="4" fill="#94a3b8" stroke="#475569" stroke-width="3"/><circle cx="26" cy="26" r="3" fill="#38bdf8"/><circle cx="38" cy="26" r="3" fill="#38bdf8"/><rect x="22" y="42" width="20" height="16" rx="2" fill="#64748b"/></svg>`,
+                fact: 'Роботи виконують складні та небезпечні завдання замість людей, наприклад, досліджують далекі планети!'
+            }
+        };
+    </script>
+
+    <script>
+        /* GAME CORE LOGIC */
+        class AlchemyGame {
+            constructor() {
+                this.unlocked = new Set(['air', 'earth', 'fire', 'water']);
+                this.workspaceElements = []; // { id, key, x, y, elementNode }
+                this.elementCounter = 0;
+                this.searchQuery = '';
+                this.sortAscending = true;
+                this.dragState = null;
+                this.newlyUnlocked = new Set();
+
+                this.init();
+            }
+
+            init() {
+                this.loadProgress();
+                this.renderSidebar();
+                this.updateProgressUI();
+                this.setupWorkspaceEvents();
+            }
+
+            // Save and load progress in local storage
+            saveProgress() {
+                try {
+                    localStorage.setItem('alchemy_ukr_unlocked', JSON.stringify(Array.from(this.unlocked)));
+                } catch(e) { console.error('LocalStorage restriction', e); }
+            }
+
+            loadProgress() {
+                try {
+                    const saved = localStorage.getItem('alchemy_ukr_unlocked');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        parsed.forEach(k => { if(ELEMENTS_DATA[k]) this.unlocked.add(k); });
+                    }
+                } catch(e) {}
+            }
+
+            resetGame() {
+                this.unlocked = new Set(['air', 'earth', 'fire', 'water']);
+                this.newlyUnlocked.clear();
+                this.saveProgress();
+                this.clearWorkspace();
+                this.renderSidebar();
+                this.updateProgressUI();
+                this.toggleModal('modal-settings');
+            }
+
+            updateProgressUI() {
+                const total = Object.keys(ELEMENTS_DATA).length;
+                const count = this.unlocked.size;
+                document.getElementById('progress-text').innerText = `${count} / ${total} елементів`;
+                
+                const badge = document.getElementById('badge-new');
+                if (this.newlyUnlocked.size > 0) {
+                    badge.innerText = this.newlyUnlocked.size;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            // Render elements sidebar list
+            renderSidebar() {
+                const listContainer = document.getElementById('elements-list');
+                listContainer.innerHTML = '';
+
+                let keys = Array.from(this.unlocked);
+
+                // Filter
+                if (this.searchQuery.trim() !== '') {
+                    const q = this.searchQuery.toLowerCase();
+                    keys = keys.filter(k => ELEMENTS_DATA[k].name.toLowerCase().includes(q));
+                }
+
+                // Sort
+                keys.sort((a, b) => {
+                    const nameA = ELEMENTS_DATA[a].name;
+                    const nameB = ELEMENTS_DATA[b].name;
+                    return this.sortAscending ? nameA.localeCompare(nameB, 'uk') : nameB.localeCompare(nameA, 'uk');
+                });
+
+                keys.forEach(key => {
+                    const item = ELEMENTS_DATA[key];
+                    const card = document.createElement('div');
+                    card.className = "bg-purple-950/70 hover:bg-amber-500/20 border border-amber-500/20 hover:border-amber-400/60 rounded-2xl p-2.5 flex items-center gap-3 cursor-grab active:cursor-grabbing transition-all transform hover:-translate-y-0.5 select-none touch-none";
+                    card.dataset.key = key;
+
+                    card.innerHTML = `
+                        <div class="w-10 h-10 rounded-xl bg-purple-900/80 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-sm">
+                            ${item.svg}
+                        </div>
+                        <span class="text-xs font-bold text-amber-100 truncate">${item.name}</span>
+                    `;
+
+                    // Pointer event for creating element on workspace via dragging from sidebar
+                    card.addEventListener('pointerdown', (e) => this.onSidebarPointerDown(e, key));
+
+                    listContainer.appendChild(card);
+                });
+            }
+
+            filterElements(query) {
+                this.searchQuery = query;
+                this.renderSidebar();
+            }
+
+            toggleSort() {
+                this.sortAscending = !this.sortAscending;
+                this.renderSidebar();
+            }
+
+            // Workspace Interaction & Drag-Drop Engine
+            setupWorkspaceEvents() {
+                const ws = document.getElementById('workspace');
+
+                window.addEventListener('pointermove', (e) => this.onPointerMove(e));
+                window.addEventListener('pointerup', (e) => this.onPointerUp(e));
+                window.addEventListener('pointercancel', (e) => this.onPointerUp(e));
+            }
+
+            spawnWorkspaceElement(key, x, y, isAnimated = false) {
+                const ws = document.getElementById('workspace');
+                const rect = ws.getBoundingClientRect();
+
+                // Hide tip on first spawn
+                const tip = document.getElementById('tutorial-tip');
+                if (tip) tip.style.opacity = '0';
+
+                const id = 'el_' + (++this.elementCounter);
+                const data = ELEMENTS_DATA[key];
+
+                const el = document.createElement('div');
+                el.className = `absolute flex flex-col items-center justify-center cursor-grab active:cursor-grabbing select-none touch-none group ${isAnimated ? 'animate-merge' : ''}`;
+                el.style.width = '76px';
+                el.style.height = '76px';
+                el.style.left = `${x - 38}px`;
+                el.style.top = `${y - 38}px`;
+                el.id = id;
+
+                el.innerHTML = `
+                    <div class="w-14 h-14 rounded-2xl bg-purple-950/90 border-2 border-amber-400/60 flex items-center justify-center shadow-xl group-hover:scale-105 group-hover:border-amber-300 transition-all backdrop-blur-sm">
+                        ${data.svg}
+                    </div>
+                    <span class="text-[11px] font-black text-amber-200 mt-1 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] px-1 bg-purple-950/80 rounded-md border border-amber-500/20 pointer-events-none">${data.name}</span>
+                `;
+
+                ws.appendChild(el);
+
+                const itemState = { id, key, x: x - 38, y: y - 38, elementNode: el };
+                this.workspaceElements.push(itemState);
+
+                // Add pointer event for dragging existing element on workspace
+                el.addEventListener('pointerdown', (e) => this.onWorkspacePointerDown(e, itemState));
+                // Double tap / click to clone element
+                el.addEventListener('dblclick', () => {
+                    this.spawnWorkspaceElement(key, itemState.x + 50, itemState.y + 30, true);
+                    audio.playPop();
+                });
+
+                return itemState;
+            }
+
+            onSidebarPointerDown(e, key) {
+                e.preventDefault();
+                audio.playPop();
+
+                const ws = document.getElementById('workspace');
+                const rect = ws.getBoundingClientRect();
+                
+                // Calculate position relative to workspace
+                const posX = e.clientX - rect.left;
+                const posY = e.clientY - rect.top;
+
+                const itemState = this.spawnWorkspaceElement(key, posX, posY);
+
+                this.dragState = {
+                    item: itemState,
+                    offsetX: 38,
+                    offsetY: 38
+                };
+            }
+
+            onWorkspacePointerDown(e, itemState) {
+                e.preventDefault();
+                e.stopPropagation();
+                audio.playPop();
+
+                // Bring to front
+                const ws = document.getElementById('workspace');
+                ws.appendChild(itemState.elementNode);
+
+                const rect = itemState.elementNode.getBoundingClientRect();
+                this.dragState = {
+                    item: itemState,
+                    offsetX: e.clientX - rect.left,
+                    offsetY: e.clientY - rect.top
+                };
+            }
+
+            onPointerMove(e) {
+                if (!this.dragState) return;
+
+                const ws = document.getElementById('workspace');
+                const wsRect = ws.getBoundingClientRect();
+
+                let x = e.clientX - wsRect.left - this.dragState.offsetX;
+                let y = e.clientY - wsRect.top - this.dragState.offsetY;
+
+                // Clamp inside canvas bounds
+                x = Math.max(0, Math.min(wsRect.width - 76, x));
+                y = Math.max(0, Math.min(wsRect.height - 76, y));
+
+                this.dragState.item.x = x;
+                this.dragState.item.y = y;
+                this.dragState.item.elementNode.style.left = `${x}px`;
+                this.dragState.item.elementNode.style.top = `${y}px`;
+            }
+
+            onPointerUp(e) {
+                if (!this.dragState) return;
+
+                const draggedItem = this.dragState.item;
+                this.dragState = null;
+
+                // Check collision with other elements
+                this.checkCollisions(draggedItem);
+            }
+
+            checkCollisions(item) {
+                const threshold = 50; // pixels overlapping
+
+                for (let i = 0; i < this.workspaceElements.length; i++) {
+                    const target = this.workspaceElements[i];
+                    if (target.id === item.id) continue;
+
+                    const dx = (item.x + 38) - (target.x + 38);
+                    const dy = (item.y + 38) - (target.y + 38);
+                    const dist = Math.hypot(dx, dy);
+
+                    if (dist < threshold) {
+                        // Attempt combination
+                        const resultKey = this.findRecipe(item.key, target.key);
+                        if (resultKey) {
+                            this.combineElements(item, target, resultKey);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            findRecipe(keyA, keyB) {
+                for (const [key, data] of Object.entries(ELEMENTS_DATA)) {
+                    if (data.recipe) {
+                        const [r1, r2] = data.recipe;
+                        if ((r1 === keyA && r2 === keyB) || (r1 === keyB && r2 === keyA)) {
+                            return key;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            combineElements(itemA, itemB, newKey) {
+                // Calculate center point
+                const centerX = (itemA.x + itemB.x) / 2 + 38;
+                const centerY = (itemA.y + itemB.y) / 2 + 38;
+
+                // Remove parents
+                this.removeWorkspaceElement(itemA.id);
+                this.removeWorkspaceElement(itemB.id);
+
+                // Check if newly discovered
+                const isFirstDiscovery = !this.unlocked.has(newKey);
+
+                if (isFirstDiscovery) {
+                    this.unlocked.add(newKey);
+                    this.newlyUnlocked.add(newKey);
+                    this.saveProgress();
+                    this.renderSidebar();
+                    this.updateProgressUI();
+
+                    // Play celebration sound & confetti
+                    audio.playDiscovery();
+                    this.triggerConfetti(centerX, centerY);
+                    this.showDiscoveryModal(newKey);
+                } else {
+                    audio.playMerge();
+                }
+
+                // Spawn merged element with bounce animation
+                this.spawnWorkspaceElement(newKey, centerX, centerY, true);
+            }
+
+            removeWorkspaceElement(id) {
+                const idx = this.workspaceElements.findIndex(el => el.id === id);
+                if (idx !== -1) {
+                    const item = this.workspaceElements[idx];
+                    if (item.elementNode && item.elementNode.parentNode) {
+                        item.elementNode.parentNode.removeChild(item.elementNode);
+                    }
+                    this.workspaceElements.splice(idx, 1);
+                }
+            }
+
+            clearWorkspace() {
+                audio.playPop();
+                this.workspaceElements.forEach(item => {
+                    if (item.elementNode && item.elementNode.parentNode) {
+                        item.elementNode.parentNode.removeChild(item.elementNode);
+                    }
+                });
+                this.workspaceElements = [];
+            }
+
+            // Confetti particles explosion
+            triggerConfetti(x, y) {
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 60,
+                        spread: 70,
+                        origin: {
+                            x: x / window.innerWidth,
+                            y: y / window.innerHeight
+                        },
+                        colors: ['#facc15', '#f59e0b', '#ec4899', '#38bdf8', '#a855f7']
+                    });
+                }
+            }
+
+            // Discovery Modal Handler
+            showDiscoveryModal(key) {
+                const data = ELEMENTS_DATA[key];
+                document.getElementById('discovery-title').innerText = data.name;
+                document.getElementById('discovery-icon-container').innerHTML = data.svg;
+                
+                if (data.recipe) {
+                    const el1 = ELEMENTS_DATA[data.recipe[0]].name;
+                    const el2 = ELEMENTS_DATA[data.recipe[1]].name;
+                    document.getElementById('discovery-recipe').innerText = `Рецепт: ${el1} + ${el2}`;
+                } else {
+                    document.getElementById('discovery-recipe').innerText = 'Базовий елемент';
+                }
+
+                document.getElementById('discovery-fact').innerText = data.fact;
+
+                const modal = document.getElementById('modal-discovery');
+                modal.classList.remove('hidden');
+            }
+
+            closeDiscoveryModal() {
+                document.getElementById('modal-discovery').classList.add('hidden');
+            }
+
+            // Encyclopedia Modal Handler
+            renderEncyclopedia() {
+                const grid = document.getElementById('encyclopedia-grid');
+                grid.innerHTML = '';
+
+                Object.entries(ELEMENTS_DATA).forEach(([key, data]) => {
+                    const isUnlocked = this.unlocked.has(key);
+                    const card = document.createElement('div');
+                    
+                    if (isUnlocked) {
+                        card.className = "bg-purple-950/80 border border-amber-500/30 rounded-2xl p-3 flex flex-col justify-between shadow-md";
+                        card.innerHTML = `
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-12 h-12 rounded-xl bg-purple-900 border border-amber-400/40 flex items-center justify-center shrink-0">
+                                    ${data.svg}
+                                </div>
+                                <div>
+                                    <h3 class="font-extrabold text-amber-200 text-sm">${data.name}</h3>
+                                    <span class="text-[10px] text-amber-400/80 font-bold bg-purple-900/60 px-2 py-0.5 rounded-full border border-amber-500/20">
+                                        ${data.isBasic ? 'Базовий' : `${ELEMENTS_DATA[data.recipe[0]].name} + ${ELEMENTS_DATA[data.recipe[1]].name}`}
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="text-xs text-purple-200/90 leading-relaxed bg-purple-900/30 p-2 rounded-xl border border-purple-800/40">${data.fact}</p>
+                        `;
+                    } else {
+                        card.className = "bg-purple-950/30 border border-purple-900/40 rounded-2xl p-3 flex items-center gap-3 opacity-50";
+                        card.innerHTML = `
+                            <div class="w-12 h-12 rounded-xl bg-purple-900/40 border border-purple-800/40 flex items-center justify-center text-amber-500/40 text-xl font-black">
+                                ?
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-amber-200/40 text-sm">Невідомий елемент</h3>
+                                <span class="text-[11px] text-purple-400/50">Продовжуй дослідження!</span>
+                            </div>
+                        `;
+                    }
+
+                    grid.appendChild(card);
+                });
+            }
+
+            // Hints System
+            showHint() {
+                audio.playPop();
+
+                // Find a locked recipe where all ingredients are unlocked
+                const lockedKeys = Object.keys(ELEMENTS_DATA).filter(k => !this.unlocked.has(k));
+
+                if (lockedKeys.length === 0) {
+                    this.showToast(' Вітаємо! Ви відкрили абсолютно всі елементи!');
+                    return;
+                }
+
+                for (const key of lockedKeys) {
+                    const data = ELEMENTS_DATA[key];
+                    if (data.recipe) {
+                        const [ing1, ing2] = data.recipe;
+                        if (this.unlocked.has(ing1) && this.unlocked.has(ing2)) {
+                            const name1 = ELEMENTS_DATA[ing1].name;
+                            const name2 = ELEMENTS_DATA[ing2].name;
+                            this.showToast(`💡 Підказка: Спробуй поєднати "${name1}" та "${name2}"!`);
+                            return;
+                        }
+                    }
+                }
+
+                // If no direct unlocked ingredients found, pick any locked element and suggest one missing
+                this.showToast('💡 Підказка: Спробуй поєднувати базові елементи між собою!');
+            }
+
+            showToast(msg) {
+                const existing = document.getElementById('toast-msg');
+                if (existing) existing.remove();
+
+                const toast = document.createElement('div');
+                toast.id = 'toast-msg';
+                toast.className = "fixed top-20 left-1/2 -translate-x-1/2 bg-amber-500/90 border-2 border-amber-300 text-purple-950 font-black text-sm px-6 py-3 rounded-2xl shadow-2xl z-50 animate-bounce backdrop-blur-md text-center max-w-sm";
+                toast.innerText = msg;
+
+                document.body.appendChild(toast);
+                setTimeout(() => { if (toast.parentNode) toast.remove(); }, 4000);
+            }
+
+            // Modal Toggles
+            toggleModal(id) {
+                audio.playPop();
+                const modal = document.getElementById(id);
+                if (modal) {
+                    modal.classList.toggle('hidden');
+                    if (id === 'modal-encyclopedia' && !modal.classList.contains('hidden')) {
+                        this.renderEncyclopedia();
+                        this.newlyUnlocked.clear();
+                        this.updateProgressUI();
+                    }
+                }
+            }
+
+            toggleSound(checked) {
+                audio.enabled = checked;
+            }
+        }
+
+        // Initialize Game Instance on Load
+        let game = null;
+        window.onload = function() {
+            game = new AlchemyGame();
+        };
+    </script>
+</body>
+</html>
