@@ -10,8 +10,8 @@
     {
       "id": 2,
       "title": "Puzzler - Збирай будь який пазл!",
-      "image": "https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/Images/BlockDungeonAngryBirds.jpg?raw=true",
-      "description": "Block Dungeon: Angry Bird Edition — це навчальна онлайн-гра та тренажер з програмування для засвоєння базових понять алгоритмізації, де гравцеві потрібно складати алгоритми дій, щоб разом зі злими птахами спіймати усіх свиней!",
+      "image": "https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/Puzzler/puzzlerlogo.jpg?raw=true",
+      "description": "«Puzzler» — це інтерактивна онлайн-гра, розроблена для розвитку уваги, логіки та дрібної моторики у дітей.",
       "gameUrl": "https://infostudy-gymnasium201-kyiv.github.io/games/Puzzler/"
     }
   ]
