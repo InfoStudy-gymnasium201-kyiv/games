@@ -20,6 +20,13 @@
       "image": "https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/Alchemy/alchemylogo.jpg?raw=true",
       "description": "Пориньте у захопливий світ комбінацій та відкриттів! Починайте з базових елементів — Вогню, Води, Землі та Повітря — та поєднуйте їх, щоб відкривати нові предмети, явища та споруди.",
       "gameUrl": "https://infostudy-gymnasium201-kyiv.github.io/games/Alchemy/"
+    },
+    {
+      "id": 4,
+      "title": "Математичний Квіз!",
+      "image": "https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/MathGame/mathgamelogo.jpg?raw=true",
+      "description": "Прокачуй свої математичні навички у формі захопливої гри! Розв'язуй приклади, заробляй зірочки та ставай майстром усної лічби.",
+      "gameUrl": "https://infostudy-gymnasium201-kyiv.github.io/games/MathGame/"
     }
   ]
 }
