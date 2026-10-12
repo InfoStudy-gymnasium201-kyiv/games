@@ -1,1 +1,801 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Підземелля Інформатики - Битва Героїв</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts for Game Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Marcellus&family=Russo+One&display=swap" rel="stylesheet">
 
+  <style>
+    body {
+      font-family: 'Comfortaa', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      background-color: #0d0a12;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .font-game {
+      font-family: 'Russo One', sans-serif;
+    }
+
+    /* Glossy 3D Game Buttons styled identically to screenshot */
+    .btn-game-3d {
+      transition: all 0.1s ease;
+      position: relative;
+      border-style: solid;
+      border-width: 4px;
+      border-bottom-width: 8px;
+      border-radius: 1.25rem;
+      text-shadow: 0 3px 6px rgba(0,0,0,0.8), 0 0 2px rgba(0,0,0,0.9);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 3px 3px rgba(255,255,255,0.4);
+    }
+    
+    .btn-game-3d:active {
+      transform: translateY(4px);
+      border-bottom-width: 4px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.3);
+    }
+
+    /* Exact Red Button */
+    .btn-red {
+      background: linear-gradient(180deg, #ff4d4d 0%, #e74c3c 50%, #c0392b 100%);
+      border-color: #ff8080 #8e1b0f #671007 #ff6666;
+    }
+    .btn-red:hover {
+      background: linear-gradient(180deg, #ff6666 0%, #ee5253 50%, #d63031 100%);
+    }
+
+    /* Exact Blue Button */
+    .btn-blue {
+      background: linear-gradient(180deg, #38ada9 0%, #0abde3 50%, #0097e6 100%);
+      border-color: #7efff5 #045061 #023642 #60a3bc;
+    }
+    .btn-blue:hover {
+      background: linear-gradient(180deg, #60a3bc 0%, #24c7e8 50%, #00a8ff 100%);
+    }
+
+    /* Exact Green Button */
+    .btn-green {
+      background: linear-gradient(180deg, #78e08f 0%, #2ed573 50%, #26af5f 100%);
+      border-color: #b8e994 #0f5c2e #0a401f #a3cb38;
+    }
+    .btn-green:hover {
+      background: linear-gradient(180deg, #a3cb38 0%, #2ed573 50%, #20bf6b 100%);
+    }
+
+    /* Exact Yellow Button */
+    .btn-yellow {
+      background: linear-gradient(180deg, #fecb2e 0%, #e1b12c 50%, #c79100 100%);
+      border-color: #ffeaa7 #785200 #543a00 #fdcb6e;
+    }
+    .btn-yellow:hover {
+      background: linear-gradient(180deg, #ffeaa7 0%, #f1c40f 50%, #d4ac0d 100%);
+    }
+
+    /* Torch flicker animations */
+    @keyframes torchFlicker {
+      0%, 100% { opacity: 0.95; transform: scale(1) rotate(-1deg); filter: drop-shadow(0 0 20px rgba(255,140,0,0.9)); }
+      30% { opacity: 0.8; transform: scale(0.95) rotate(1deg); filter: drop-shadow(0 0 12px rgba(255,100,0,0.7)); }
+      60% { opacity: 1; transform: scale(1.08) rotate(-2deg); filter: drop-shadow(0 0 25px rgba(255,180,0,1)); }
+      80% { opacity: 0.88; transform: scale(0.98) rotate(2deg); filter: drop-shadow(0 0 15px rgba(255,120,0,0.8)); }
+    }
+
+    .torch-glow {
+      animation: torchFlicker 0.2s infinite alternate ease-in-out;
+      transform-origin: bottom center;
+    }
+
+    /* Attack & Hurt Animations */
+    @keyframes heroSlash {
+      0% { transform: translateX(0) rotate(0deg); }
+      30% { transform: translateX(-30px) rotate(-15deg); }
+      60% { transform: translateX(180px) rotate(20deg) scale(1.1); }
+      100% { transform: translateX(0) rotate(0deg); }
+    }
+
+    @keyframes enemySlash {
+      0% { transform: translateX(0) rotate(0deg); }
+      30% { transform: translateX(30px) rotate(15deg); }
+      60% { transform: translateX(-180px) rotate(-20deg) scale(1.1); }
+      100% { transform: translateX(0) rotate(0deg); }
+    }
+
+    @keyframes hurtEffect {
+      0%, 100% { transform: translateX(0); filter: brightness(1); }
+      15% { transform: translateX(-20px); filter: brightness(2.5) sepia(1) hue-rotate(-50deg) saturate(6); }
+      30% { transform: translateX(20px); filter: brightness(2.5) sepia(1) hue-rotate(-50deg) saturate(6); }
+      50% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    @keyframes floatUpDamage {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-60px) scale(1.4); }
+    }
+
+    .anim-hero-attack { animation: heroSlash 0.55s cubic-bezier(0.25, 1, 0.5, 1); }
+    .anim-enemy-attack { animation: enemySlash 0.55s cubic-bezier(0.25, 1, 0.5, 1); }
+    .anim-hurt { animation: hurtEffect 0.5s ease-in-out; }
+    .floating-damage { animation: floatUpDamage 1s forwards ease-out; }
+
+    /* Parchment scroll header banner matching image */
+    .parchment-banner {
+      background: linear-gradient(180deg, #f8e5bf 0%, #e8c78c 50%, #d4a762 100%);
+      border: 4px solid #5a3818;
+      box-shadow: inset 0 0 12px rgba(90, 56, 24, 0.6), 0 8px 20px rgba(0,0,0,0.8);
+      border-radius: 14px;
+      position: relative;
+    }
+
+    .parchment-banner::before, .parchment-banner::after {
+      content: '';
+      position: absolute;
+      top: -12px;
+      width: 22px;
+      height: calc(100% + 24px);
+      background: linear-gradient(90deg, #7a4b22, #a36b36, #5a3818);
+      border: 3px solid #3a220d;
+      border-radius: 8px;
+    }
+    .parchment-banner::before { left: -16px; }
+    .parchment-banner::after { right: -16px; }
+
+    /* Authentic Medieval Dungeon Stone Background */
+    .dungeon-wall-bg {
+      background-color: #1a1523;
+      background-image: url('https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/Mouse%20Adventure/Textures/background.jpg?raw=true');
+      background-size: cover;
+      background-position: center bottom;
+      background-repeat: no-repeat;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center dungeon-wall-bg p-2 sm:p-4 select-none overflow-x-hidden">
+
+  <!-- Header Controls -->
+  <header class="w-full max-w-4xl flex justify-between items-center z-20 mb-1">
+    <div class="flex items-center gap-2">
+      <button id="btn-sound" onclick="toggleSound()" class="bg-stone-900/90 hover:bg-stone-800 text-amber-200 p-2.5 rounded-xl border-2 border-amber-700/80 shadow-lg flex items-center gap-2 text-sm font-bold transition">
+        <i id="sound-icon" class="fas fa-volume-up text-lg text-yellow-400"></i>
+        <span class="hidden sm:inline">Звук</span>
+      </button>
+      <button id="btn-mode" onclick="cycleMode()" class="bg-stone-900/90 hover:bg-stone-800 text-amber-200 px-3 py-2.5 rounded-xl border-2 border-amber-700/80 shadow-lg flex items-center gap-2 text-xs sm:text-sm font-bold transition">
+        <i class="fas fa-laptop-code text-amber-400"></i>
+        <span id="mode-text">Усі теми</span>
+      </button>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div class="bg-stone-950/90 border-2 border-amber-600/70 rounded-xl px-3 py-1.5 text-right shadow-md max-w-[220px] sm:max-w-xs">
+        <div class="text-[10px] text-amber-400 font-bold uppercase tracking-widest truncate">Підземелля</div>
+        <div id="level-display" class="text-xs sm:text-sm font-game text-white truncate" title="Інформатика">Інформатика</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Parchment Scroll Score Counter matching image banner -->
+  <div class="w-full max-w-xl z-20 my-1 flex justify-center">
+    <div class="parchment-banner px-8 py-2 text-center min-w-[280px]">
+      <span id="score-text" class="text-2xl sm:text-3xl font-game text-amber-950 tracking-wide drop-shadow-sm">
+        0/8 вірних відповідей
+      </span>
+    </div>
+  </div>
+
+  <!-- Central Question Display -->
+  <div class="w-full max-w-3xl text-center z-20 my-1 min-h-[70px] flex items-center justify-center px-2">
+    <h1 id="question-text" class="text-2xl sm:text-4xl font-game text-white drop-shadow-[0_5px_10px_rgba(0,0,0,0.95)] tracking-wide leading-tight">
+      Який пристрій використовують для введення тексту?
+    </h1>
+  </div>
+
+  <!-- Main Battle Arena -->
+  <main id="battle-arena" class="relative w-full max-w-4xl h-72 sm:h-96 my-2 rounded-2xl border-4 border-stone-800 dungeon-wall-bg shadow-2xl overflow-hidden flex items-end justify-between px-6 sm:px-16 pb-6">
+
+    <!-- HERO MOUSE KNIGHT CONTAINER -->
+    <div class="relative z-10 flex flex-col items-center">
+      <!-- Hero Health Bar -->
+      <div class="w-32 sm:w-40 bg-gray-950/90 border-2 border-stone-600 rounded-full h-4 sm:h-5 p-0.5 mb-2 shadow-xl relative">
+        <div id="hero-hp-bar" class="bg-gradient-to-r from-emerald-600 to-emerald-400 h-full rounded-full transition-all duration-300 w-full"></div>
+        <span id="hero-hp-text" class="absolute inset-0 flex items-center justify-center text-[10px] sm:text-xs font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">100 / 100</span>
+      </div>
+
+      <!-- Hero Mouse Character Image -->
+      <div id="hero-wrapper" class="relative transition-transform flex flex-col items-center">
+        <img id="hero-img" 
+             src="https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/Mouse%20Adventure/Textures/mouse_hero.png?raw=true" 
+             alt="Hero Mouse Knight" 
+             class="w-32 h-32 sm:w-48 sm:h-48 object-contain drop-shadow-[0_10px_12px_rgba(0,0,0,0.85)]" />
+      </div>
+    </div>
+
+    <!-- Sparks and Impact Container overlay -->
+    <div id="impact-container" class="absolute inset-0 pointer-events-none z-30"></div>
+
+    <!-- ENEMY RAT CONTAINER -->
+    <div class="relative z-10 flex flex-col items-center">
+      <!-- Enemy Health Bar -->
+      <div class="w-36 sm:w-44 bg-gray-950/90 border-2 border-stone-600 rounded-full h-4 sm:h-5 p-0.5 mb-2 shadow-xl relative">
+        <div id="enemy-hp-bar" class="bg-gradient-to-r from-red-700 to-rose-500 h-full rounded-full transition-all duration-300 w-full"></div>
+        <span id="enemy-hp-text" class="absolute inset-0 flex items-center justify-center text-[10px] sm:text-xs font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">100 / 100</span>
+      </div>
+
+      <!-- Enemy Rat Image -->
+      <div id="enemy-wrapper" class="relative transition-transform flex flex-col items-center">
+        <img id="enemy-img" 
+             src="https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/Mouse%20Adventure/Textures/rat_enemy1.png?raw=true" 
+             alt="Enemy Rat" 
+             class="w-48 h-48 sm:w-64 sm:h-64 object-contain drop-shadow-[0_12px_14px_rgba(0,0,0,0.9)]" />
+      </div>
+    </div>
+  </main>
+
+  <!-- Prompt Instruction matching screenshot -->
+  <div class="text-center z-20 my-1">
+    <p class="text-amber-200 text-sm sm:text-lg font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+      Обери правильну відповідь!!
+    </p>
+  </div>
+
+  <!-- 4 Answer Buttons Section -->
+  <section class="w-full max-w-3xl grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 my-1 sm:my-2 z-20">
+    <button id="btn-0" onclick="handleAnswer(0)" class="btn-game-3d btn-red py-3 sm:py-4 px-3 text-base sm:text-xl font-game text-white text-center leading-snug flex items-center justify-center min-h-[64px]">
+      Монітор
+    </button>
+    <button id="btn-1" onclick="handleAnswer(1)" class="btn-game-3d btn-blue py-3 sm:py-4 px-3 text-base sm:text-xl font-game text-white text-center leading-snug flex items-center justify-center min-h-[64px]">
+      Клавіатура
+    </button>
+    <button id="btn-2" onclick="handleAnswer(2)" class="btn-game-3d btn-green py-3 sm:py-4 px-3 text-base sm:text-xl font-game text-white text-center leading-snug flex items-center justify-center min-h-[64px]">
+      Колонки
+    </button>
+    <button id="btn-3" onclick="handleAnswer(3)" class="btn-game-3d btn-yellow py-3 sm:py-4 px-3 text-base sm:text-xl font-game text-white text-center leading-snug flex items-center justify-center min-h-[64px]">
+      Принтер
+    </button>
+  </section>
+
+  <!-- Game Info Footer matching screenshot bottom text -->
+  <footer class="w-full max-w-2xl text-center z-20 mt-1 mb-2">
+    <div class="bg-black/80 border border-amber-900/80 rounded-xl py-2 px-4 text-xs sm:text-sm text-amber-100 font-bold shadow-lg">
+      Якщо обрана правильна відповідь, миша б'є ворога. Якщо невірна — ворог б'є мишу!!
+    </div>
+  </footer>
+
+  <!-- Victory / Game Over Modal -->
+  <div id="modal-overlay" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="parchment-banner p-6 sm:p-8 max-w-md w-full text-center rounded-2xl border-4 border-amber-950 shadow-2xl">
+      <h2 id="modal-title" class="text-3xl sm:text-4xl font-game text-amber-950 mb-2">ПЕРЕМОГА!</h2>
+      <p id="modal-subtitle" class="text-amber-900 font-bold mb-4">Ти подолав щурів у підземеллі!</p>
+      
+      <div class="my-4 bg-amber-100/90 p-4 rounded-xl border border-amber-800/50 text-amber-950 text-left space-y-2">
+        <div class="flex justify-between">
+          <span>Вірних відповідей:</span>
+          <span id="stat-correct" class="font-bold">8/8</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Здоров'я миші:</span>
+          <span id="stat-hp" class="font-bold">100%</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Набрані бали:</span>
+          <span id="stat-score" class="font-bold text-amber-800">800</span>
+        </div>
+      </div>
+
+      <button onclick="restartGame()" class="w-full btn-game-3d btn-green py-3 text-2xl font-game text-white rounded-xl shadow-lg mt-2">
+        Грати знову <i class="fas fa-redo ml-2"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          audioCtx = new AudioContext();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const icon = document.getElementById('sound-icon');
+      if (icon) {
+        if (soundEnabled) {
+          icon.className = 'fas fa-volume-up text-lg text-yellow-400';
+        } else {
+          icon.className = 'fas fa-volume-mute text-lg text-red-400';
+        }
+      }
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        if (!audioCtx) return;
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'slash') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, now);
+          osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } else if (type === 'hit') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(150, now);
+          osc.frequency.linearRampToValueAtTime(40, now + 0.2);
+          gain.gain.setValueAtTime(0.5, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        } else if (type === 'correct') {
+          [523.25, 659.25, 783.99].forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            const startTime = now + idx * 0.08;
+            gain.gain.setValueAtTime(0.3, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + 0.25);
+          });
+        } else if (type === 'wrong') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(180, now);
+          osc.frequency.linearRampToValueAtTime(90, now + 0.3);
+          gain.gain.setValueAtTime(0.4, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        } else if (type === 'victory') {
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            const startTime = now + idx * 0.12;
+            gain.gain.setValueAtTime(0.3, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + 0.4);
+          });
+        }
+      } catch (e) {
+        console.warn("Audio playback error:", e);
+      }
+    }
+
+    // Primary School Computer Science Question Bank (Fallback)
+    const CS_QUESTIONS_BANK = [
+      {
+        cat: 'hardware',
+        text: 'Який пристрій використовують для введення тексту в комп’ютер?',
+        correctVal: 'Клавіатура',
+        options: ['Монітор', 'Клавіатура', 'Колонки', 'Принтер']
+      },
+      {
+        cat: 'hardware',
+        text: 'Який пристрій виводить зображення та текст на екран?',
+        correctVal: 'Монітор',
+        options: ['Миша', 'Монітор', 'Клавіатура', 'Сканер']
+      },
+      {
+        cat: 'hardware',
+        text: 'Пристрій для друкування документів та малюнків на папері — це...',
+        correctVal: 'Принтер',
+        options: ['Принтер', 'Сканер', 'Монітор', 'Проектор']
+      },
+      {
+        cat: 'hardware',
+        text: '«Мозок» комп’ютера, де обробляється уся інформація, міститься в...',
+        correctVal: 'Системному блоці',
+        options: ['Моніторі', 'Системному блоці', 'Клавіатурі', 'Колонках']
+      },
+      {
+        cat: 'hardware',
+        text: 'Яка клавіша створює пробіл (пропуски) між словами?',
+        correctVal: 'Пробіл (Space)',
+        options: ['Enter', 'Пробіл (Space)', 'Backspace', 'Shift']
+      },
+      {
+        cat: 'hardware',
+        text: 'Яка клавіша вилучає символ ліворуч від курсора?',
+        correctVal: 'Backspace',
+        options: ['Enter', 'Delete', 'Backspace', 'Caps Lock']
+      },
+      {
+        cat: 'hardware',
+        text: 'Клавіша для переходу на новий рядок або підтвердження дії:',
+        correctVal: 'Enter',
+        options: ['Shift', 'Enter', 'Esc', 'Space']
+      },
+      {
+        cat: 'safety',
+        text: 'Яка це інформація, коли ми слухаємо музику або спів пташок?',
+        correctVal: 'Слухова',
+        options: ['Зорова', 'Слухова', 'Тактильна', 'Смакова']
+      },
+      {
+        cat: 'safety',
+        text: 'Яку інформацію ми отримуємо, читаючи книжку або розглядаючи малюнок?',
+        correctVal: 'Зорова',
+        options: ['Зорова', 'Слухова', 'Нюхова', 'Тактильна']
+      },
+      {
+        cat: 'safety',
+        text: 'Що з цього НЕ можна повідомляти незнайомцям в Інтернеті?',
+        correctVal: 'Пароль та адресу',
+        options: ['Улюблений колір', 'Пароль та адресу', 'Улюблену казку', 'Ім’я кота']
+      },
+      {
+        cat: 'safety',
+        text: 'Який пароль є найсуворішим та найбезпечнішим?',
+        correctVal: 'Super987#key',
+        options: ['12345678', 'пароль', 'Super987#key', 'qwerty']
+      },
+      {
+        cat: 'algorithms',
+        text: 'Послідовність чітких команд для досягнення певної мети — це...',
+        correctVal: 'Алгоритм',
+        options: ['Команда', 'Алгоритм', 'Малюнок', 'Файл']
+      },
+      {
+        cat: 'algorithms',
+        text: 'Як називається виконавчий персонаж у програмі Scratch?',
+        correctVal: 'Спрайт',
+        options: ['Спрайт', 'Сцена', 'Піксель', 'Код']
+      },
+      {
+        cat: 'algorithms',
+        text: 'Точна вказівка виконати певну дію — це...',
+        correctVal: 'Команда',
+        options: ['Команда', 'Правило', 'Запитання', 'Помилка']
+      },
+      {
+        cat: 'algorithms',
+        text: 'Той, хто розуміє і виконує команди алгоритму, називається...',
+        correctVal: 'Виконавець',
+        options: ['Командир', 'Виконавець', 'Глядач', 'Програма']
+      },
+      {
+        cat: 'safety',
+        text: 'Інструмент у графічному редакторі для швидкого зафарбовування фігури:',
+        correctVal: 'Заливка (Відро)',
+        options: ['Гумка', 'Пензель', 'Заливка (Відро)', 'Олівець']
+      },
+      {
+        cat: 'hardware',
+        text: 'Найменша точка кольорового зображення на моніторі — це...',
+        correctVal: 'Піксель',
+        options: ['Крапка', 'Піксель', 'Байт', 'Сантиметр']
+      }
+    ];
+
+    const MODES = [
+      { id: 'all', name: 'Усі теми' },
+      { id: 'hardware', name: 'Будова ПК' },
+      { id: 'algorithms', name: 'Алгоритми' },
+      { id: 'safety', name: 'Інформація та Безпека' }
+    ];
+    let currentModeIndex = 0;
+
+    let customQuizData = null; // Will store loaded JSON questions if available
+    let TOTAL_QUESTIONS = 8;
+    let currentQuestionIndex = 0;
+    let correctAnswersCount = 0;
+    let isAnimating = false;
+
+    let heroMaxHP = 100;
+    let heroHP = 100;
+    let enemyMaxHP = 100;
+    let enemyHP = 100;
+
+    let usedQuestionsIndexes = new Set();
+
+    let currentQuestion = {
+      text: 'Завантаження запитання...',
+      correctVal: '',
+      options: ['', '', '', '']
+    };
+
+    async function loadQuizFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const testVersion = urlParams.get('v');
+
+      if (!testVersion) {
+        return false;
+      }
+
+      const fetchUrl = `https://raw.githubusercontent.com/InfoStudy-gymnasium201-kyiv/InfoStudy-gymnasium201-kyiv.github.io/refs/heads/main/Extra/TestsJSONs/${testVersion}.json`;
+
+      try {
+        document.getElementById('question-text').innerText = 'Завантаження запитань з сервера...';
+        const response = await fetch(fetchUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        if (data && data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
+          customQuizData = {
+            quizTitle: data.quizTitle || `Тест ${testVersion}`,
+            questions: data.questions.map(q => ({
+              cat: 'custom',
+              text: q.question,
+              correctVal: q.correctOption,
+              options: q.options
+            }))
+          };
+
+          // Apply Quiz metadata
+          const titleElem = document.getElementById('level-display');
+          titleElem.innerText = customQuizData.quizTitle;
+          titleElem.title = customQuizData.quizTitle;
+
+          document.getElementById('btn-mode').style.display = 'none'; // Hide mode button when playing URL test
+
+          TOTAL_QUESTIONS = customQuizData.questions.length;
+          return true;
+        }
+      } catch (err) {
+        console.warn('Не вдалося завантажити тест за посиланням, використано стандартні питання:', err);
+      }
+      return false;
+    }
+
+    function cycleMode() {
+      if (isAnimating || customQuizData) return;
+      currentModeIndex = (currentModeIndex + 1) % MODES.length;
+      document.getElementById('mode-text').innerText = MODES[currentModeIndex].name;
+      restartGame();
+    }
+
+    function generateQuestion() {
+      let pool = [];
+
+      if (customQuizData) {
+        pool = customQuizData.questions;
+      } else {
+        const selectedMode = MODES[currentModeIndex].id;
+        pool = CS_QUESTIONS_BANK.filter(q => selectedMode === 'all' || q.cat === selectedMode);
+      }
+
+      let availableIndexes = pool
+        .map((_, idx) => idx)
+        .filter(idx => !usedQuestionsIndexes.has(idx));
+
+      if (availableIndexes.length === 0) {
+        usedQuestionsIndexes.clear();
+        availableIndexes = pool.map((_, idx) => idx);
+      }
+
+      const randomIdx = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+      usedQuestionsIndexes.add(randomIdx);
+
+      const qData = pool[randomIdx];
+
+      // Shuffle options copy
+      const shuffledOptions = [...qData.options];
+      for (let i = shuffledOptions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+      }
+
+      currentQuestion = {
+        text: qData.text,
+        correctVal: qData.correctVal,
+        options: shuffledOptions
+      };
+
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      document.getElementById('question-text').innerText = currentQuestion.text;
+      document.getElementById('score-text').innerText = `${correctAnswersCount}/${TOTAL_QUESTIONS} вірних відповідей`;
+
+      for (let i = 0; i < 4; i++) {
+        const btn = document.getElementById(`btn-${i}`);
+        if (currentQuestion.options[i] !== undefined) {
+          btn.innerText = currentQuestion.options[i];
+          btn.style.display = 'flex';
+          btn.disabled = false;
+          btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+          btn.style.display = 'none';
+        }
+      }
+    }
+
+    function createImpactEffect(x, y, color, text) {
+      const container = document.getElementById('impact-container');
+      const burst = document.createElement('div');
+      burst.className = 'absolute font-game text-2xl sm:text-4xl font-bold floating-damage z-40';
+      burst.style.left = `${x}px`;
+      burst.style.top = `${y}px`;
+      burst.style.color = color;
+      burst.style.textShadow = '0 3px 6px black';
+      burst.innerText = text;
+      container.appendChild(burst);
+
+      setTimeout(() => burst.remove(), 1000);
+    }
+
+    function handleAnswer(selectedIndex) {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      // Disable buttons temporarily
+      for (let i = 0; i < 4; i++) {
+        document.getElementById(`btn-${i}`).disabled = true;
+      }
+
+      const chosenVal = currentQuestion.options[selectedIndex];
+      const isCorrect = (chosenVal === currentQuestion.correctVal);
+
+      const heroWrapper = document.getElementById('hero-wrapper');
+      const enemyWrapper = document.getElementById('enemy-wrapper');
+
+      const enemyDamage = Math.max(1, Math.ceil(enemyMaxHP / TOTAL_QUESTIONS));
+
+      if (isCorrect) {
+        // Hero Mouse Attacks Rat Enemy
+        correctAnswersCount++;
+        playSound('slash');
+        heroWrapper.classList.add('anim-hero-attack');
+
+        setTimeout(() => {
+          playSound('hit');
+          playSound('correct');
+          enemyWrapper.classList.add('anim-hurt');
+
+          enemyHP = Math.max(0, enemyHP - enemyDamage);
+          updateHealthBars();
+
+          const rect = enemyWrapper.getBoundingClientRect();
+          const arenaRect = document.getElementById('battle-arena').getBoundingClientRect();
+          createImpactEffect(rect.left - arenaRect.left + 20, rect.top - arenaRect.top - 20, '#ef4444', `-${enemyDamage} HP`);
+
+          setTimeout(() => {
+            heroWrapper.classList.remove('anim-hero-attack');
+            enemyWrapper.classList.remove('anim-hurt');
+            advanceTurn();
+          }, 600);
+        }, 300);
+
+      } else {
+        // Enemy Rat Attacks Hero Mouse
+        playSound('slash');
+        enemyWrapper.classList.add('anim-enemy-attack');
+
+        setTimeout(() => {
+          playSound('hit');
+          playSound('wrong');
+          heroWrapper.classList.add('anim-hurt');
+
+          heroHP = Math.max(0, heroHP - 25);
+          updateHealthBars();
+
+          const rect = heroWrapper.getBoundingClientRect();
+          const arenaRect = document.getElementById('battle-arena').getBoundingClientRect();
+          createImpactEffect(rect.left - arenaRect.left + 20, rect.top - arenaRect.top - 20, '#f59e0b', '-25 HP');
+
+          setTimeout(() => {
+            enemyWrapper.classList.remove('anim-enemy-attack');
+            heroWrapper.classList.remove('anim-hurt');
+            advanceTurn();
+          }, 600);
+        }, 300);
+      }
+    }
+
+    function updateHealthBars() {
+      const heroPct = Math.max(0, (heroHP / heroMaxHP) * 100);
+      const enemyPct = Math.max(0, (enemyHP / enemyMaxHP) * 100);
+
+      document.getElementById('hero-hp-bar').style.width = `${heroPct}%`;
+      document.getElementById('hero-hp-text').innerText = `${heroHP} / ${heroMaxHP}`;
+
+      document.getElementById('enemy-hp-bar').style.width = `${enemyPct}%`;
+      document.getElementById('enemy-hp-text').innerText = `${enemyHP} / ${enemyMaxHP}`;
+    }
+
+    function advanceTurn() {
+      currentQuestionIndex++;
+
+      if (heroHP <= 0) {
+        showEndModal(false);
+      } else if (currentQuestionIndex >= TOTAL_QUESTIONS || enemyHP <= 0) {
+        showEndModal(true);
+      } else {
+        isAnimating = false;
+        generateQuestion();
+      }
+    }
+
+    function showEndModal(isWin) {
+      const modal = document.getElementById('modal-overlay');
+      const title = document.getElementById('modal-title');
+      const subtitle = document.getElementById('modal-subtitle');
+
+      document.getElementById('stat-correct').innerText = `${correctAnswersCount}/${TOTAL_QUESTIONS}`;
+      document.getElementById('stat-hp').innerText = `${heroHP}%`;
+      document.getElementById('stat-score').innerText = `${correctAnswersCount * 100 + heroHP * 2}`;
+
+      if (isWin) {
+        playSound('victory');
+        title.innerText = "ПЕРЕМОГА!";
+        title.className = "text-3xl sm:text-4xl font-game text-emerald-800 mb-2";
+        subtitle.innerText = "Вітаємо! Ти показав чудові знання з інформатики!";
+      } else {
+        playSound('wrong');
+        title.innerText = "ПОРАЗКА...";
+        title.className = "text-3xl sm:text-4xl font-game text-rose-800 mb-2";
+        subtitle.innerText = "Ворог переміг мишу, але ти можеш спробувати ще раз!";
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function restartGame() {
+      currentQuestionIndex = 0;
+      correctAnswersCount = 0;
+      heroHP = heroMaxHP;
+      enemyHP = enemyMaxHP;
+      isAnimating = false;
+      usedQuestionsIndexes.clear();
+
+      updateHealthBars();
+      document.getElementById('modal-overlay').classList.add('hidden');
+      generateQuestion();
+    }
+
+    // Initialize initial state on page load asynchronously
+    window.onload = async function() {
+      await loadQuizFromURL();
+      restartGame();
+    };
+  </script>
+</body>
+</html>
