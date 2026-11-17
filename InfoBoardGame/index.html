@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Інформатика на Дошці</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for Chalk Effect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Neucha&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Neucha', 'Caveat', cursive, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            background-color: #1a1512;
+            overflow: hidden;
+        }
+
+        .chalk-font {
+            font-family: 'Caveat', cursive;
+        }
+
+        .neucha-font {
+            font-family: 'Neucha', cursive;
+        }
+
+        /* Дерев'яна рамка дошки */
+        .wooden-frame {
+            background: linear-gradient(135deg, #a06332 0%, #633816 50%, #3e1f08 100%);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 20px 40px rgba(0,0,0,0.9);
+            border: 4px solid #2b1304;
+        }
+
+        /* Поверхня шкільної дошки */
+        .chalkboard {
+            background-color: #212724;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.3) 100%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0, rgba(255,255,255,0.01) 2px, transparent 2px, transparent 10px);
+            box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.85);
+            position: relative;
+        }
+
+        /* Ефект крейдяного тексту */
+        .chalk-text {
+            color: #f3f4f6;
+            text-shadow: 
+                0 0 2px rgba(255, 255, 255, 0.85), 
+                0 0 5px rgba(255, 255, 255, 0.4), 
+                1px 1px 1px rgba(0,0,0,0.8);
+            letter-spacing: 1px;
+        }
+
+        .chalk-yellow {
+            color: #ffea79;
+            text-shadow: 
+                0 0 2px rgba(255, 234, 121, 0.9), 
+                0 0 6px rgba(255, 234, 121, 0.5);
+        }
+
+        .chalk-blue {
+            color: #7dd3fc;
+            text-shadow: 
+                0 0 2px rgba(125, 211, 252, 0.8), 
+                0 0 6px rgba(125, 211, 252, 0.4);
+        }
+
+        /* Крейдяна смужка таймера */
+        .chalk-progress-border {
+            border: 3px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 0 4px rgba(255, 255, 255, 0.6), inset 0 0 4px rgba(255, 255, 255, 0.3);
+            background: rgba(0,0,0,0.3);
+        }
+
+        .chalk-progress-fill {
+            background: linear-gradient(90deg, #ffffff, #e0e0e0);
+            box-shadow: 0 0 8px rgba(255,255,255,0.8);
+            border-radius: 6px;
+            transition: width 0.1s linear;
+        }
+
+        /* Кнопки відповідей у стилі малюнка крейдою */
+        .chalk-choice-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px dashed rgba(255, 255, 255, 0.55);
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.4),
+                inset 0 0 12px rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(2px);
+            transition: all 0.15s ease-out;
+        }
+
+        .chalk-choice-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-style: solid;
+            border-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .chalk-choice-btn:active {
+            transform: scale(0.97);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Зірочки рейтингу */
+        .star-icon {
+            filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.8));
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .star-active {
+            color: #ffea75;
+            filter: drop-shadow(0 0 6px rgba(255, 234, 117, 0.9));
+            transform: scale(1.15);
+        }
+
+        .star-empty {
+            color: transparent;
+            -webkit-text-stroke: 2px rgba(255, 255, 255, 0.6);
+        }
+
+        /* Анімації для відповідей */
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.06); color: #4ade80; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); color: #f87171; }
+            40%, 80% { transform: translateX(10px); color: #f87171; }
+        }
+
+        .animate-correct {
+            animation: correctPulse 0.45s ease-in-out;
+        }
+
+        .animate-wrong {
+            animation: wrongShake 0.45s ease-in-out;
+        }
+
+        /* Затемнення модальних вікон */
+        .modal-blur {
+            backdrop-filter: blur(5px);
+            background: rgba(15, 20, 18, 0.88);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-2 sm:p-4 md:p-6 text-white">
+
+    <!-- Зовнішня рамка дошки -->
+    <div class="relative w-full max-w-4xl h-[94vh] sm:h-[88vh] max-h-[720px] wooden-frame rounded-2xl p-2.5 sm:p-5 md:p-7 flex flex-col justify-between overflow-hidden">
+        
+        <!-- Поверхня дошки -->
+        <div id="board" class="chalkboard w-full h-full rounded-lg flex flex-col justify-between p-3 sm:p-6 relative overflow-hidden border border-white/10">
+            
+            <!-- Canvas для крейдяного пилу -->
+            <canvas id="dustCanvas" class="absolute inset-0 pointer-events-none z-10"></canvas>
+
+            <!-- Верхня панель керування -->
+            <div class="flex items-center justify-between w-full z-20 gap-2">
+                <!-- Назва рівня / теми -->
+                <div class="flex flex-col">
+                    <span id="levelLabel" class="text-xl sm:text-2xl md:text-3xl chalk-font chalk-yellow font-bold leading-none">
+                        Рівень 1
+                    </span>
+                    <span id="topicLabel" class="text-xs sm:text-sm neucha-font text-gray-300 tracking-wider">
+                        Будова комп'ютера
+                    </span>
+                </div>
+
+                <!-- Смужка таймера -->
+                <div class="w-1/3 sm:w-2/5 max-w-md px-1">
+                    <div class="chalk-progress-border h-4 sm:h-5 p-0.5 flex items-center">
+                        <div id="timerBar" class="chalk-progress-fill h-full w-full"></div>
+                    </div>
+                </div>
+
+                <!-- Кнопки звуку та виходу -->
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <button id="soundToggleBtn" onclick="toggleSound()" class="text-lg sm:text-2xl chalk-text hover:text-yellow-300 transition-transform active:scale-95 p-1" title="Звук">
+                        <i id="soundIcon" class="fas fa-volume-up"></i>
+                    </button>
+                    <button onclick="showExitMenu()" class="text-xl sm:text-3xl chalk-text hover:text-red-400 transition-transform active:scale-95 p-1" title="Меню">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Зірочки прогресу -->
+            <div id="starsContainer" class="flex justify-center items-center space-x-2 sm:space-x-4 my-1 sm:my-2 z-20">
+                <i class="fas fa-star text-xl sm:text-3xl star-icon star-empty" data-star="1"></i>
+                <i class="fas fa-star text-xl sm:text-3xl star-icon star-empty" data-star="2"></i>
+                <i class="fas fa-star text-xl sm:text-3xl star-icon star-empty" data-star="3"></i>
+                <i class="fas fa-star text-xl sm:text-3xl star-icon star-empty" data-star="4"></i>
+                <i class="fas fa-star text-xl sm:text-3xl star-icon star-empty" data-star="5"></i>
+            </div>
+
+            <!-- Центральна область запитання з іконкою -->
+            <div class="flex-grow flex flex-col items-center justify-center my-1 sm:my-2 px-2 sm:px-6 z-20">
+                <div id="questionIconBox" class="mb-2 sm:mb-3 text-3xl sm:text-5xl chalk-blue opacity-90">
+                    <i class="fas fa-desktop"></i>
+                </div>
+                <div id="questionText" class="text-2xl sm:text-3xl md:text-4xl neucha-font chalk-text text-center leading-snug max-w-2xl transition-all">
+                    Завантаження питання...
+                </div>
+            </div>
+
+            <!-- Контейнер варіантів відповідей -->
+            <div id="answersContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 w-full max-w-2xl mx-auto mb-2 sm:mb-4 z-20">
+                <!-- Кнопки генеруються через JS -->
+            </div>
+
+            <!-- Декоративна нижня поличка для крейди -->
+            <div class="absolute bottom-0 left-0 right-0 h-2 bg-white/10 shadow-inner pointer-events-none flex justify-end pr-8">
+                <div class="w-10 h-1.5 bg-white/80 rounded-full -mt-1 mr-3 shadow"></div>
+                <div class="w-7 h-1.5 bg-yellow-200/80 rounded-full -mt-1 shadow"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Головне меню (Старт) -->
+    <div id="startModal" class="fixed inset-0 modal-blur flex items-center justify-center z-50 p-4">
+        <div class="bg-[#1f2623] border-4 border-[#8b5a2b] rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl relative">
+            <div class="text-4xl sm:text-5xl chalk-blue mb-2">
+                <i class="fas fa-laptop-code"></i>
+            </div>
+            <h1 class="text-4xl sm:text-5xl chalk-font chalk-yellow font-bold mb-3">Інформатика на Дошці</h1>
+            <p class="neucha-font text-lg sm:text-xl text-gray-200 mb-6">
+                Перевір свої знання про комп'ютери, алгоритми та безпеку в мережі! Збирай зірочки на кожному рівні.
+            </p>
+            
+            <div class="space-y-3 sm:space-y-4">
+                <button onclick="startGame(1)" class="w-full py-3 text-2xl neucha-font chalk-text bg-emerald-700/85 hover:bg-emerald-600 rounded-xl border-2 border-emerald-400 shadow-lg transition active:scale-95">
+                    <i class="fas fa-play mr-2"></i> Почати Гру
+                </button>
+                <button onclick="showLevelSelect()" class="w-full py-3 text-2xl neucha-font chalk-text bg-amber-700/85 hover:bg-amber-600 rounded-xl border-2 border-amber-400 shadow-lg transition active:scale-95">
+                    <i class="fas fa-layer-group mr-2"></i> Обрати Тему (Рівень)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вибір рівня / теми -->
+    <div id="levelModal" class="fixed inset-0 modal-blur flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-[#1f2623] border-4 border-[#8b5a2b] rounded-2xl p-5 sm:p-8 max-w-xl w-full text-center shadow-2xl">
+            <h2 class="text-3xl sm:text-4xl chalk-font chalk-yellow font-bold mb-5">Обери Тему Уроку</h2>
+            <div id="levelGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                <!-- Кнопки рівнів генеруються через JS -->
+            </div>
+            <button onclick="closeModal('levelModal'); document.getElementById('startModal').classList.remove('hidden');" class="py-2 px-6 text-xl neucha-font chalk-text bg-gray-700 hover:bg-gray-600 rounded-xl border border-gray-400 transition">
+                Назад
+            </button>
+        </div>
+    </div>
+
+    <!-- Вікно результатів рівня -->
+    <div id="resultModal" class="fixed inset-0 modal-blur flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-[#1f2623] border-4 border-[#8b5a2b] rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl relative">
+            <h2 id="resultTitle" class="text-4xl chalk-font chalk-yellow font-bold mb-2">Чудово!</h2>
+            <p id="resultSubtitle" class="neucha-font text-2xl text-gray-200 mb-4">Тему пройдено!</p>
+            
+            <div id="resultStars" class="flex justify-center space-x-2 my-4 text-3xl sm:text-4xl">
+                <!-- Зірочки результату -->
+            </div>
+
+            <p id="resultScoreText" class="neucha-font text-xl text-gray-300 mb-6">Твій результат: 5 з 5 зірочок!</p>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button id="nextLevelBtn" onclick="nextLevel()" class="py-3 px-6 text-xl neucha-font chalk-text bg-emerald-700 hover:bg-emerald-600 rounded-xl border-2 border-emerald-400 shadow transition active:scale-95">
+                    Наступна Тема <i class="fas fa-arrow-right ml-1"></i>
+                </button>
+                <button onclick="restartLevel()" class="py-3 px-6 text-xl neucha-font chalk-text bg-blue-700 hover:bg-blue-600 rounded-xl border-2 border-blue-400 shadow transition active:scale-95">
+                    <i class="fas fa-redo mr-1"></i> Ще раз
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Пауза / Вихід -->
+    <div id="exitModal" class="fixed inset-0 modal-blur flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-[#1f2623] border-4 border-[#8b5a2b] rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl">
+            <h2 class="text-3xl chalk-font chalk-text font-bold mb-4">Перерва</h2>
+            <p class="neucha-font text-xl text-gray-300 mb-6">Бажаєш повернутися в головне меню?</p>
+            <div class="flex justify-center space-x-4">
+                <button onclick="closeModal('exitModal'); resumeGame();" class="py-2 px-5 text-xl neucha-font chalk-text bg-emerald-700 hover:bg-emerald-600 rounded-xl border border-emerald-400">
+                    Продовжити
+                </button>
+                <button onclick="goToMainMenu()" class="py-2 px-5 text-xl neucha-font chalk-text bg-red-700 hover:bg-red-600 rounded-xl border border-red-400">
+                    Меню
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Звукова система на базі Web Audio API
+        class SoundSystem {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+            }
+
+            playTone(freq, type = 'sine', duration = 0.15, gainVal = 0.2) {
+                if (this.muted) return;
+                this.init();
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+                gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            }
+
+            playChalkClick() {
+                if (this.muted) return;
+                this.init();
+                const bufferSize = this.ctx.sampleRate * 0.04;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1200;
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                noise.start();
+            }
+
+            playCorrect() {
+                if (this.muted) return;
+                this.playTone(523.25, 'triangle', 0.15, 0.25); // C5
+                setTimeout(() => this.playTone(659.25, 'triangle', 0.15, 0.25), 100); // E5
+                setTimeout(() => this.playTone(783.99, 'triangle', 0.25, 0.3), 200); // G5
+            }
+
+            playWrong() {
+                if (this.muted) return;
+                this.playTone(220, 'sawtooth', 0.2, 0.2); // A3
+                setTimeout(() => this.playTone(175, 'sawtooth', 0.3, 0.2), 150);
+            }
+
+            playWinFanfare() {
+                if (this.muted) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, index) => {
+                    setTimeout(() => this.playTone(freq, 'triangle', 0.3, 0.3), index * 120);
+                });
+            }
+        }
+
+        const sound = new SoundSystem();
+
+        function toggleSound() {
+            sound.muted = !sound.muted;
+            const icon = document.getElementById('soundIcon');
+            if (sound.muted) {
+                icon.className = 'fas fa-volume-mute text-red-400';
+            } else {
+                icon.className = 'fas fa-volume-up';
+                sound.playChalkClick();
+            }
+        }
+
+        // Анімація крейдяного пилу при натисканні
+        const canvas = document.getElementById('dustCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            const board = document.getElementById('board');
+            canvas.width = board.clientWidth;
+            canvas.height = board.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class ChalkParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 4 + 2;
+                this.speedX = (Math.random() - 0.5) * 4;
+                this.speedY = (Math.random() - 0.5) * 4 - 1;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.03 + 0.02;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.alpha -= this.decay;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createChalkDust(x, y, count = 20) {
+            const rect = canvas.getBoundingClientRect();
+            const posX = x - rect.left;
+            const posY = y - rect.top;
+            for (let i = 0; i < count; i++) {
+                particles.push(new ChalkParticle(posX, posY));
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // База запитань з інформатики для початкової школи (1-4 класи)
+        const levelsData = {
+            1: {
+                title: "Будова комп'ютера",
+                icon: "fas fa-desktop",
+                time: 18,
+                questions: [
+                    {
+                        q: "Який пристрій схожий на телевізор і показує зображення?",
+                        icon: "fas fa-tv",
+                        options: ["Монітор", "Клавіатура", "Мишка", "Принтер"],
+                        answer: "Монітор"
+                    },
+                    {
+                        q: "За допомогою якого пристрою ми вводимо літери та цифри?",
+                        icon: "fas fa-keyboard",
+                        options: ["Клавіатура", "Колонки", "Монітор", "Сканер"],
+                        answer: "Клавіатура"
+                    },
+                    {
+                        q: "Який пристрій має хвостика або працює без нього і керує вказівником?",
+                        icon: "fas fa-computer-mouse",
+                        options: ["Комп'ютерна миша", "Мікрофон", "Принтер", "Монітор"],
+                        answer: "Комп'ютерна миша"
+                    },
+                    {
+                        q: "Який пристрій друкує текст і малюнки на папері?",
+                        icon: "fas fa-print",
+                        options: ["Принтер", "Сканер", "Колонки", "Вебкамера"],
+                        answer: "Принтер"
+                    },
+                    {
+                        q: "Як називається головний блок комп'ютера, де захований його «мозок»?",
+                        icon: "fas fa-server",
+                        options: ["Системний блок", "Монітор", "Флешка", "Навушники"],
+                        answer: "Системний блок"
+                    },
+                    {
+                        q: "За допомогою якого пристрою можна почути звук із комп'ютера?",
+                        icon: "fas fa-volume-high",
+                        options: ["Колонки або навушники", "Мікрофон", "Клавіатура", "Миша"],
+                        answer: "Колонки або навушники"
+                    },
+                    {
+                        q: "Який комп'ютер легко скласти, покласти в рюкзак і взяти із собою?",
+                        icon: "fas fa-laptop",
+                        options: ["Ноутбук", "Стаціонарний ПК", "Монітор", "Принтер"],
+                        answer: "Ноутбук"
+                    }
+                ]
+            },
+            2: {
+                title: "Інформація та її види",
+                icon: "fas fa-eye",
+                time: 18,
+                questions: [
+                    {
+                        q: "Яким органом чуття ми сприймаємо інформацію, коли дивимося мультфільм?",
+                        icon: "fas fa-eye",
+                        options: ["Очима (зір)", "Вухами (слух)", "Носом (нюх)", "Язиком (смак)"],
+                        answer: "Очима (зір)"
+                    },
+                    {
+                        q: "Яку інформацію ми отримуємо, коли слухаємо улюблену пісню?",
+                        icon: "fas fa-music",
+                        options: ["Звукову", "Зорову", "Смакову", "Нюхову"],
+                        answer: "Звукову"
+                    },
+                    {
+                        q: "До якого виду належить інформація, записана словами у книзі?",
+                        icon: "fas fa-book-open",
+                        options: ["Текстова", "Звукова", "Смакова", "Нюхова"],
+                        answer: "Текстова"
+                    },
+                    {
+                        q: "Світлофор на дорозі передає нам інформацію за допомогою...",
+                        icon: "fas fa-traffic-light",
+                        options: ["Кольору (зорову)", "Запаху", "Смаку", "Дотику"],
+                        answer: "Кольору (зорову)"
+                    },
+                    {
+                        q: "Що з переліченого є носієм інформації?",
+                        icon: "fas fa-sd-card",
+                        options: ["Флешка або книга", "Олівець", "Стілець", "Лінійка"],
+                        answer: "Флешка або книга"
+                    },
+                    {
+                        q: "Як називається інформація, подана у вигляді чисел та прикладів?",
+                        icon: "fas fa-calculator",
+                        options: ["Числова", "Звукова", "Графічна", "Смакова"],
+                        answer: "Числова"
+                    }
+                ]
+            },
+            3: {
+                title: "Клавіатура та Миша",
+                icon: "fas fa-keyboard",
+                time: 16,
+                questions: [
+                    {
+                        q: "Яка найдовша клавіша на клавіатурі робить відступ між словами?",
+                        icon: "fas fa-minus",
+                        options: ["Пробіл (Space)", "Enter", "Backspace", "Shift"],
+                        answer: "Пробіл (Space)"
+                    },
+                    {
+                        q: "Яка клавіша видаляє символ ліворуч від курсора?",
+                        icon: "fas fa-delete-left",
+                        options: ["Backspace", "Space", "Caps Lock", "Tab"],
+                        answer: "Backspace"
+                    },
+                    {
+                        q: "Яка клавіша допомагає ввести велику літеру, якщо її утримувати?",
+                        icon: "fas fa-arrow-up",
+                        options: ["Shift", "Delete", "Escape", "Control"],
+                        answer: "Shift"
+                    },
+                    {
+                        q: "Яку клавішу натискають, щоб перейти на новий рядок у тексті?",
+                        icon: "fas fa-turn-down",
+                        options: ["Enter", "Space", "Esc", "Alt"],
+                        answer: "Enter"
+                    },
+                    {
+                        q: "Якою кнопкою миші ми найчастіше обираємо об'єкти на екрані?",
+                        icon: "fas fa-hand-pointer",
+                        options: ["Лівою кнопкою", "Правою кнопкою", "Коліщатком", "Знизу миші"],
+                        answer: "Лівою кнопкою"
+                    },
+                    {
+                        q: "Для чого потрібне коліщатко на комп'ютерній миші?",
+                        icon: "fas fa-arrows-up-down",
+                        options: ["Прокручувати сторінку", "Вимикати комп'ютер", "Друкувати літери", "Малювати кола"],
+                        answer: "Прокручувати сторінку"
+                    }
+                ]
+            },
+            4: {
+                title: "Безпека в Інтернеті",
+                icon: "fas fa-shield-halved",
+                time: 18,
+                questions: [
+                    {
+                        q: "Що таке надійний пароль?",
+                        icon: "fas fa-key",
+                        options: ["Складний код з літер і цифр", "Твоє ім'я", "Цифри 12345", "Дата народження"],
+                        answer: "Складний код з літер і цифр"
+                    },
+                    {
+                        q: "Чи можна повідомляти незнайомцям в інтернеті свою домашню адресу?",
+                        icon: "fas fa-house-lock",
+                        options: ["Ні, це небезпечно!", "Так, якщо попросять", "Можна в коментарях", "Лише в іграх"],
+                        answer: "Ні, це небезпечно!"
+                    },
+                    {
+                        q: "Що робити, якщо в інтернеті з'явилося дивне повідомлення або виграш?",
+                        icon: "fas fa-triangle-exclamation",
+                        options: ["Покликати батьків чи вчителя", "Одразу натиснути", "Ввести номер телефону", "Надіслати друзям"],
+                        answer: "Покликати батьків чи вчителя"
+                    },
+                    {
+                        q: "Яка програма захищає комп'ютер від шкідливих вірусів?",
+                        icon: "fas fa-shield-virus",
+                        options: ["Антивірус", "Калькулятор", "Графічний редактор", "Блокнот"],
+                        answer: "Антивірус"
+                    },
+                    {
+                        q: "Скільки часу без перерви учням початкових класів варто сидіти за комп'ютером?",
+                        icon: "fas fa-clock",
+                        options: ["15–20 хвилин", "3 години", "Весь день", "5 годин"],
+                        answer: "15–20 хвилин"
+                    },
+                    {
+                        q: "Як потрібно спілкуватися з іншими людьми в мережі?",
+                        icon: "fas fa-comments",
+                        options: ["Ввічливо та доброзичливо", "Грубо", "Ображати інших", "Писати лише великими літерами"],
+                        answer: "Ввічливо та доброзичливо"
+                    }
+                ]
+            },
+            5: {
+                title: "Алгоритми та Виконавці",
+                icon: "fas fa-robot",
+                time: 18,
+                questions: [
+                    {
+                        q: "Як називається чітка послідовність команд для досягнення результату?",
+                        icon: "fas fa-list-check",
+                        options: ["Алгоритм", "Загадка", "Малюнок", "Вірш"],
+                        answer: "Алгоритм"
+                    },
+                    {
+                        q: "Хто такий виконавець алгоритму?",
+                        icon: "fas fa-robot",
+                        options: ["Той, хто виконує команди", "Той, хто пише книгу", "Лише комп'ютер", "Шкільна дошка"],
+                        answer: "Той, хто виконує команди"
+                    },
+                    {
+                        q: "Як називається алгоритм, де всі команди виконуються одна за одною по черзі?",
+                        icon: "fas fa-arrow-right-long",
+                        options: ["Лінійний", "Заплутаний", "Зворотний", "Випадковий"],
+                        answer: "Лінійний"
+                    },
+                    {
+                        q: "Що робить алгоритм із розгалуженням (умовою «ЯКЩО... ТО...»)?",
+                        icon: "fas fa-code-branch",
+                        options: ["Обирає дію залежно від умови", "Повторює дію вічно", "Зупиняє програму", "Видаляє файли"],
+                        answer: "Обирає дію залежно від умови"
+                    },
+                    {
+                        q: "Як називається багаторазове повторення однакових команд в алгоритмі?",
+                        icon: "fas fa-repeat",
+                        options: ["Цикл", "Пауза", "Помилка", "Кінець"],
+                        answer: "Цикл"
+                    },
+                    {
+                        q: "Як називається відомий рудий кіт — виконавець у програмі Scratch?",
+                        icon: "fas fa-cat",
+                        options: ["Спрайт (Рудий кіт)", "Том", "Гарфілд", "Леопольд"],
+                        answer: "Спрайт (Рудий кіт)"
+                    }
+                ]
+            },
+            6: {
+                title: "Файли, Папки та Програми",
+                icon: "fas fa-folder-open",
+                time: 16,
+                questions: [
+                    {
+                        q: "Де зберігаються документи, малюнки та відео на комп'ютері?",
+                        icon: "fas fa-folder",
+                        options: ["У папках та файлах", "На килимку для миші", "У розетці", "На клавіатурі"],
+                        answer: "У папках та файлах"
+                    },
+                    {
+                        q: "Куди потрапляють файли, які ми видалили з робочого столу?",
+                        icon: "fas fa-trash-can",
+                        options: ["У Кошик", "В Інтернет", "На принтер", "У колонки"],
+                        answer: "У Кошик"
+                    },
+                    {
+                        q: "У якій програмі зручно створювати малюнки на комп'ютері?",
+                        icon: "fas fa-palette",
+                        options: ["Графічний редактор (Paint)", "Калькулятор", "Провідник", "Кошик"],
+                        answer: "Графічний редактор (Paint)"
+                    },
+                    {
+                        q: "Як називається головний екран, який з'являється після ввімкнення комп'ютера?",
+                        icon: "fas fa-display",
+                        options: ["Робочий стіл", "Книжкова полиця", "Класна дошка", "Вікно"],
+                        answer: "Робочий стіл"
+                    },
+                    {
+                        q: "Яка програма потрібна для перегляду сторінок в Інтернеті?",
+                        icon: "fas fa-globe",
+                        options: ["Браузер", "Блокнот", "Калькулятор", "Paint"],
+                        answer: "Браузер"
+                    },
+                    {
+                        q: "Який інструмент у графічному редакторі дозволяє зафарбувати замкнену фігуру?",
+                        icon: "fas fa-fill-drip",
+                        options: ["Заливка", "Гумка", "Олівець", "Лупа"],
+                        answer: "Заливка"
+                    }
+                ]
+            }
+        };
+
+        // Стан гри
+        let currentLevel = 1;
+        const maxLevels = Object.keys(levelsData).length;
+        let score = 0;
+        const totalQuestionsPerLevel = 5;
+        let currentQuestionIndex = 0;
+        let levelQuestionsPool = [];
+        let currentQuestion = null;
+        let timerInterval = null;
+        let timerTimeLeft = 100;
+        let timerDuration = 18;
+        let isPaused = false;
+        let canAnswer = true;
+
+        function prepareLevelQuestions(level) {
+            const data = levelsData[level] || levelsData[1];
+            // Перемішуємо питання рівня та беремо 5 штук
+            const shuffled = [...data.questions].sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, totalQuestionsPerLevel).map(item => {
+                // Перемішуємо варіанти відповідей
+                const shuffledOptions = [...item.options].sort(() => Math.random() - 0.5);
+                return {
+                    q: item.q,
+                    icon: item.icon,
+                    options: shuffledOptions,
+                    answer: item.answer
+                };
+            });
+        }
+
+        function startGame(level = 1) {
+            sound.playChalkClick();
+            currentLevel = level;
+            score = 0;
+            currentQuestionIndex = 0;
+            levelQuestionsPool = prepareLevelQuestions(level);
+            
+            document.getElementById('startModal').classList.add('hidden');
+            document.getElementById('levelModal').classList.add('hidden');
+            document.getElementById('resultModal').classList.add('hidden');
+            document.getElementById('exitModal').classList.add('hidden');
+
+            updateLevelHeader();
+            updateStarsDisplay();
+            nextQuestion();
+        }
+
+        function updateLevelHeader() {
+            const data = levelsData[currentLevel] || levelsData[1];
+            document.getElementById('levelLabel').innerText = `Рівень ${currentLevel}`;
+            document.getElementById('topicLabel').innerText = data.title;
+        }
+
+        function updateStarsDisplay() {
+            const stars = document.querySelectorAll('#starsContainer .star-icon');
+            stars.forEach((star, index) => {
+                if (index < score) {
+                    star.classList.remove('star-empty');
+                    star.classList.add('star-active');
+                } else {
+                    star.classList.remove('star-active');
+                    star.classList.add('star-empty');
+                }
+            });
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            const data = levelsData[currentLevel] || levelsData[1];
+            timerDuration = data.time;
+            timerTimeLeft = 100;
+            
+            const timerBar = document.getElementById('timerBar');
+            timerBar.style.width = '100%';
+
+            const intervalMs = 100;
+            const decrement = (100 / (timerDuration * 1000)) * intervalMs;
+
+            timerInterval = setInterval(() => {
+                if (isPaused) return;
+
+                timerTimeLeft -= decrement;
+                if (timerTimeLeft <= 0) {
+                    timerTimeLeft = 0;
+                    timerBar.style.width = '0%';
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                } else {
+                    timerBar.style.width = `${timerTimeLeft}%`;
+                }
+            }, intervalMs);
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex >= totalQuestionsPerLevel) {
+                finishLevel();
+                return;
+            }
+
+            canAnswer = true;
+            currentQuestion = levelQuestionsPool[currentQuestionIndex];
+            currentQuestionIndex++;
+
+            const qTextEl = document.getElementById('questionText');
+            const qIconBox = document.getElementById('questionIconBox');
+
+            qTextEl.className = "text-2xl sm:text-3xl md:text-4xl neucha-font chalk-text text-center leading-snug max-w-2xl transition-all";
+            qTextEl.innerText = currentQuestion.q;
+            qIconBox.innerHTML = `<i class="${currentQuestion.icon}"></i>`;
+
+            renderAnswers(currentQuestion.options);
+            startTimer();
+        }
+
+        function renderAnswers(choices) {
+            const container = document.getElementById('answersContainer');
+            container.innerHTML = '';
+
+            choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'chalk-choice-btn py-3 px-4 sm:py-4 sm:px-5 rounded-2xl flex items-center justify-center text-xl sm:text-2xl neucha-font chalk-text text-center min-h-[64px] sm:min-h-[76px] leading-tight';
+                btn.innerText = choice;
+                btn.dataset.value = choice;
+                btn.onclick = (e) => selectAnswer(choice, btn, e);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(selected, buttonEl, event) {
+            if (!canAnswer) return;
+            canAnswer = false;
+            clearInterval(timerInterval);
+
+            if (event) {
+                createChalkDust(event.clientX, event.clientY, 25);
+            }
+
+            const qTextEl = document.getElementById('questionText');
+
+            if (selected === currentQuestion.answer) {
+                sound.playCorrect();
+                buttonEl.classList.add('!bg-emerald-500/40', '!border-emerald-300', '!border-solid');
+                qTextEl.classList.add('animate-correct');
+                score++;
+                updateStarsDisplay();
+
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1100);
+            } else {
+                sound.playWrong();
+                buttonEl.classList.add('!bg-red-500/40', '!border-red-300', '!border-solid');
+                qTextEl.classList.add('animate-wrong');
+
+                highlightCorrectAnswer();
+
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1500);
+            }
+        }
+
+        function handleTimeout() {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            sound.playWrong();
+            const qTextEl = document.getElementById('questionText');
+            qTextEl.classList.add('animate-wrong');
+
+            highlightCorrectAnswer();
+
+            setTimeout(() => {
+                nextQuestion();
+            }, 1500);
+        }
+
+        function highlightCorrectAnswer() {
+            const container = document.getElementById('answersContainer');
+            Array.from(container.children).forEach(btn => {
+                if (btn.dataset.value === currentQuestion.answer) {
+                    btn.classList.add('!bg-emerald-500/40', '!border-emerald-300', '!border-solid', 'scale-105');
+                }
+            });
+        }
+
+        function finishLevel() {
+            clearInterval(timerInterval);
+            
+            const resultModal = document.getElementById('resultModal');
+            const titleEl = document.getElementById('resultTitle');
+            const subTitleEl = document.getElementById('resultSubtitle');
+            const scoreTextEl = document.getElementById('resultScoreText');
+            const starsContainer = document.getElementById('resultStars');
+            const nextBtn = document.getElementById('nextLevelBtn');
+
+            starsContainer.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const star = document.createElement('i');
+                if (i < score) {
+                    star.className = 'fas fa-star chalk-yellow drop-shadow-md animate-bounce';
+                    star.style.animationDelay = `${i * 0.1}s`;
+                } else {
+                    star.className = 'fas fa-star text-gray-600 opacity-40';
+                }
+                starsContainer.appendChild(star);
+            }
+
+            scoreTextEl.innerText = `Твій результат: ${score} з 5 зірочок!`;
+
+            if (score >= 3) {
+                sound.playWinFanfare();
+                titleEl.innerText = score === 5 ? "Супер! Ти знавець! 🌟" : "Молодець! 👍";
+                subTitleEl.innerText = `Тему «${levelsData[currentLevel].title}» пройдено!`;
+                
+                if (currentLevel < maxLevels) {
+                    nextBtn.classList.remove('hidden');
+                } else {
+                    nextBtn.classList.add('hidden');
+                    subTitleEl.innerText = "Вітаємо! Ти пройшов усі теми з інформатики!";
+                }
+            } else {
+                sound.playWrong();
+                titleEl.innerText = "Спробуй ще раз! ✏️";
+                subTitleEl.innerText = "Щоб пройти далі, збери хоча б 3 зірочки";
+                nextBtn.classList.add('hidden');
+            }
+
+            resultModal.classList.remove('hidden');
+        }
+
+        function nextLevel() {
+            if (currentLevel < maxLevels) {
+                startGame(currentLevel + 1);
+            }
+        }
+
+        function restartLevel() {
+            startGame(currentLevel);
+        }
+
+        function showLevelSelect() {
+            sound.playChalkClick();
+            const grid = document.getElementById('levelGrid');
+            grid.innerHTML = '';
+
+            for (let i = 1; i <= maxLevels; i++) {
+                const lvl = levelsData[i];
+                const btn = document.createElement('button');
+                btn.className = 'p-3 bg-white/10 hover:bg-white/20 border-2 border-white/30 rounded-xl neucha-font chalk-text transition active:scale-95 flex items-center gap-3 text-left';
+                btn.innerHTML = `
+                    <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-xl chalk-blue shrink-0">
+                        <i class="${lvl.icon}"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm chalk-yellow font-bold">Рівень ${i}</div>
+                        <div class="text-lg leading-tight">${lvl.title}</div>
+                    </div>
+                `;
+                btn.onclick = () => {
+                    startGame(i);
+                };
+                grid.appendChild(btn);
+            }
+
+            document.getElementById('startModal').classList.add('hidden');
+            document.getElementById('levelModal').classList.remove('hidden');
+        }
+
+        function showExitMenu() {
+            sound.playChalkClick();
+            isPaused = true;
+            document.getElementById('exitModal').classList.remove('hidden');
+        }
+
+        function resumeGame() {
+            isPaused = false;
+        }
+
+        function goToMainMenu() {
+            sound.playChalkClick();
+            clearInterval(timerInterval);
+            isPaused = false;
+            document.getElementById('exitModal').classList.add('hidden');
+            document.getElementById('resultModal').classList.add('hidden');
+            document.getElementById('startModal').classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            sound.playChalkClick();
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        window.onload = function() {
+            // Демонстраційний фон під стартовим меню
+            document.getElementById('questionText').innerText = "Який пристрій допомагає керувати вказівником на екрані?";
+            const container = document.getElementById('answersContainer');
+            container.innerHTML = `
+                <button class="chalk-choice-btn py-4 px-5 rounded-2xl text-2xl neucha-font chalk-text">Комп'ютерна миша</button>
+                <button class="chalk-choice-btn py-4 px-5 rounded-2xl text-2xl neucha-font chalk-text">Принтер</button>
+            `;
+        };
+    </script>
+</body>
+</html>
