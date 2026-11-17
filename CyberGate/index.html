@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Захист Пароля: Атака Брутфорсерів</title>
+    <!-- Підключення Tailwind CSS для сучасної та адаптивної стилізації -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Підключення Three.js для 3D-візуалізації бою -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Підключення Tone.js для синтезу звукових ефектів без зовнішніх файлів -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Підключення шрифтів Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #e2e8f0;
+            overflow-x: hidden;
+            user-select: none;
+        }
+        .font-mono-code {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Анімація пульсації для загрозливих елементів */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+            50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.5); }
+        }
+        .cyber-border {
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+        }
+        .btn-cyber {
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+        .btn-cyber:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+            filter: brightness(1.1);
+        }
+        .btn-cyber:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+        .btn-cyber:disabled {
+            background: #334155;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        /* Кастомний скролбар для логу атак */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-3 sm:p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0b0f19] to-black">
+
+    <!-- Верхня панель: Заголовок та статус із 3D-сценою Three.js -->
+    <header id="headerContainer" class="relative w-full max-w-4xl rounded-2xl cyber-border overflow-hidden p-3 sm:p-4 mb-4 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-lg">
+        <!-- Фоновий 3D-канвас для шапки -->
+        <canvas id="headerBgCanvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-65"></canvas>
+
+        <div class="relative z-10 flex items-center gap-3">
+            <!-- 3D-контейнер для обертового кібер-щита -->
+            <div class="w-12 h-12 rounded-xl bg-slate-950/80 border border-cyan-400/50 flex items-center justify-center overflow-hidden shadow-[0_0_15px_rgba(56,189,248,0.25)] shrink-0">
+                <canvas id="headerEmblemCanvas" class="w-full h-full block"></canvas>
+            </div>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
+                    CYBER-GATE: БРУТФОРС АТАКА
+                </h1>
+                <p class="text-xs text-slate-300/90">Створи надійний пароль та витримай натиск монстрів-дешифраторів</p>
+            </div>
+        </div>
+
+        <div class="relative z-10 flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+            <button id="soundToggle" class="p-2.5 rounded-xl bg-slate-900/80 border border-cyan-500/30 text-slate-300 hover:text-cyan-400 transition" title="Увімкнути/вимкнути звук">
+                <svg id="soundIconOn" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                </svg>
+                <svg id="soundIconOff" class="w-5 h-5 hidden text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+                </svg>
+            </button>
+            <div class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-cyan-500/30 text-xs sm:text-sm font-mono-code">
+                Ентропія: <span id="entropyScore" class="font-bold text-cyan-400">0 біт</span>
+            </div>
+            <div class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-cyan-500/30 text-xs sm:text-sm font-mono-code">
+                Час злому: <span id="crackTimeDisplay" class="font-bold text-slate-400">0 сек</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основна ігрова зона -->
+    <main class="w-full max-w-4xl flex-grow flex flex-col gap-4">
+        
+        <!-- Поле бою (3D Three.js Canvas) -->
+        <div id="canvasContainer" class="relative w-full h-64 sm:h-80 rounded-2xl cyber-border overflow-hidden shadow-2xl cursor-grab active:cursor-grabbing">
+            <canvas id="battleCanvas" class="w-full h-full block"></canvas>
+            
+            <!-- Підказка керування камерою -->
+            <div class="absolute bottom-2.5 left-3 px-2.5 py-1 rounded-lg bg-slate-900/75 border border-slate-700/80 text-[10px] font-mono-code text-slate-400 pointer-events-none">
+                🖱️ Тягніть мишею / пальцем для обертання 3D-камери
+            </div>
+
+            <!-- Оверлей хвилі / статусу на канвасі -->
+            <div id="waveBanner" class="absolute top-3 left-3 px-3 py-1 rounded-lg bg-slate-900/80 border border-slate-700 text-xs font-mono-code text-cyan-300 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                <span id="waveText">ОЧІКУВАННЯ ПАРОЛЯ...</span>
+            </div>
+
+            <!-- Смужка здоров'я (цілісності) шлюзу -->
+            <div class="absolute top-3 right-3 w-40 sm:w-56 bg-slate-900/90 p-2 rounded-xl border border-slate-700">
+                <div class="flex justify-between text-[11px] font-mono-code mb-1">
+                    <span class="text-slate-400">ЦІЛІСНІСТЬ ШЛЮЗУ</span>
+                    <span id="hpText" class="text-emerald-400 font-bold">100%</span>
+                </div>
+                <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div id="hpBar" class="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-200" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <!-- Модальне вікно результату бою (замість alert) -->
+            <div id="resultModal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20">
+                <div id="resultIcon" class="w-16 h-16 rounded-2xl flex items-center justify-center mb-3 text-3xl"></div>
+                <h2 id="resultTitle" class="text-2xl sm:text-3xl font-extrabold mb-2"></h2>
+                <p id="resultDesc" class="text-sm sm:text-base text-slate-300 max-w-md mb-5"></p>
+                <button id="resetBtn" class="btn-cyber px-6 py-3 rounded-xl font-bold text-white tracking-wide flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Створити новий пароль
+                </button>
+            </div>
+        </div>
+
+        <!-- Панель створення пароля та критеріїв -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            
+            <!-- Ліва колонка: Введення пароля та Критерії (7 колонок) з 3D-сценою Three.js -->
+            <div id="creationPanel" class="relative overflow-hidden lg:col-span-7 cyber-border rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
+                <canvas id="creationBgCanvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-45"></canvas>
+                
+                <div class="relative z-10">
+                    <label for="passwordInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                        Введіть секретний ключ захисту (пароль):
+                    </label>
+                    <div class="relative flex items-center">
+                        <input 
+                            type="text" 
+                            id="passwordInput" 
+                            autocomplete="off"
+                            spellcheck="false"
+                            placeholder="Наприклад: Cyber#2026_Guard!" 
+                            class="w-full bg-slate-950/90 border-2 border-slate-700 focus:border-cyan-400 rounded-xl px-4 py-3.5 pr-24 font-mono-code text-base sm:text-lg text-white placeholder-slate-600 outline-none transition"
+                        />
+                        <div class="absolute right-2 flex items-center gap-1">
+                            <button id="toggleVisibilityBtn" type="button" class="p-2 text-slate-400 hover:text-white rounded-lg transition" title="Показати/сховати символи">
+                                <svg id="eyeOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                <svg id="eyeClosed" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Попередження про кирилицю -->
+                    <p id="cyrillicWarning" class="hidden text-xs text-amber-400 mt-1.5 flex items-center gap-1">
+                        <span>⚠️ Виявлено нелатинські символи! Використовуйте лише латиницю, цифри та спецсимволи.</span>
+                    </p>
+                </div>
+
+                <!-- Список 5 обов'язкових правил із 3D-індикаторами -->
+                <div class="relative z-10 space-y-2">
+                    <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        Системи оборони (обов'язкові вимоги):
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
+                        <!-- Правило 1: Більше 8 символів -->
+                        <div id="rule-length" class="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/85 border border-slate-800 text-slate-400 transition-colors">
+                            <canvas data-rule-canvas="length" class="w-6 h-6 shrink-0"></canvas>
+                            <span>Більше 8 символів (<span id="charCount">0</span>/9+)</span>
+                        </div>
+                        <!-- Правило 2: Цифри -->
+                        <div id="rule-digit" class="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/85 border border-slate-800 text-slate-400 transition-colors">
+                            <canvas data-rule-canvas="digit" class="w-6 h-6 shrink-0"></canvas>
+                            <span>Цифри (0-9)</span>
+                        </div>
+                        <!-- Правило 3: Великі літери латини -->
+                        <div id="rule-upper" class="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/85 border border-slate-800 text-slate-400 transition-colors">
+                            <canvas data-rule-canvas="upper" class="w-6 h-6 shrink-0"></canvas>
+                            <span>Великі латинські (A-Z)</span>
+                        </div>
+                        <!-- Правило 4: Маленькі літери латини -->
+                        <div id="rule-lower" class="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/85 border border-slate-800 text-slate-400 transition-colors">
+                            <canvas data-rule-canvas="lower" class="w-6 h-6 shrink-0"></canvas>
+                            <span>Маленькі латинські (a-z)</span>
+                        </div>
+                        <!-- Правило 5: Спеціальні символи -->
+                        <div id="rule-special" class="sm:col-span-2 flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/85 border border-slate-800 text-slate-400 transition-colors">
+                            <canvas data-rule-canvas="special" class="w-6 h-6 shrink-0"></canvas>
+                            <span>Спеціальні символи (!@#$%^&* та ін.)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопка запуску атаки -->
+                <button id="startAttackBtn" disabled class="relative z-10 btn-cyber w-full py-3.5 px-6 rounded-xl font-extrabold text-white text-sm sm:text-base tracking-wide uppercase flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span>Введіть пароль для перевірки</span>
+                </button>
+            </div>
+
+            <!-- Права колонка: Термінал дешифрування монстрів (5 колонок) з 3D-сценою Three.js -->
+            <div id="terminalPanel" class="relative overflow-hidden lg:col-span-5 cyber-border rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3">
+                <canvas id="terminalBgCanvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-45"></canvas>
+                
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+                        <span class="text-xs font-mono-code font-bold text-rose-400 flex items-center gap-2">
+                            <canvas id="terminalCoreCanvas" class="w-5 h-5 shrink-0"></canvas>
+                            TERMINAL // BRUTEFORCE_LOG
+                        </span>
+                        <span id="speedStat" class="text-[11px] font-mono-code text-slate-400">0 спроб/с</span>
+                    </div>
+
+                    <!-- Візуалізація підбору символів монстрами -->
+                    <div class="bg-slate-950/90 rounded-xl p-3 border border-slate-800 mb-3">
+                        <div class="text-[10px] text-slate-500 font-mono-code mb-1">ПОТОЧНИЙ ПІДБІР МОНСТРІВ:</div>
+                        <div id="bruteAttemptDisplay" class="font-mono-code text-base sm:text-lg text-rose-400 tracking-widest truncate h-7">
+                            [ОЧІКУВАННЯ ЦІЛІ]
+                        </div>
+                    </div>
+
+                    <!-- Журнал подій -->
+                    <div id="battleLog" class="h-36 sm:h-40 overflow-y-auto space-y-1.5 font-mono-code text-xs pr-1">
+                        <div class="text-slate-400">> Система ініціалізована.</div>
+                        <div class="text-cyan-400">> Створіть пароль за всіма 5 правилами, щоб увімкнути турелі захисту.</div>
+                        <div class="text-slate-500">> Чим довший і складніший пароль, тим потужніші лазерні щити!</div>
+                    </div>
+                </div>
+
+                <!-- Легенда монстрів -->
+                <div class="relative z-10 pt-2 border-t border-slate-800/80 flex justify-between items-center text-[11px] font-mono-code text-slate-400">
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Словниковий</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-purple-400"></span> Гібридний</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Квантовий Бос</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        /**
+         * ГРА "ЗАХИСТ ПАРОЛЯ: АТАКА БРУТФОРСЕРІВ"
+         * Повна логіка валідації пароля, розрахунку криптографічної стійкості,
+         * генерації хвиль монстрів-брутфорсерів, анімації на Canvas та звукового супроводу.
+         */
+
+        // --- ЗВУКОВИЙ РУШІЙ (Tone.js) ---
+        class SoundEngine {
+            constructor() {
+                this.enabled = true;
+                this.initialized = false;
+                this.synth = null;
+                this.noiseSynth = null;
+            }
+
+            async init() {
+                if (this.initialized) return;
+                try {
+                    await Tone.start();
+                    this.synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "triangle" },
+                        envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.2 }
+                    }).toDestination();
+                    this.synth.volume.value = -10;
+                    this.initialized = true;
+                } catch (e) {
+                    console.warn("Аудіо контекст не ініціалізовано:", e);
+                }
+            }
+
+            playCheck(isValid) {
+                if (!this.enabled || !this.initialized) return;
+                if (isValid) {
+                    this.synth.triggerAttackRelease(["C5", "E5"], "16n");
+                }
+            }
+
+            playLaser() {
+                if (!this.enabled || !this.initialized) return;
+                const now = Tone.now();
+                this.synth.triggerAttackRelease("G5", "32n", now);
+            }
+
+            playHit() {
+                if (!this.enabled || !this.initialized) return;
+                this.synth.triggerAttackRelease("C2", "16n");
+            }
+
+            playExplosion() {
+                if (!this.enabled || !this.initialized) return;
+                this.synth.triggerAttackRelease(["A3", "D3"], "16n");
+            }
+
+            playVictory() {
+                if (!this.enabled || !this.initialized) return;
+                const now = Tone.now();
+                this.synth.triggerAttackRelease("C5", "8n", now);
+                this.synth.triggerAttackRelease("E5", "8n", now + 0.12);
+                this.synth.triggerAttackRelease("G5", "8n", now + 0.24);
+                this.synth.triggerAttackRelease("C6", "4n", now + 0.36);
+            }
+
+            playDefeat() {
+                if (!this.enabled || !this.initialized) return;
+                const now = Tone.now();
+                this.synth.triggerAttackRelease("E3", "8n", now);
+                this.synth.triggerAttackRelease("Eb3", "8n", now + 0.18);
+                this.synth.triggerAttackRelease("D3", "4n", now + 0.36);
+            }
+        }
+
+        const sound = new SoundEngine();
+
+        // --- ЕЛЕМЕНТИ ІНТЕРФЕЙСУ ---
+        const passwordInput = document.getElementById('passwordInput');
+        const toggleVisibilityBtn = document.getElementById('toggleVisibilityBtn');
+        const eyeOpen = document.getElementById('eyeOpen');
+        const eyeClosed = document.getElementById('eyeClosed');
+        const startAttackBtn = document.getElementById('startAttackBtn');
+        const charCountEl = document.getElementById('charCount');
+        const entropyScoreEl = document.getElementById('entropyScore');
+        const crackTimeDisplay = document.getElementById('crackTimeDisplay');
+        const cyrillicWarning = document.getElementById('cyrillicWarning');
+        const battleLog = document.getElementById('battleLog');
+        const bruteAttemptDisplay = document.getElementById('bruteAttemptDisplay');
+        const speedStat = document.getElementById('speedStat');
+        const waveText = document.getElementById('waveText');
+        const hpBar = document.getElementById('hpBar');
+        const hpText = document.getElementById('hpText');
+        const resultModal = document.getElementById('resultModal');
+        const resultIcon = document.getElementById('resultIcon');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultDesc = document.getElementById('resultDesc');
+        const resetBtn = document.getElementById('resetBtn');
+        const soundToggle = document.getElementById('soundToggle');
+
+        // Елементи правил
+        const rulesUI = {
+            length: document.getElementById('rule-length'),
+            digit: document.getElementById('rule-digit'),
+            upper: document.getElementById('rule-upper'),
+            lower: document.getElementById('rule-lower'),
+            special: document.getElementById('rule-special')
+        };
+
+        // --- СТАН ГРИ ---
+        let gameState = {
+            phase: 'CREATION', // 'CREATION', 'BATTLE', 'ENDED'
+            password: '',
+            entropy: 0,
+            shieldPower: 1,
+            activeTurrets: [], // Індекси активних турелей (0..4)
+            missingRules: [],  // Список назв невиконаних правил
+            gateHP: 100,
+            maxGateHP: 100,
+            monsters: [],
+            lasers: [],
+            particles: [],
+            shieldRipples: [],
+            wave: 1,
+            totalWaves: 3,
+            monstersSpawnedInWave: 0,
+            monstersToSpawnInWave: 0,
+            spawnTimer: 0,
+            revealedChars: [], // Масив індексів символів, які монстри "зламали"
+            isPasswordHidden: false,
+            prevRulesState: { length: false, digit: false, upper: false, lower: false, special: false }
+        };
+
+        // --- ЛОГІКА ПЕРЕВІРКИ ПАРОЛЯ ---
+        function analyzePassword(pwd) {
+            // Перевірка 5 основних умов:
+            // 1. Більше 8ми літер/символів (тобто >= 9)
+            const hasLength = pwd.length > 8;
+            // 2. Цифри
+            const hasDigit = /[0-9]/.test(pwd);
+            // 3. Літери великі латини
+            const hasUpper = /[A-Z]/.test(pwd);
+            // 4. Літери маленькі латини
+            const hasLower = /[a-z]/.test(pwd);
+            // 5. Спеціальні символи
+            const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~` ]/.test(pwd);
+            // Перевірка на кирилицю (для підказки гравцю)
+            const hasCyrillic = /[а-яА-ЯіїєґІЇЄҐ]/.test(pwd);
+
+            // Розрахунок пулу символів для ентропії
+            let poolSize = 0;
+            if (hasLower) poolSize += 26;
+            if (hasUpper) poolSize += 26;
+            if (hasDigit) poolSize += 10;
+            if (hasSpecial) poolSize += 32;
+
+            // Формула ентропії Шеннона: L * log2(N)
+            const entropy = poolSize > 0 ? Math.round(pwd.length * Math.log2(poolSize)) : 0;
+
+            // Бонус за унікальність символів (захист від паролів типу "Aaaaaaaa1!")
+            const uniqueChars = new Set(pwd).size;
+            const uniquenessRatio = pwd.length > 0 ? uniqueChars / pwd.length : 0;
+            const effectiveEntropy = Math.round(entropy * (0.5 + 0.5 * uniquenessRatio));
+
+            return {
+                hasLength,
+                hasDigit,
+                hasUpper,
+                hasLower,
+                hasSpecial,
+                hasCyrillic,
+                entropy: effectiveEntropy,
+                allValid: hasLength && hasDigit && hasUpper && hasLower && hasSpecial
+            };
+        }
+
+        // Розрахунок орієнтовного реального часу злому (GPU-кластер: ~100 млрд спроб/с)
+        function formatCrackTime(entropyBits, pwdLength) {
+            if (pwdLength === 0 || entropyBits <= 0) {
+                return { text: '0 сек', colorClass: 'text-slate-400' };
+            }
+            const guessesPerSec = 1e11; // 100 мільярдів спроб на секунду
+            const seconds = Math.pow(2, entropyBits) / guessesPerSec;
+
+            if (seconds < 0.001) return { text: 'миттєво (<1 мс)', colorClass: 'text-rose-500' };
+            if (seconds < 1) return { text: `${Math.round(seconds * 1000)} мілісекунд`, colorClass: 'text-rose-500' };
+            if (seconds < 60) return { text: `${seconds.toFixed(1)} сек`, colorClass: 'text-rose-400' };
+            if (seconds < 3600) return { text: `${Math.round(seconds / 60)} хв`, colorClass: 'text-amber-400' };
+            if (seconds < 86400) return { text: `${Math.round(seconds / 3600)} год`, colorClass: 'text-amber-300' };
+            if (seconds < 86400 * 30) return { text: `${Math.round(seconds / 86400)} днів`, colorClass: 'text-yellow-300' };
+            if (seconds < 86400 * 365) return { text: `${Math.round(seconds / (86400 * 30))} міс.`, colorClass: 'text-cyan-300' };
+
+            const years = seconds / (86400 * 365.25);
+            if (years < 1000) return { text: `${Math.round(years)} років`, colorClass: 'text-emerald-400' };
+            if (years < 1e6) return { text: `${(years / 1000).toFixed(1)} тис. років`, colorClass: 'text-emerald-400' };
+            if (years < 1e9) return { text: `${(years / 1e6).toFixed(1)} млн років`, colorClass: 'text-emerald-400' };
+            if (years < 1e12) return { text: `${(years / 1e9).toFixed(1)} млрд років`, colorClass: 'text-emerald-300' };
+            return { text: 'трильйони+ років', colorClass: 'text-emerald-300' };
+        }
+
+        function updateRuleBadge(element, isValid, wasValid) {
+            if (isValid) {
+                element.classList.remove('bg-slate-900/85', 'border-slate-800', 'text-slate-400');
+                element.classList.add('bg-emerald-950/60', 'border-emerald-500/50', 'text-emerald-300');
+                if (!wasValid) sound.playCheck(true);
+            } else {
+                element.classList.add('bg-slate-900/85', 'border-slate-800', 'text-slate-400');
+                element.classList.remove('bg-emerald-950/60', 'border-emerald-500/50', 'text-emerald-300');
+            }
+        }
+
+        passwordInput.addEventListener('input', async () => {
+            if (gameState.phase !== 'CREATION') return;
+            await sound.init();
+
+            const pwd = passwordInput.value;
+            gameState.password = pwd;
+            charCountEl.textContent = pwd.length;
+
+            const analysis = analyzePassword(pwd);
+            gameState.entropy = analysis.entropy;
+            entropyScoreEl.textContent = `${analysis.entropy} біт`;
+
+            const crackEst = formatCrackTime(analysis.entropy, pwd.length);
+            crackTimeDisplay.textContent = crackEst.text;
+            crackTimeDisplay.className = `font-bold ${crackEst.colorClass}`;
+
+            // Попередження про кирилицю
+            if (analysis.hasCyrillic) {
+                cyrillicWarning.classList.remove('hidden');
+            } else {
+                cyrillicWarning.classList.add('hidden');
+            }
+
+            // Оновлення індикаторів правил
+            updateRuleBadge(rulesUI.length, analysis.hasLength, gameState.prevRulesState.length);
+            updateRuleBadge(rulesUI.digit, analysis.hasDigit, gameState.prevRulesState.digit);
+            updateRuleBadge(rulesUI.upper, analysis.hasUpper, gameState.prevRulesState.upper);
+            updateRuleBadge(rulesUI.lower, analysis.hasLower, gameState.prevRulesState.lower);
+            updateRuleBadge(rulesUI.special, analysis.hasSpecial, gameState.prevRulesState.special);
+
+            gameState.prevRulesState = {
+                length: analysis.hasLength,
+                digit: analysis.hasDigit,
+                upper: analysis.hasUpper,
+                lower: analysis.hasLower,
+                special: analysis.hasSpecial
+            };
+
+            // Активація кнопки бою для БУДЬ-ЯКОГО непустого пароля
+            const hasAnyText = pwd.length > 0;
+            startAttackBtn.disabled = !hasAnyText;
+
+            const btnTextSpan = startAttackBtn.querySelector('span');
+            if (!hasAnyText) {
+                startAttackBtn.classList.remove('from-amber-600', 'to-rose-600');
+                btnTextSpan.textContent = 'Введіть пароль для перевірки';
+            } else if (analysis.allValid) {
+                btnTextSpan.textContent = 'Активувати щит (5/5) та прийняти бій!';
+            } else {
+                const count = [analysis.hasLength, analysis.hasDigit, analysis.hasUpper, analysis.hasLower, analysis.hasSpecial].filter(Boolean).length;
+                btnTextSpan.textContent = `Перевірити пароль (${count}/5 систем) — РИЗИК ЗЛОМУ!`;
+            }
+        });
+
+        // Перемикач видимості пароля
+        toggleVisibilityBtn.addEventListener('click', () => {
+            gameState.isPasswordHidden = !gameState.isPasswordHidden;
+            passwordInput.type = gameState.isPasswordHidden ? 'password' : 'text';
+            eyeOpen.classList.toggle('hidden', gameState.isPasswordHidden);
+            eyeClosed.classList.toggle('hidden', !gameState.isPasswordHidden);
+        });
+
+        // Перемикач звуку
+        soundToggle.addEventListener('click', async () => {
+            await sound.init();
+            sound.enabled = !sound.enabled;
+            document.getElementById('soundIconOn').classList.toggle('hidden', !sound.enabled);
+            document.getElementById('soundIconOff').classList.toggle('hidden', sound.enabled);
+        });
+
+        // --- ЛОГІКА БОЮ ТА МОНСТРІВ ---
+        function addLog(message, colorClass = 'text-slate-300') {
+            const line = document.createElement('div');
+            line.className = colorClass;
+            line.textContent = `> ${message}`;
+            battleLog.appendChild(line);
+            battleLog.scrollTop = battleLog.scrollHeight;
+        }
+
+        function startBattle() {
+            sound.init();
+            const pwd = gameState.password;
+            if (!pwd || pwd.length === 0) return;
+
+            const analysis = analyzePassword(pwd);
+
+            gameState.phase = 'BATTLE';
+            gameState.gateHP = 100;
+            gameState.wave = 1;
+            gameState.monsters = [];
+            gameState.lasers = [];
+            gameState.particles = [];
+            gameState.revealedChars = [];
+
+            // Визначаємо, які саме турелі активні (відповідно до 5 правил)
+            const rulesStatus = [
+                { ok: analysis.hasLength, name: 'довжина більше 8 символів' },
+                { ok: analysis.hasDigit, name: 'цифри (0-9)' },
+                { ok: analysis.hasUpper, name: 'великі латинські літери (A-Z)' },
+                { ok: analysis.hasLower, name: 'маленькі латинські літери (a-z)' },
+                { ok: analysis.hasSpecial, name: 'спеціальні символи (!@#$...)' }
+            ];
+
+            gameState.activeTurrets = [];
+            gameState.missingRules = [];
+            rulesStatus.forEach((rule, index) => {
+                if (rule.ok) {
+                    gameState.activeTurrets.push(index);
+                } else {
+                    gameState.missingRules.push(rule.name);
+                }
+            });
+
+            const activeCount = gameState.activeTurrets.length;
+            
+            // Потужність захисту залежить від ентропії та кількості виконаних умов
+            // Якщо правил виконано мало, турелі слабкі, а за відсутності будь-якого правила монстри прориваються
+            const ruleMultiplier = activeCount / 5;
+            gameState.shieldPower = activeCount === 0 
+                ? 0 
+                : Math.max(2, Math.floor(analysis.entropy * 0.45 * Math.pow(ruleMultiplier, 1.5)));
+
+            passwordInput.disabled = true;
+            startAttackBtn.disabled = true;
+            startAttackBtn.innerHTML = `<span>АТАКА ТРИВАЄ... ЗАХИСТ (${activeCount}/5)</span>`;
+
+            battleLog.innerHTML = '';
+            if (analysis.allValid) {
+                addLog(`Усі 5 систем оборони активні! Потужність лазерів: ${gameState.shieldPower} од.`, 'text-emerald-400');
+            } else {
+                addLog(`УВАГА! Активно лише ${activeCount} з 5 турелей! Потужність: ${gameState.shieldPower} од.`, 'text-amber-400 font-bold');
+                addLog(`Вразливості: відсутні ${gameState.missingRules.join(', ')}.`, 'text-rose-400');
+            }
+            addLog(`Монстри-брутфорсери починають штурм!`, 'text-rose-300');
+
+            setupWave(1);
+        }
+
+        function setupWave(waveNum) {
+            gameState.wave = waveNum;
+            gameState.monstersSpawnedInWave = 0;
+            gameState.spawnTimer = 0;
+
+            if (waveNum === 1) {
+                waveText.textContent = 'ХВИЛЯ 1/3: СЛОВНИКОВІ БОТИ';
+                gameState.monstersToSpawnInWave = 5;
+                addLog('Хвиля 1: Словникові боти перевіряють типові комбінації...', 'text-amber-300');
+            } else if (waveNum === 2) {
+                waveText.textContent = 'ХВИЛЯ 2/3: ГІБРИДНІ ДЕШИФРАТОРИ';
+                gameState.monstersToSpawnInWave = 7;
+                addLog('Хвиля 2: Гібридні монстри перебирають спецсимволи та регістр!', 'text-purple-300');
+            } else if (waveNum === 3) {
+                waveText.textContent = 'ХВИЛЯ 3/3: КВАНТОВИЙ БРУТФОРС-БОС';
+                gameState.monstersToSpawnInWave = 4; // 3 міньйони + 1 Бос
+                addLog('Хвиля 3: КВАНТОВИЙ БОС атакує ваш шлюз на повній потужності!', 'text-rose-400 font-bold');
+            }
+        }
+
+        function spawnMonster(canvasWidth, canvasHeight) {
+            const isBoss = (gameState.wave === 3 && gameState.monstersSpawnedInWave === gameState.monstersToSpawnInWave - 1);
+            const laneY = 45 + Math.random() * (canvasHeight - 90);
+
+            // Бонус швидкості та шкоди монстрам за кожне невиконане правило!
+            const missingCount = gameState.missingRules.length;
+            const exploitSpeedBonus = 1 + missingCount * 0.25; // До +125% швидкості при 0/5 правил
+            const exploitDamageBonus = 1 + missingCount * 0.35; // До +175% шкоди шлюзу
+
+            let type = 'dict'; // Словниковий
+            let hp = 45;
+            let speed = (1.1 + Math.random() * 0.4) * exploitSpeedBonus;
+            let radius = 16;
+            let color = '#fbbf24'; // Amber
+            let emoji = '👾';
+            let damage = Math.round(15 * exploitDamageBonus);
+
+            if (gameState.wave === 2) {
+                type = 'hybrid';
+                hp = 75;
+                speed = (1.3 + Math.random() * 0.4) * exploitSpeedBonus;
+                radius = 19;
+                color = '#c084fc'; // Purple
+                emoji = '👹';
+                damage = Math.round(22 * exploitDamageBonus);
+            } else if (gameState.wave === 3 && !isBoss) {
+                type = 'quantum_minion';
+                hp = 95;
+                speed = 1.5 * exploitSpeedBonus;
+                radius = 20;
+                color = '#f43f5e';
+                emoji = '🤖';
+                damage = Math.round(25 * exploitDamageBonus);
+            } else if (isBoss) {
+                type = 'boss';
+                hp = 260;
+                speed = 0.75 * exploitSpeedBonus;
+                radius = 32;
+                color = '#ef4444';
+                emoji = '🐉';
+                damage = Math.round(55 * exploitDamageBonus);
+            }
+
+            gameState.monsters.push({
+                x: canvasWidth + 30,
+                y: isBoss ? canvasHeight / 2 : laneY,
+                hp: hp,
+                maxHp: hp,
+                speed: speed,
+                radius: radius,
+                color: color,
+                emoji: emoji,
+                damage: damage,
+                isBoss: isBoss,
+                hitFlash: 0,
+                attackCooldown: 0
+            });
+
+            gameState.monstersSpawnedInWave++;
+        }
+
+        startAttackBtn.addEventListener('click', startBattle);
+
+        resetBtn.addEventListener('click', () => {
+            resultModal.classList.add('hidden');
+            gameState.phase = 'CREATION';
+            gameState.gateHP = 100;
+            gameState.monsters = [];
+            gameState.lasers = [];
+            gameState.particles = [];
+            updateHPUI();
+            waveText.textContent = 'ОЧІКУВАННЯ ПАРОЛЯ...';
+            bruteAttemptDisplay.textContent = '[ОЧІКУВАННЯ ЦІЛІ]';
+            speedStat.textContent = '0 спроб/с';
+            passwordInput.disabled = false;
+            passwordInput.focus();
+            
+            const analysis = analyzePassword(passwordInput.value);
+            const hasAnyText = passwordInput.value.length > 0;
+            startAttackBtn.disabled = !hasAnyText;
+            
+            let label = 'Введіть пароль для перевірки';
+            if (hasAnyText) {
+                const count = [analysis.hasLength, analysis.hasDigit, analysis.hasUpper, analysis.hasLower, analysis.hasSpecial].filter(Boolean).length;
+                label = analysis.allValid 
+                    ? 'Активувати щит (5/5) та прийняти бій!' 
+                    : `Перевірити пароль (${count}/5 систем) — РИЗИК ЗЛОМУ!`;
+            }
+
+            startAttackBtn.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                <span>${label}</span>
+            `;
+        });
+
+        function updateHPUI() {
+            const clampedHP = Math.max(0, Math.round(gameState.gateHP));
+            hpText.textContent = `${clampedHP}%`;
+            hpBar.style.width = `${clampedHP}%`;
+
+            if (clampedHP > 60) {
+                hpText.className = 'text-emerald-400 font-bold';
+                hpBar.className = 'h-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-200';
+            } else if (clampedHP > 30) {
+                hpText.className = 'text-amber-400 font-bold';
+                hpBar.className = 'h-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-200';
+            } else {
+                hpText.className = 'text-rose-500 font-bold';
+                hpBar.className = 'h-full bg-gradient-to-r from-rose-600 to-red-500 transition-all duration-200';
+            }
+        }
+
+        function endGame(isVictory) {
+            gameState.phase = 'ENDED';
+            resultModal.classList.remove('hidden');
+
+            if (isVictory) {
+                sound.playVictory();
+                waveText.textContent = 'ЗАГРОЗУ НЕЙТРАЛІЗОВАНО';
+                resultIcon.className = 'w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-400 text-emerald-400 flex items-center justify-center mb-3 text-3xl';
+                resultIcon.textContent = '🛡️';
+                resultTitle.className = 'text-2xl sm:text-3xl font-extrabold mb-2 text-emerald-400';
+                resultTitle.textContent = 'ПАРОЛЬ ВИТРИМАВ АТАКУ!';
+                resultDesc.textContent = `Монстри-брутфорсери знищені! Ваш пароль (${gameState.password.length} символів, ${gameState.entropy} біт ентропії) виявився занадто складним для злому.`;
+                addLog('ПЕРЕМОГА! Всі хвилі брутфорсерів успішно відбито.', 'text-emerald-400 font-bold');
+            } else {
+                sound.playDefeat();
+                waveText.textContent = 'СИСТЕМУ ЗЛАМАНО';
+                resultIcon.className = 'w-16 h-16 rounded-2xl bg-rose-500/20 border border-rose-500 text-rose-500 flex items-center justify-center mb-3 text-3xl';
+                resultIcon.textContent = '💀';
+                resultTitle.className = 'text-2xl sm:text-3xl font-extrabold mb-2 text-rose-500';
+                resultTitle.textContent = 'ПАРОЛЬ ЗЛАМАНО!';
+                
+                if (gameState.missingRules.length > 0) {
+                    resultDesc.textContent = `Брутфорсери використали слабкі місця вашого пароля! Не вистачало: ${gameState.missingRules.join(', ')}. Виконайте всі 5 вимог, щоб увімкнути всі турелі!`;
+                } else {
+                    resultDesc.textContent = `Квантовий бос прорвав оборону! Хоча всі 5 правил виконано, пароль був закоротким або мав повтори символів. Спробуйте 12+ різних символів!`;
+                }
+                addLog('ПОРАЗКА! Пароль підібрано монстрами.', 'text-rose-500 font-bold');
+            }
+        }
+
+        // --- 3D ВІЗУАЛІЗАЦІЯ НА THREE.JS ---
+        const canvas = document.getElementById('battleCanvas');
+        const container = document.getElementById('canvasContainer');
+
+        // Ініціалізація сцени, камери та рендерера
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#060a12');
+        scene.fog = new THREE.FogExp2('#060a12', 0.022);
+
+        const camera = new THREE.PerspectiveCamera(48, container.clientWidth / container.clientHeight, 0.1, 100);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Освітлення сцени
+        const ambientLight = new THREE.AmbientLight(0x38bdf8, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.1);
+        dirLight.position.set(5, 18, 12);
+        scene.add(dirLight);
+
+        const gateLight = new THREE.PointLight(0x0ea5e9, 2.2, 18);
+        gateLight.position.set(-11, 2.5, 0);
+        scene.add(gateLight);
+
+        // Неонова кібер-сітка підлоги
+        const gridHelper = new THREE.GridHelper(44, 44, 0x0284c7, 0x1e293b);
+        gridHelper.position.y = 0;
+        scene.add(gridHelper);
+
+        // Темна площина під сіткою для глибини
+        const floorGeo = new THREE.PlaneGeometry(44, 44);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x050811, roughness: 0.85, metalness: 0.2 });
+        const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+        floorMesh.rotation.x = -Math.PI / 2;
+        floorMesh.position.y = -0.02;
+        scene.add(floorMesh);
+
+        // Захисний шлюз (Енергетичний бар'єр зліва на X = -11)
+        const GATE_X = -11;
+        const shieldGeo = new THREE.BoxGeometry(0.25, 3.2, 12.5);
+        const shieldMat = new THREE.MeshPhongMaterial({
+            color: 0x0284c7,
+            emissive: 0x0369a1,
+            transparent: true,
+            opacity: 0.45,
+            shininess: 90
+        });
+        const shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
+        shieldMesh.position.set(GATE_X, 1.6, 0);
+        scene.add(shieldMesh);
+
+        // --- 3D HEADER НА THREE.JS (Фонова мережа + 3D емблема-кристал) ---
+        const headerContainer = document.getElementById('headerContainer');
+        const headerBgCanvas = document.getElementById('headerBgCanvas');
+        const headerEmblemCanvas = document.getElementById('headerEmblemCanvas');
+
+        // 1) Фонова 3D-сцена для шапки (кібер-хвиля / мережа частинок)
+        const headerBgScene = new THREE.Scene();
+        const headerBgCamera = new THREE.PerspectiveCamera(45, 4, 0.1, 50);
+        headerBgCamera.position.set(0, 1.8, 7.5);
+        headerBgCamera.lookAt(0, 0, 0);
+
+        const headerBgRenderer = new THREE.WebGLRenderer({ canvas: headerBgCanvas, alpha: true, antialias: true });
+        headerBgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const waveGeo = new THREE.PlaneGeometry(24, 6, 36, 10);
+        const waveMat = new THREE.MeshBasicMaterial({
+            color: 0x0ea5e9,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.22
+        });
+        const headerWaveMesh = new THREE.Mesh(waveGeo, waveMat);
+        headerWaveMesh.rotation.x = -Math.PI / 2.4;
+        headerBgScene.add(headerWaveMesh);
+
+        // 2) 3D-емблема в лівому куті шапки (реагує на виконання 5 правил пароля)
+        const emblemScene = new THREE.Scene();
+        const emblemCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 20);
+        emblemCamera.position.z = 3.6;
+
+        const emblemRenderer = new THREE.WebGLRenderer({ canvas: headerEmblemCanvas, alpha: true, antialias: true });
+        emblemRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        emblemRenderer.setSize(48, 48);
+
+        const emblemLight = new THREE.PointLight(0x38bdf8, 2.5, 10);
+        emblemLight.position.set(2, 2, 3);
+        emblemScene.add(emblemLight);
+        emblemScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+
+        const coreShieldGeo = new THREE.OctahedronGeometry(0.95, 0);
+        const coreShieldMat = new THREE.MeshStandardMaterial({
+            color: 0x38bdf8,
+            emissive: 0x0284c7,
+            emissiveIntensity: 0.5,
+            metalness: 0.7,
+            roughness: 0.2
+        });
+        const coreShieldMesh = new THREE.Mesh(coreShieldGeo, coreShieldMat);
+        emblemScene.add(coreShieldMesh);
+
+        const coreWire = new THREE.LineSegments(
+            new THREE.EdgesGeometry(coreShieldGeo),
+            new THREE.LineBasicMaterial({ color: 0xe0f2fe })
+        );
+        coreShieldMesh.add(coreWire);
+
+        // Кільце навколо 3D-емблеми
+        const emblemRingGeo = new THREE.TorusGeometry(1.28, 0.05, 8, 28);
+        const emblemRingMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.75 });
+        const emblemRingMesh = new THREE.Mesh(emblemRingGeo, emblemRingMat);
+        emblemRingMesh.rotation.x = Math.PI / 3;
+        emblemScene.add(emblemRingMesh);
+
+        function resizeHeaderCanvas() {
+            if (!headerContainer) return;
+            const w = headerContainer.clientWidth;
+            const h = headerContainer.clientHeight;
+            headerBgCamera.aspect = w / Math.max(1, h);
+            headerBgCamera.updateProjectionMatrix();
+            headerBgRenderer.setSize(w, h);
+        }
+        window.addEventListener('resize', resizeHeaderCanvas);
+        resizeHeaderCanvas();
+
+        function updateHeader3D(tick) {
+            // Анімація хвилі на фоні шапки
+            const pos = headerWaveMesh.geometry.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const vx = pos.getX(i);
+                const vy = pos.getY(i);
+                pos.setZ(i, Math.sin(vx * 0.6 + tick * 1.4) * 0.28 + Math.cos(vy * 0.9 + tick) * 0.18);
+            }
+            pos.needsUpdate = true;
+
+            // Реакція 3D-емблеми на стан пароля та бою
+            const validCount = Object.values(gameState.prevRulesState).filter(Boolean).length;
+            const spinSpeed = gameState.phase === 'BATTLE' ? 0.07 : (0.015 + validCount * 0.006);
+            coreShieldMesh.rotation.y += spinSpeed;
+            coreShieldMesh.rotation.x = Math.sin(tick * 0.8) * 0.25;
+            emblemRingMesh.rotation.z -= spinSpeed * 1.3;
+
+            if (gameState.phase === 'BATTLE' && gameState.gateHP < 35) {
+                coreShieldMat.color.setHex(0xf43f5e);
+                coreShieldMat.emissive.setHex(0xe11d48);
+                emblemRingMat.color.setHex(0xf43f5e);
+            } else if (validCount === 5) {
+                coreShieldMat.color.setHex(0x10b981);
+                coreShieldMat.emissive.setHex(0x059669);
+                emblemRingMat.color.setHex(0x34d399);
+            } else {
+                coreShieldMat.color.setHex(0x38bdf8);
+                coreShieldMat.emissive.setHex(0x0284c7);
+                emblemRingMat.color.setHex(0x38bdf8);
+            }
+
+            headerBgRenderer.render(headerBgScene, headerBgCamera);
+            emblemRenderer.render(emblemScene, emblemCamera);
+        }
+
+        // --- 3D ІНТЕРФЕЙСИ ДЛЯ ПАНЕЛІ СТВОРЕННЯ ПАРОЛЯ ТА ТЕРМІНАЛУ (Three.js) ---
+        const creationPanel = document.getElementById('creationPanel');
+        const creationBgCanvas = document.getElementById('creationBgCanvas');
+        const terminalPanel = document.getElementById('terminalPanel');
+        const terminalBgCanvas = document.getElementById('terminalBgCanvas');
+        const terminalCoreCanvas = document.getElementById('terminalCoreCanvas');
+
+        // 1) 3D-фон панелі створення пароля (обертова крипто-матриця / додекаедри)
+        const creationScene = new THREE.Scene();
+        const creationCamera = new THREE.PerspectiveCamera(45, 1.5, 0.1, 40);
+        creationCamera.position.z = 11;
+        const creationRenderer = new THREE.WebGLRenderer({ canvas: creationBgCanvas, alpha: true, antialias: true });
+        creationRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const creationCageGeo = new THREE.IcosahedronGeometry(4.2, 1);
+        const creationCageMat = new THREE.MeshBasicMaterial({ color: 0x0284c7, wireframe: true, transparent: true, opacity: 0.22 });
+        const creationCage = new THREE.Mesh(creationCageGeo, creationCageMat);
+        creationCage.position.set(2.5, -0.5, 0);
+        creationScene.add(creationCage);
+
+        const creationInnerGeo = new THREE.OctahedronGeometry(2.2, 0);
+        const creationInnerMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true, transparent: true, opacity: 0.25 });
+        const creationInner = new THREE.Mesh(creationInnerGeo, creationInnerMat);
+        creationInner.position.set(2.5, -0.5, 0);
+        creationScene.add(creationInner);
+
+        // 2) 5 мініатюрних 3D-кристалів для правил пароля
+        const rule3DNodes = {};
+        document.querySelectorAll('[data-rule-canvas]').forEach((ruleCanvas) => {
+            const key = ruleCanvas.getAttribute('data-rule-canvas');
+            const rScene = new THREE.Scene();
+            const rCam = new THREE.PerspectiveCamera(45, 1, 0.1, 10);
+            rCam.position.z = 2.9;
+            const rRenderer = new THREE.WebGLRenderer({ canvas: ruleCanvas, alpha: true, antialias: true });
+            rRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            rRenderer.setSize(24, 24);
+
+            const geo = new THREE.OctahedronGeometry(0.95, 0);
+            const mat = new THREE.MeshBasicMaterial({ color: 0x475569, wireframe: false });
+            const mesh = new THREE.Mesh(geo, mat);
+            const wire = new THREE.LineSegments(
+                new THREE.EdgesGeometry(geo),
+                new THREE.LineBasicMaterial({ color: 0x94a3b8 })
+            );
+            mesh.add(wire);
+            rScene.add(mesh);
+
+            rule3DNodes[key] = { scene: rScene, camera: rCam, renderer: rRenderer, mesh, mat, wireMat: wire.material };
+        });
+
+        // 3) 3D-фон терміналу та 3D-ядро сканера дешифрування
+        const termBgScene = new THREE.Scene();
+        const termBgCam = new THREE.PerspectiveCamera(45, 1.2, 0.1, 40);
+        termBgCam.position.z = 10;
+        const termBgRenderer = new THREE.WebGLRenderer({ canvas: terminalBgCanvas, alpha: true, antialias: true });
+        termBgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const termTorGeo = new THREE.TorusKnotGeometry(2.6, 0.55, 64, 8, 2, 3);
+        const termTorMat = new THREE.MeshBasicMaterial({ color: 0xe11d48, wireframe: true, transparent: true, opacity: 0.18 });
+        const termTorMesh = new THREE.Mesh(termTorGeo, termTorMat);
+        termTorMesh.position.set(1.2, -0.8, 0);
+        termBgScene.add(termTorMesh);
+
+        // 3D-ядро сканера у заголовку терміналу
+        const termCoreScene = new THREE.Scene();
+        const termCoreCam = new THREE.PerspectiveCamera(45, 1, 0.1, 10);
+        termCoreCam.position.z = 2.8;
+        const termCoreRenderer = new THREE.WebGLRenderer({ canvas: terminalCoreCanvas, alpha: true, antialias: true });
+        termCoreRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        termCoreRenderer.setSize(20, 20);
+
+        const scannerGeo = new THREE.DodecahedronGeometry(0.95, 0);
+        const scannerMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e, wireframe: true });
+        const scannerMesh = new THREE.Mesh(scannerGeo, scannerMat);
+        termCoreScene.add(scannerMesh);
+
+        function resizePanels3D() {
+            if (creationPanel) {
+                const cw = creationPanel.clientWidth;
+                const ch = creationPanel.clientHeight;
+                creationCamera.aspect = cw / Math.max(1, ch);
+                creationCamera.updateProjectionMatrix();
+                creationRenderer.setSize(cw, ch);
+            }
+            if (terminalPanel) {
+                const tw = terminalPanel.clientWidth;
+                const th = terminalPanel.clientHeight;
+                termBgCam.aspect = tw / Math.max(1, th);
+                termBgCam.updateProjectionMatrix();
+                termBgRenderer.setSize(tw, th);
+            }
+        }
+        window.addEventListener('resize', resizePanels3D);
+        resizePanels3D();
+
+        function updatePanels3D(tick) {
+            const validCount = Object.values(gameState.prevRulesState).filter(Boolean).length;
+
+            // Анімація 3D-фону панелі створення пароля
+            creationCage.rotation.y += 0.005 + validCount * 0.002;
+            creationCage.rotation.x += 0.003;
+            creationInner.rotation.y -= 0.012;
+            creationInner.rotation.z += 0.008;
+
+            if (validCount === 5) {
+                creationCageMat.color.setHex(0x10b981);
+                creationInnerMat.color.setHex(0x34d399);
+            } else {
+                creationCageMat.color.setHex(0x0284c7);
+                creationInnerMat.color.setHex(0x38bdf8);
+            }
+            creationRenderer.render(creationScene, creationCamera);
+
+            // Анімація 5 3D-кристалів для правил
+            Object.entries(rule3DNodes).forEach(([key, node]) => {
+                const isOk = gameState.prevRulesState[key];
+                node.mesh.rotation.y += isOk ? 0.06 : 0.015;
+                node.mesh.rotation.x = Math.sin(tick + key.length) * 0.3;
+                if (isOk) {
+                    node.mat.color.setHex(0x10b981);
+                    node.wireMat.color.setHex(0xa7f3d0);
+                    node.mesh.scale.setScalar(1.08);
+                } else {
+                    node.mat.color.setHex(0x334155);
+                    node.wireMat.color.setHex(0x64748b);
+                    node.mesh.scale.setScalar(0.9);
+                }
+                node.renderer.render(node.scene, node.camera);
+            });
+
+            // Анімація 3D-терміналу
+            const isBattle = gameState.phase === 'BATTLE';
+            termTorMesh.rotation.x += isBattle ? 0.025 : 0.005;
+            termTorMesh.rotation.y += isBattle ? 0.03 : 0.007;
+            termTorMat.opacity = isBattle ? 0.32 : 0.16;
+            termBgRenderer.render(termBgScene, termBgCam);
+
+            scannerMesh.rotation.y += isBattle ? 0.12 : 0.03;
+            scannerMesh.rotation.x += isBattle ? 0.09 : 0.02;
+            termCoreRenderer.render(termCoreScene, termCoreCam);
+        }
+
+        // Рамка шлюзу
+        const frameEdges = new THREE.EdgesGeometry(shieldGeo);
+        const frameLine = new THREE.LineSegments(frameEdges, new THREE.LineBasicMaterial({ color: 0x38bdf8 }));
+        shieldMesh.add(frameLine);
+
+        // Космос / матричний потік частинок даних на фоні
+        const matrixCount = 450;
+        const matrixGeo = new THREE.BufferGeometry();
+        const matrixPositions = new Float32Array(matrixCount * 3);
+        const matrixColors = new Float32Array(matrixCount * 3);
+
+        for (let i = 0; i < matrixCount; i++) {
+            matrixPositions[i * 3] = (Math.random() - 0.5) * 60;      // X
+            matrixPositions[i * 3 + 1] = Math.random() * 18 + 0.5;    // Y
+            matrixPositions[i * 3 + 2] = (Math.random() - 0.5) * 45;  // Z
+
+            // Відтінки кібер-блакитного та смарагдового
+            const isCyan = Math.random() > 0.35;
+            matrixColors[i * 3] = isCyan ? 0.12 : 0.06;
+            matrixColors[i * 3 + 1] = isCyan ? 0.75 : 0.85;
+            matrixColors[i * 3 + 2] = isCyan ? 0.98 : 0.55;
+        }
+        matrixGeo.setAttribute('position', new THREE.BufferAttribute(matrixPositions, 3));
+        matrixGeo.setAttribute('color', new THREE.BufferAttribute(matrixColors, 3));
+
+        const matrixMat = new THREE.PointsMaterial({
+            size: 0.22,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.75
+        });
+        const matrixField = new THREE.Points(matrixGeo, matrixMat);
+        scene.add(matrixField);
+
+        // 5 3D-турелей оборони (відповідають 5 правилам пароля)
+        const turretZPositions = [-4.6, -2.3, 0, 2.3, 4.6];
+        const turretMeshes = [];
+
+        turretZPositions.forEach((zPos) => {
+            const group = new THREE.Group();
+            group.position.set(GATE_X - 0.6, 0.6, zPos);
+
+            // База турелі
+            const baseGeo = new THREE.CylinderGeometry(0.55, 0.7, 1.2, 8);
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.3 });
+            const base = new THREE.Mesh(baseGeo, baseMat);
+            group.add(base);
+
+            // Ствол лазера
+            const barrelGeo = new THREE.CylinderGeometry(0.16, 0.22, 1.3, 8);
+            const barrelMat = new THREE.MeshStandardMaterial({ color: 0x334155, emissive: 0x000000, metalness: 0.8 });
+            const barrel = new THREE.Mesh(barrelGeo, barrelMat);
+            barrel.rotation.z = -Math.PI / 2;
+            barrel.position.set(0.65, 0.35, 0);
+            group.add(barrel);
+
+            // Світловий індикатор активності
+            const coreGeo = new THREE.SphereGeometry(0.28, 12, 12);
+            const coreMat = new THREE.MeshBasicMaterial({ color: 0x475569 });
+            const core = new THREE.Mesh(coreGeo, coreMat);
+            core.position.set(0, 0.72, 0);
+            group.add(core);
+
+            scene.add(group);
+            turretMeshes.push({ group, barrel, core, coreMat, barrelMat });
+        });
+
+        // --- ІНТЕРАКТИВНЕ КЕРУВАННЯ КАМЕРОЮ (Миша + Дотик) ---
+        let camAngleY = 0.0;     // Горизонтальний кут огляду
+        let camAngleX = 0.62;    // Вертикальний кут нахилу
+        let camDistance = 21.5;  // Відстань камери
+        let isDragging = false;
+        let prevPointer = { x: 0, y: 0 };
+        let cameraShake = 0;
+
+        function updateCameraPosition() {
+            const shakeX = cameraShake > 0 ? (Math.random() - 0.5) * cameraShake : 0;
+            const shakeY = cameraShake > 0 ? (Math.random() - 0.5) * cameraShake : 0;
+            if (cameraShake > 0) cameraShake = Math.max(0, cameraShake - 0.03);
+
+            camera.position.x = Math.sin(camAngleY) * Math.cos(camAngleX) * camDistance + shakeX;
+            camera.position.y = Math.sin(camAngleX) * camDistance + shakeY;
+            camera.position.z = Math.cos(camAngleY) * Math.cos(camAngleX) * camDistance;
+            camera.lookAt(-1.5, 0.8, 0);
+        }
+
+        // Обробники миші для обертання камери
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            prevPointer = { x: e.clientX, y: e.clientY };
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - prevPointer.x;
+            const dy = e.clientY - prevPointer.y;
+            camAngleY = Math.max(-1.1, Math.min(1.1, camAngleY - dx * 0.007));
+            camAngleX = Math.max(0.25, Math.min(1.25, camAngleX + dy * 0.007));
+            prevPointer = { x: e.clientX, y: e.clientY };
+        });
+
+        // Обробники дотиків (Touch) для мобільних пристроїв
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                prevPointer = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+        }, { passive: true });
+        window.addEventListener('touchend', () => { isDragging = false; });
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging || e.touches.length !== 1) return;
+            const dx = e.touches[0].clientX - prevPointer.x;
+            const dy = e.touches[0].clientY - prevPointer.y;
+            camAngleY = Math.max(-1.1, Math.min(1.1, camAngleY - dx * 0.008));
+            camAngleX = Math.max(0.25, Math.min(1.25, camAngleX + dy * 0.008));
+            prevPointer = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }, { passive: true });
+
+        function resizeCanvas() {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Очищення 3D-об'єктів при перезапуску гри
+        function clear3DEntities() {
+            gameState.monsters.forEach(m => { if (m.mesh) scene.remove(m.mesh); });
+            gameState.lasers.forEach(l => { if (l.mesh) scene.remove(l.mesh); });
+            gameState.particles.forEach(p => { if (p.mesh) scene.remove(p.mesh); });
+            gameState.shieldRipples.forEach(r => { if (r.mesh) scene.remove(r.mesh); });
+            gameState.shieldRipples = [];
+        }
+
+        // Візуалізація «пробою» щита: 3D ударна хвиля в точці контакту на бар'єрі
+        let shieldHitFlash = 0;
+        function createShieldBreachRipple(yPos, zPos) {
+            shieldHitFlash = 1.0;
+            const ringGeo = new THREE.RingGeometry(0.15, 0.32, 24);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: 0xf43f5e,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.95
+            });
+            const rippleMesh = new THREE.Mesh(ringGeo, ringMat);
+            rippleMesh.position.set(GATE_X + 0.16, yPos, zPos);
+            rippleMesh.rotation.y = Math.PI / 2;
+            scene.add(rippleMesh);
+
+            gameState.shieldRipples.push({
+                mesh: rippleMesh,
+                mat: ringMat,
+                scale: 1.0,
+                life: 1.0
+            });
+        }
+
+        // Перевизначаємо старт та скидання бою, щоб очищати 3D-сцену
+        const originalResetHandler = resetBtn.onclick;
+        resetBtn.addEventListener('click', () => {
+            clear3DEntities();
+        }, true);
+
+        // Генерація випадкового рядка підбору для ефекту терміналу
+        const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        let bruteDisplayTimer = 0;
+
+        function updateBruteTerminal() {
+            if (gameState.phase !== 'BATTLE') return;
+            const len = gameState.password.length;
+            let fakeStr = '';
+            for (let i = 0; i < len; i++) {
+                const crackThreshold = 100 - (i * (80 / len));
+                if (gameState.gateHP < crackThreshold && Math.random() > 0.3) {
+                    fakeStr += gameState.password[i];
+                } else {
+                    fakeStr += charset[Math.floor(Math.random() * charset.length)];
+                }
+            }
+            bruteAttemptDisplay.textContent = fakeStr;
+            const attemptsPerSec = (gameState.wave * 14.8 + Math.random() * 5).toFixed(1);
+            speedStat.textContent = `${attemptsPerSec} млн/с`;
+        }
+
+        // Створення 3D-моделі монстра при його появі
+        function createMonster3DMesh(m) {
+            const group = new THREE.Group();
+            const zPos = ((m.y / 250) - 0.5) * 10; // Мапінг координати доріжки в 3D Z (-5..5)
+            const xPos = 14;
+
+            let geo;
+            if (m.isBoss) {
+                geo = new THREE.DodecahedronGeometry(1.65, 1);
+            } else if (m.color === '#c084fc') {
+                geo = new THREE.IcosahedronGeometry(0.95, 0);
+            } else if (m.color === '#f43f5e') {
+                geo = new THREE.ConeGeometry(0.85, 1.7, 6);
+            } else {
+                geo = new THREE.OctahedronGeometry(0.85, 0);
+            }
+
+            const mat = new THREE.MeshStandardMaterial({
+                color: m.color,
+                emissive: m.color,
+                emissiveIntensity: 0.35,
+                roughness: 0.3,
+                metalness: 0.6
+            });
+            const body = new THREE.Mesh(geo, mat);
+            body.position.y = m.isBoss ? 1.8 : 1.0;
+            group.add(body);
+
+            // Каркасна неонова оболонка навколо монстра
+            const wire = new THREE.LineSegments(
+                new THREE.EdgesGeometry(geo),
+                new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
+            );
+            body.add(wire);
+
+            // Для Боса додаємо обертове квантове кільце
+            let ring = null;
+            if (m.isBoss) {
+                const ringGeo = new THREE.TorusGeometry(2.3, 0.1, 8, 32);
+                const ringMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
+                ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.position.y = 1.8;
+                ring.rotation.x = Math.PI / 3;
+                group.add(ring);
+            }
+
+            // 3D смужка здоров'я над монстром
+            const hpBgGeo = new THREE.PlaneGeometry(m.isBoss ? 2.8 : 1.5, 0.2);
+            const hpBgMat = new THREE.MeshBasicMaterial({ color: 0x0f172a, side: THREE.DoubleSide });
+            const hpBg = new THREE.Mesh(hpBgGeo, hpBgMat);
+            hpBg.position.y = m.isBoss ? 3.9 : 2.3;
+            group.add(hpBg);
+
+            const hpFillGeo = new THREE.PlaneGeometry(m.isBoss ? 2.7 : 1.42, 0.14);
+            const hpFillMat = new THREE.MeshBasicMaterial({ color: m.color, side: THREE.DoubleSide });
+            const hpFill = new THREE.Mesh(hpFillGeo, hpFillMat);
+            hpFill.position.z = 0.02;
+            hpBg.add(hpFill);
+
+            group.position.set(xPos, 0, zPos);
+            scene.add(group);
+
+            m.x3d = xPos;
+            m.z3d = zPos;
+            m.mesh = group;
+            m.body = body;
+            m.ring = ring;
+            m.hpBg = hpBg;
+            m.hpFill = hpFill;
+        }
+
+        function createExplosion3D(x, y, z, colorHex) {
+            const geo = new THREE.BoxGeometry(0.22, 0.22, 0.22);
+            const mat = new THREE.MeshBasicMaterial({ color: colorHex });
+            for (let i = 0; i < 14; i++) {
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(x, y, z);
+                scene.add(mesh);
+                gameState.particles.push({
+                    mesh,
+                    vx: (Math.random() - 0.5) * 0.35,
+                    vy: Math.random() * 0.28 + 0.05,
+                    vz: (Math.random() - 0.5) * 0.35,
+                    life: 1.0
+                });
+            }
+        }
+
+        let turretCooldown = 0;
+        let clockTick = 0;
+
+        function updateAndDraw() {
+            clockTick += 0.04;
+
+            // 1. Оновлення стану 5 3D-турелей відповідно до виконаних правил
+            // Пульсація захисного бар'єра шлюзу + реакція на пробій
+            if (shieldHitFlash > 0) {
+                shieldMat.emissive.setHex(0xf43f5e);
+                shieldMat.color.setHex(0xf43f5e);
+                shieldMat.opacity = 0.55 + shieldHitFlash * 0.35;
+                gateLight.color.setHex(0xf43f5e);
+                gateLight.intensity = 3.5;
+                shieldHitFlash = Math.max(0, shieldHitFlash - 0.06);
+            } else if (gameState.phase === 'BATTLE') {
+                shieldMat.color.setHex(0x0284c7);
+                shieldMat.opacity = 0.4 + Math.sin(clockTick * 3) * 0.12;
+                shieldMat.emissive.setHex(gameState.gateHP > 35 ? 0x0284c7 : 0xe11d48);
+                gateLight.color.setHex(gameState.gateHP > 35 ? 0x0ea5e9 : 0xf43f5e);
+                gateLight.intensity = 2.2;
+            } else {
+                shieldMat.color.setHex(0x0284c7);
+                shieldMat.opacity = 0.25;
+                shieldMat.emissive.setHex(0x1e293b);
+                gateLight.intensity = 1.8;
+            }
+
+            // Рух космічного / матричного потоку частинок на фоні
+            const posAttr = matrixField.geometry.attributes.position;
+            const streamSpeed = gameState.phase === 'BATTLE' ? (0.08 + gameState.wave * 0.05) : 0.035;
+            for (let i = 0; i < matrixCount; i++) {
+                let x = posAttr.getX(i) - streamSpeed;
+                if (x < -30) x = 30;
+                posAttr.setX(i, x);
+            }
+            posAttr.needsUpdate = true;
+
+            // Легкий рух сітки підлоги для відчуття кіберпростору
+            gridHelper.position.x = -((clockTick * 0.5) % 1);
+
+            // 2. Логіка бою в 3D
+            if (gameState.phase === 'BATTLE') {
+                bruteDisplayTimer++;
+                if (bruteDisplayTimer % 4 === 0) {
+                    updateBruteTerminal();
+                }
+
+                // Спавн монстрів поточної хвилі
+                if (gameState.monstersSpawnedInWave < gameState.monstersToSpawnInWave) {
+                    gameState.spawnTimer++;
+                    const spawnDelay = gameState.wave === 1 ? 85 : (gameState.wave === 2 ? 65 : 75);
+                    if (gameState.spawnTimer >= spawnDelay) {
+                        spawnMonster(300, 250);
+                        const newest = gameState.monsters[gameState.monsters.length - 1];
+                        createMonster3DMesh(newest);
+                        gameState.spawnTimer = 0;
+                    }
+                } else if (gameState.monsters.length === 0) {
+                    if (gameState.wave < gameState.totalWaves) {
+                        setupWave(gameState.wave + 1);
+                    } else {
+                        endGame(true);
+                    }
+                }
+
+                // Стрільба 3D-лазерами з активних турелей
+                turretCooldown--;
+                if (turretCooldown <= 0 && gameState.monsters.length > 0 && gameState.activeTurrets.length > 0) {
+                    let target = gameState.monsters.reduce((prev, curr) => curr.x3d < prev.x3d ? curr : prev);
+                    const activeTurretIdx = gameState.activeTurrets[Math.floor(Math.random() * gameState.activeTurrets.length)];
+                    const startZ = turretZPositions[activeTurretIdx];
+
+                    // Поворот ствола турелі в бік цілі
+                    const turretObj = turretMeshes[activeTurretIdx];
+                    turretObj.group.lookAt(target.x3d, 1.0, target.z3d);
+                    turretObj.group.rotateY(-Math.PI / 2);
+
+                    // 3D-снаряд лазера
+                    const laserGeo = new THREE.SphereGeometry(0.18, 8, 8);
+                    const laserMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+                    const laserMesh = new THREE.Mesh(laserGeo, laserMat);
+                    laserMesh.position.set(GATE_X + 0.5, 1.1, startZ);
+                    scene.add(laserMesh);
+
+                    gameState.lasers.push({
+                        mesh: laserMesh,
+                        sx: GATE_X + 0.5,
+                        sy: 1.1,
+                        sz: startZ,
+                        target: target,
+                        progress: 0
+                    });
+
+                    sound.playLaser();
+                    const turretSpeedBonus = gameState.activeTurrets.length * 2;
+                    turretCooldown = Math.max(12, 34 - turretSpeedBonus - Math.floor(gameState.entropy / 12));
+                }
+
+                // Оновлення 3D-лазерів
+                for (let i = gameState.lasers.length - 1; i >= 0; i--) {
+                    const l = gameState.lasers[i];
+                    l.progress += 0.18;
+
+                    if (!l.target || l.target.hp <= 0) {
+                        scene.remove(l.mesh);
+                        gameState.lasers.splice(i, 1);
+                        continue;
+                    }
+
+                    l.mesh.position.x = l.sx + (l.target.x3d - l.sx) * l.progress;
+                    l.mesh.position.y = l.sy + ((l.target.isBoss ? 1.8 : 1.0) - l.sy) * l.progress;
+                    l.mesh.position.z = l.sz + (l.target.z3d - l.sz) * l.progress;
+
+                    if (l.progress >= 1) {
+                        l.target.hp -= gameState.shieldPower;
+                        l.target.hitFlash = 4;
+                        scene.remove(l.mesh);
+                        gameState.lasers.splice(i, 1);
+                    }
+                }
+
+                // Оновлення 3D-монстрів
+                for (let i = gameState.monsters.length - 1; i >= 0; i--) {
+                    const m = gameState.monsters[i];
+
+                    if (m.hp <= 0) {
+                        createExplosion3D(m.x3d, m.isBoss ? 1.8 : 1.0, m.z3d, m.color);
+                        sound.playExplosion();
+                        if (m.isBoss) {
+                            addLog('КВАНТОВОГО БОСА ЗНИЩЕНО!', 'text-emerald-400 font-bold');
+                        }
+                        scene.remove(m.mesh);
+                        gameState.monsters.splice(i, 1);
+                        continue;
+                    }
+
+                    // Переведення швидкості в 3D-координати
+                    const speed3D = m.speed * 0.055;
+                    if (m.x3d > GATE_X + (m.isBoss ? 1.8 : 1.1)) {
+                        m.x3d -= speed3D;
+                        m.mesh.position.x = m.x3d;
+                    } else {
+                        // Монстр атакує шлюз
+                        m.attackCooldown--;
+                        if (m.attackCooldown <= 0) {
+                            gameState.gateHP -= m.damage;
+                            updateHPUI();
+                            sound.playHit();
+                            cameraShake = 0.45;
+                            createShieldBreachRipple(m.isBoss ? 1.8 : 1.1, m.z3d);
+                            createExplosion3D(GATE_X + 0.3, 1.4, m.z3d, '#f43f5e');
+                            addLog(`Атака на шлюз! Залишилось ${Math.max(0, Math.round(gameState.gateHP))}% цілісності.`, 'text-rose-400');
+                            m.attackCooldown = 45;
+
+                            if (gameState.gateHP <= 0) {
+                                endGame(false);
+                                break;
+                            }
+                        }
+                    }
+
+                    // Анімація обертання 3D-тіла монстра та ефект влучання
+                    if (m.body) {
+                        m.body.rotation.y += 0.04;
+                        m.body.rotation.x += 0.02;
+                        if (m.hitFlash > 0) {
+                            m.body.material.emissiveIntensity = 1.6;
+                            m.hitFlash--;
+                        } else {
+                            m.body.material.emissiveIntensity = 0.35;
+                        }
+                    }
+                    if (m.ring) {
+                        m.ring.rotation.z += 0.06;
+                    }
+
+                    // Поворот смужки здоров'я до камери
+                    if (m.hpBg && m.hpFill) {
+                        m.hpBg.lookAt(camera.position);
+                        const hpRatio = Math.max(0.01, m.hp / m.maxHp);
+                        m.hpFill.scale.x = hpRatio;
+                    }
+                }
+            }
+
+            // 3. Оновлення 3D-частинок вибухів
+            for (let i = gameState.particles.length - 1; i >= 0; i--) {
+                const p = gameState.particles[i];
+                p.mesh.position.x += p.vx;
+                p.mesh.position.y += p.vy;
+                p.mesh.position.z += p.vz;
+                p.vy -= 0.012; // Гравітація
+                p.life -= 0.035;
+                p.mesh.scale.setScalar(Math.max(0.01, p.life));
+
+                if (p.life <= 0) {
+                    scene.remove(p.mesh);
+                    gameState.particles.splice(i, 1);
+                }
+            }
+
+            // 4. Оновлення 3D ударних хвиль пробою щита
+            for (let i = gameState.shieldRipples.length - 1; i >= 0; i--) {
+                const r = gameState.shieldRipples[i];
+                r.scale += 0.28;
+                r.life -= 0.04;
+                r.mesh.scale.setScalar(r.scale);
+                r.mat.opacity = Math.max(0, r.life);
+
+                if (r.life <= 0) {
+                    scene.remove(r.mesh);
+                    gameState.shieldRipples.splice(i, 1);
+                }
+            }
+
+            updateCameraPosition();
+            updateHeader3D(clockTick);
+            updatePanels3D(clockTick);
+            renderer.render(scene, camera);
+            requestAnimationFrame(updateAndDraw);
+        }
+
+        // Запуск циклу анімації після завантаження сторінки
+        window.onload = function () {
+            resizeCanvas();
+            resizeHeaderCanvas();
+            resizePanels3D();
+            updateAndDraw();
+        };
+    </script>
+</body>
+</html>
