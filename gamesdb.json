@@ -34,6 +34,13 @@
       "image": "https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/KeyboardBuilder/keyboardbuilderlogo.jpg?raw=true",
       "description": "«Збирач Клавіатури» — це захоплива гра-пазл, у якій ви зможете відчути себе справжнім майстром зі складання кастомних клавіатур! Зберіть компактну клавіатуру на 61 деталь, повертаючи кожну клавішу на своє правильне місце",
       "gameUrl": "https://infostudy-gymnasium201-kyiv.github.io/games/KeyboardBuilder/"
+    },
+    {
+      "id": 6,
+      "title": "Інформатичний Квіз!",
+      "image": "https://github.com/InfoStudy-gymnasium201-kyiv/games/blob/main/InfoBoardGame/infoboardgamelogo.jpg?raw=true",
+      "description": "",
+      "gameUrl": "https://infostudy-gymnasium201-kyiv.github.io/games/InfoBoardGame/"
     }
   ]
 }
